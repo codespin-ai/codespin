@@ -43,6 +43,22 @@ If `--write` is not mentioned, it'll simply print the code on the screen.
 codespin scaffold my-project.prompt.md --write
 ```
 
+Here's an example of a simple scaffold prompt.
+
+```
+// blog-app.prompt.md
+Create a blog app API in Python.
+
+It should have APIs to:
+1. add a blog post
+2. delete a blog post
+3. update a blog post
+4. add a comment to a post
+5. delete a comment
+
+Use postgres.
+```
+
 ### codespin generate
 
 Generate source code for a single file.
@@ -55,6 +71,16 @@ If `--write` is not mentioned, it'll simply print the code on the screen.
 ```
 codespin generate main.py.prompt.md --write
 ```
+
+Here's an example of a prompt file. 
+Note how the prompt filename is prefixed with the name of the source code file.
+
+```
+// index.js.prompt.md
+Create a NodeJS app to print the sum of the squares of integers. 
+The app should take numbers as CLI args. Use functional style code.
+```
+
 
 ### Common CLI options
 
