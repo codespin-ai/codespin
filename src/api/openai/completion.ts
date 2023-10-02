@@ -1,7 +1,4 @@
-// openai.ts
-
-import { extractMultipleFiles } from "./extractMultipleFiles.js";
-import { extractSingleFile } from "./extractSingleFile.js";
+import { extractCode } from "./extractCode.js";
 
 type CompletionResult =
   | {
@@ -92,22 +89,7 @@ async function completion(
     }
 
     const codeCompletion = data.choices[0].message.content;
-
-    if (!multiFile) {
-      // Extract the code from the provided content
-      const code = extractSingleFile(codeCompletion);
-      return {
-        success: true,
-        files: [
-          {
-            name: "",
-            contents: code,
-          },
-        ],
-      };
-    } else {
-      return { success: true, files: extractMultipleFiles(codeCompletion) };
-    }
+    return { success: true, files: extractCode(codeCompletion) };
   } catch (error: any) {
     // If an error occurs during the fetch, return an error
     return {
