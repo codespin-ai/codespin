@@ -18,7 +18,7 @@ To get command specific help:
 
 ## Usage
 
-You need to set up OPENAI_API_KEY. Go to https://platform.openai.com/signup if you don't have an account.
+You need to set up the OPENAI_API_KEY environment variable. Go to https://platform.openai.com/signup if you don't have an account.
 
 ### codespin init
 
@@ -37,6 +37,8 @@ Generates an initial set of files for a module or a project.
 Describe what you want in a file ending with a "prompt.md" extension.
 Files will be generated relative to the location of the prompt file.
 
+If `--write` is not mentioned, it'll simply print the code on the screen.
+
 ```
 codespin scaffold my-project.prompt.md --write
 ```
@@ -46,7 +48,9 @@ codespin scaffold my-project.prompt.md --write
 Generate source code for a single file.
 
 Describe what the file needs to do in a prompt file named "sourcefile.ext.prompt.md".
-The corresponding sourcefile file be updated. If the sourcefile doesn't exist, it'll be created.
+The corresponding sourcefile file will be updated. If the sourcefile doesn't exist, it'll be created.
+
+If `--write` is not mentioned, it'll simply print the code on the screen.
 
 ```
 codespin generate main.py.prompt.md --write
@@ -54,7 +58,7 @@ codespin generate main.py.prompt.md --write
 
 ### Common CLI options
 
-These are common to scaffold and generate
+These are common to the scaffold and generate commands
 
 - `--write`: Write generated code to source file.
 - `--writePrompt`: Write the prompt out to the specified path
