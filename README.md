@@ -138,7 +138,7 @@ Using codespin with an API key is the easiest option. However, if you don't have
 
 Use the `--write-prompt` command to write out the final LLM prompt to a file, like this:
 ```
-codespin generate something.py.prompt.md --write-prompt /some/where/a/file.txt.
+codespin generate something.py.prompt.md --write-prompt /some/where/a/file.txt
 ```
 
 Copy the contents of /some/where/a/file.txt and paste it in ChatGPT. 
@@ -150,7 +150,7 @@ Well, turns out you can load an LLM response from a text file with the `--file-l
 Copy ChatGPT's response into a file, and supply that as the `--file-list` argument, like this:
 
 ```
-codespin scaffold myproject.prompt.md --file-list /some/where/a/gpt/output.txt.
+codespin scaffold myproject.prompt.md --file-list /some/where/a/gpt/output.txt
 ```
 
 ## Tips
