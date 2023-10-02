@@ -60,24 +60,16 @@ export async function generate(args: GenerateArgs): Promise<CommandResult> {
   let templatePath: string;
 
   if (regenerating) {
-    templatePath = args.write
-      ? `${defaultTemplateDir}/regenerate-write.md`
-      : `${defaultTemplateDir}/regenerate.md`;
+    templatePath = `${defaultTemplateDir}/regenerate.md`;
 
     if (!(await fileExists(templatePath))) {
-      templatePath = args.write
-        ? `${fallbackTemplateDir}/regenerate-write.md`
-        : `${fallbackTemplateDir}/regenerate.md`;
+      templatePath = `${fallbackTemplateDir}/regenerate.md`;
     }
   } else {
-    templatePath = args.write
-      ? `${defaultTemplateDir}/generate-write.md`
-      : `${defaultTemplateDir}/generate.md`;
+    templatePath = `${defaultTemplateDir}/generate.md`;
 
     if (!(await fileExists(templatePath))) {
-      templatePath = args.write
-        ? `${fallbackTemplateDir}/generate-write.md`
-        : `${fallbackTemplateDir}/generate.md`;
+      templatePath = `${fallbackTemplateDir}/generate.md`;
     }
   }
 

@@ -55,14 +55,10 @@ export async function scaffold(args: ScaffoldArgs): Promise<CommandResult> {
     const __filename = url.fileURLToPath(import.meta.url);
     const fallbackTemplateDir = join(__filename, "../../../templates/default");
 
-    let templatePath = args.write
-      ? join(defaultTemplateDir, "scaffold-write.md")
-      : join(defaultTemplateDir, "scaffold.md");
+    let templatePath = join(defaultTemplateDir, "scaffold.md");
 
     if (!(await fileExists(templatePath))) {
-      templatePath = args.write
-        ? join(fallbackTemplateDir, "scaffold-write.md")
-        : join(fallbackTemplateDir, "scaffold.md");
+      templatePath = join(fallbackTemplateDir, "scaffold.md");
     }
 
     const codegenPrompt = removeFrontMatter(

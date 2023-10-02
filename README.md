@@ -125,9 +125,6 @@ Your custom template directory can have one or more of these files.
 - scaffold.md // For scaffold
 - generate.md // For generating a new source code file
 - regenerate.md // For regenerating an existing source code file
-- scaffold-write.md // For scaffold with the --write option
-- generate-write.md // For generating a new source code file with the --write option
-- regenerate-write.md // For regenerating an existing source code file with the --write option
 
 If custom templates are specified and the template is not found, the built-in templates are used as a fallback.
 
