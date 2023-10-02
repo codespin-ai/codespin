@@ -1,5 +1,4 @@
 import { evaluateTemplate } from "../prompts/evaluateTemplate.js";
-import { readFileContents } from "../fs/readFileContents.js";
 import { completion as openaiCompletion } from "../api/openai/completion.js";
 import { readPromptSettings } from "../prompts/readPromptSettings.js";
 import { promises as fs } from "fs";
@@ -11,6 +10,7 @@ import * as url from "url";
 import { ensureDirectoryExists } from "../fs/ensureDirectoryExists.js";
 import { execCommand } from "../process/execCommand.js";
 import { readConfig } from "../settings/readConfig.js";
+import { removeFrontMatter } from "../prompts/removeFrontMatter.js";
 
 type ScaffoldArgs = {
   scaffoldPromptFile: string;
@@ -65,9 +65,8 @@ export async function scaffold(args: ScaffoldArgs): Promise<CommandResult> {
         : join(fallbackTemplateDir, "scaffold.md");
     }
 
-    const codegenPrompt = await readFileContents(
-      args.scaffoldPromptFile,
-      false
+    const codegenPrompt = removeFrontMatter(
+      await fs.readFile(args.scaffoldPromptFile, "utf-8")
     );
 
     let templateArgs: any = {
@@ -101,8 +100,7 @@ export async function scaffold(args: ScaffoldArgs): Promise<CommandResult> {
       evaluatedPrompt,
       model,
       maxTokens,
-      args.debug,
-      true
+      args.debug
     );
 
     if (completionResult.success) {

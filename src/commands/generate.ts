@@ -1,5 +1,4 @@
 import { evaluateTemplate } from "../prompts/evaluateTemplate.js";
-import { readFileContents } from "../fs/readFileContents.js";
 import { getDiff } from "../git/getDiff.js";
 import { completion as openaiCompletion } from "../api/openai/completion.js";
 import { readPromptSettings } from "../prompts/readPromptSettings.js";
@@ -12,6 +11,8 @@ import * as url from "url";
 import { isCommitted } from "../git/isCommitted.js";
 import { execCommand } from "../process/execCommand.js";
 import { readConfig } from "../settings/readConfig.js";
+import { addLineNumbers } from "../text/addLineNumbers.js";
+import { removeFrontMatter } from "../prompts/removeFrontMatter.js";
 
 type GenerateArgs = {
   promptFile: string;
@@ -43,7 +44,7 @@ export async function generate(args: GenerateArgs): Promise<CommandResult> {
     };
   }
 
-  const isWrite = codeFileExists && (await isCommitted(args.promptFile));
+  const regenerating = codeFileExists && (await isCommitted(args.promptFile));
 
   const promptSettings = await readPromptSettings(args.promptFile);
 
@@ -58,7 +59,7 @@ export async function generate(args: GenerateArgs): Promise<CommandResult> {
 
   let templatePath: string;
 
-  if (isWrite) {
+  if (regenerating) {
     templatePath = args.write
       ? `${defaultTemplateDir}/regenerate-write.md`
       : `${defaultTemplateDir}/regenerate.md`;
@@ -80,19 +81,28 @@ export async function generate(args: GenerateArgs): Promise<CommandResult> {
     }
   }
 
-  const codegenPrompt = await readFileContents(args.promptFile, isWrite);
+  const codegenPromptFileRawContents = removeFrontMatter(
+    await fs.readFile(args.promptFile, "utf-8")
+  );
+
+  const codegenPrompt = regenerating
+    ? addLineNumbers(codegenPromptFileRawContents)
+    : codegenPromptFileRawContents;
 
   let templateArgs: any = {
     codeFile,
     codegenPrompt,
   };
 
-  if (isWrite) {
+  if (regenerating) {
     const promptDiff = await getDiff(args.promptFile);
     if (!promptDiff) {
       return { success: false, message: "Prompt hasn't changed." };
     }
-    const codeFileContents = await readFileContents(codeFile, true);
+    const codeFileContents = addLineNumbers(
+      await fs.readFile(codeFile, "utf-8")
+    );
+
     templateArgs = {
       ...templateArgs,
       codeFileContents,
@@ -127,8 +137,7 @@ export async function generate(args: GenerateArgs): Promise<CommandResult> {
     evaluatedPrompt,
     model,
     maxTokens,
-    args.debug,
-    false
+    args.debug
   );
 
   if (completionResult.success) {

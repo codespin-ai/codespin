@@ -4,6 +4,7 @@ import { promises as fs } from "fs";
 import { exec } from "child_process";
 import { tmpdir } from "os";
 import { join } from "path";
+import { removeFrontMatter } from "../prompts/removeFrontMatter.js";
 
 async function execPromise(command: string): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -17,21 +18,6 @@ async function execPromise(command: string): Promise<string> {
       }
     });
   });
-}
-
-async function removeFrontMatter(content: string): Promise<string> {
-  const lines = content.split("\n");
-  let inFrontMatter = false;
-
-  const newContent = lines.filter((line) => {
-    if (line === "---") {
-      inFrontMatter = !inFrontMatter;
-      return false;
-    }
-    return !inFrontMatter;
-  });
-
-  return newContent.join("\n");
 }
 
 async function createTempFile(content: string): Promise<string> {

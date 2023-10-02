@@ -20,10 +20,14 @@ async function completion(
   prompt: string,
   model: string | undefined = "gpt-3.5-turbo",
   maxTokens: number | undefined = prompt.length,
-  debug: boolean | undefined = false,
-  multiFile: boolean
+  debug: boolean | undefined = false
 ): Promise<CompletionResult> {
   const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+
+  if (debug) {
+    console.log(`OPENAI: model=${model}`);
+    console.log(`OPENAI: maxTokens=${maxTokens}`);
+  }
 
   // Check if the API key is available
   if (!OPENAI_API_KEY) {
