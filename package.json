@@ -1,0 +1,37 @@
+{
+  "name": "codespin",
+  "version": "0.0.14",
+  "description": "Source code generation with LLM prompts",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npx tsc"
+  },
+  "bin": {
+    "codespin": "dist/index.js"
+  },
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codespin-ai/codespin-cli.git"
+  },
+  "keywords": [
+    "llm",
+    "codegen"
+  ],
+  "license":"MIT",
+  "author": "CodeSpin.AI",
+  "bugs": {
+    "url": "https://github.com/codespin-ai/codespin-cli/issues"
+  },
+  "homepage": "https://github.com/codespin-ai/codespin-cli#readme",
+  "dependencies": {
+    "@types/node": "^20.7.1",
+    "@types/node-fetch": "^2.6.6",
+    "@types/yargs": "^17.0.25",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2"
+  }
+}

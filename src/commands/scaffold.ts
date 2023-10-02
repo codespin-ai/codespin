@@ -1,0 +1,154 @@
+import { evaluateTemplate } from "../prompts/evaluateTemplate.js";
+import { readFileContents } from "../fs/readFileContents.js";
+import { completion as openaiCompletion } from "../api/openai/completion.js";
+import { readPromptSettings } from "../prompts/readPromptSettings.js";
+import { promises as fs } from "fs";
+import { CommandResult } from "./CommandResult.js";
+import { writeToFile } from "../fs/writeToFile.js";
+import { dirname, join } from "path";
+import { fileExists } from "../fs/fileExists.js";
+import * as url from "url";
+import { ensureDirectoryExists } from "../fs/ensureDirectoryExists.js";
+import { execCommand } from "../process/execCommand.js";
+import { readConfig } from "../settings/readConfig.js";
+
+type ScaffoldArgs = {
+  scaffoldPromptFile: string;
+  api?: string;
+  model?: string;
+  maxTokens?: number;
+  update?: boolean;
+  writePrompt?: string;
+  template?: string;
+  debug?: boolean;
+  fileList?: string;
+  exec?: string;
+  config?: string;
+};
+
+export async function scaffold(args: ScaffoldArgs): Promise<CommandResult> {
+  const config = await readConfig(args.config || "codespin.json");
+
+  const scaffoldPromptFileDir = dirname(args.scaffoldPromptFile);
+  if (args.fileList) {
+    const fileListJsonToParse = await fs.readFile(args.fileList, "utf-8");
+    const fileList = JSON.parse(fileListJsonToParse);
+    await extractFilesToDisk(scaffoldPromptFileDir, fileList, args.exec);
+    return { success: true };
+  } else {
+    if (!args.scaffoldPromptFile.endsWith(".prompt.md")) {
+      return {
+        success: false,
+        message:
+          "Invalid prompt file name. Prompt files should end with .prompt.md.",
+      };
+    }
+
+    const promptSettings = await readPromptSettings(args.scaffoldPromptFile);
+
+    const defaultTemplateDir =
+      args.template ||
+      promptSettings?.template ||
+      config.template ||
+      "codespin/templates/default";
+
+    const __filename = url.fileURLToPath(import.meta.url);
+    const fallbackTemplateDir = join(__filename, "../../../templates/default");
+
+    let templatePath = args.update
+      ? join(defaultTemplateDir, "scaffold-update.md")
+      : join(defaultTemplateDir, "scaffold.md");
+
+    if (!(await fileExists(templatePath))) {
+      templatePath = args.update
+        ? join(fallbackTemplateDir, "scaffold-update.md")
+        : join(fallbackTemplateDir, "scaffold.md");
+    }
+
+    const codegenPrompt = await readFileContents(
+      args.scaffoldPromptFile,
+      false
+    );
+
+    let templateArgs: any = {
+      codegenPrompt,
+    };
+
+    const evaluatedPrompt = await evaluateTemplate(templatePath, templateArgs);
+
+    if (args.debug) {
+      console.log("--- PROMPT ---");
+      console.log(evaluatedPrompt);
+    }
+
+    if (args.writePrompt) {
+      await writeToFile(args.writePrompt, evaluatedPrompt);
+      return { success: true };
+    }
+
+    if (args.api !== "openai") {
+      return {
+        success: false,
+        message: "Invalid API specified. Only 'openai' is supported.",
+      };
+    }
+
+    const model = args.model || config.model || promptSettings?.model;
+    const maxTokens =
+      args.maxTokens || config.maxTokens || promptSettings?.maxTokens;
+
+    const completionResult = await openaiCompletion(
+      evaluatedPrompt,
+      model,
+      maxTokens,
+      args.debug,
+      true
+    );
+
+    if (completionResult.success) {
+      if (args.update) {
+        await extractFilesToDisk(
+          scaffoldPromptFileDir,
+          completionResult,
+          args.exec
+        );
+      } else {
+        for (const file of completionResult.files) {
+          console.log(file.name);
+          console.log(file.contents);
+        }
+      }
+
+      return {
+        success: true,
+        message: `Generated ${completionResult.files.length} files.`,
+      };
+    }
+    return {
+      success: false,
+      message: `${completionResult.error.code}: ${completionResult.error.message}`,
+    };
+  }
+}
+
+async function extractFilesToDisk(
+  scaffoldPromptFileDir: string,
+  data: {
+    files: { name: string; contents: string }[];
+  },
+  exec: string | undefined
+) {
+  for (const file of data.files) {
+    const generatedFilePath = join(scaffoldPromptFileDir, file.name);
+    if (!(await fileExists(generatedFilePath))) {
+      await ensureDirectoryExists(generatedFilePath);
+      await fs.writeFile(generatedFilePath, file.contents);
+
+      if (exec) {
+        await execCommand(exec, [generatedFilePath]);
+      }
+    } else {
+      console.log(`Skipped ${file.name} since it exists.`);
+    }
+  }
+}

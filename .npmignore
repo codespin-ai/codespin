@@ -1,0 +1,6 @@
+src/*
+dist/test/*
+build.sh
+.gitignore
+.vscode
+**/*prompt.md

@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist",
+    "allowJs": false,
+    "target": "ES2020",
+    "module": "NodeNext",
+    "declaration": true,
+    "moduleResolution": "NodeNext",
+    "sourceMap": true,
+    "strict": true
+  },
+  "include": ["./src/**/*"],
+  "exclude": ["./.eslintrc.js"]
+}
