@@ -20,7 +20,7 @@ To get command specific help:
 
 You need to set up the OPENAI_API_KEY environment variable. Go to https://platform.openai.com/signup if you don't have an account.
 
-If you don't have a OPENAI_API_KEY, you can [Use it with ChatGPT](#using-with-chatgpt). 
+If you don't have an OPENAI_API_KEY, you can [Use it with ChatGPT](#using-with-chatgpt). 
 
 ### codespin init
 
@@ -133,7 +133,7 @@ If custom templates are specified and the template is not found, the built-in te
 
 ## Using with ChatGPT
 
-Using with an API key is the easiest option. However, if you don't have an API key but have access to ChatGPT there are some work arounds.
+Using codespin with an API key is the easiest option. However, if you don't have an API key but have access to ChatGPT there are some work arounds.
 
 Use the `--write-file` command to write out the final LLM prompt to a file, like this:
 ```
@@ -146,7 +146,7 @@ Update the source file manually with ChatGPT's response.
 But what about scaffolds?
 
 Well, turns out you can load an LLM response from a text file with the `--file-list` parameter.
-Copy ChatGPTs response into a file, and supply that as the `--file-list` argument, like this:
+Copy ChatGPT's response into a file, and supply that as the `--file-list` argument, like this:
 
 ```
 codespin scaffold myproject.prompt.md --file-list /some/where/a/gpt/output.txt.
