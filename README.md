@@ -1,6 +1,6 @@
 # codespin-cli
 
-CodeSpin.AI Code Generation Tools
+CodeSpin.AI Code Generation Tools. Open Source, MIT-licensed.
 
 ## Installation
 
