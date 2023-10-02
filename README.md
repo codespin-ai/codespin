@@ -14,6 +14,10 @@ To list all commands:
 
 To get command specific help:
 
+`codespin <command> help`
+
+For example:
+
 `codespin generate help`
 
 ## Usage
@@ -84,7 +88,7 @@ The app should take numbers as CLI args. Use functional style code.
 ```
 
 
-### Common CLI options
+## Common CLI options
 
 These are common to the scaffold and generate commands
 
@@ -99,7 +103,7 @@ These are common to the scaffold and generate commands
 - `--config`: Path to codespin config
 - `-h, --help`: Show help
 
-### Prompt File Settings
+## Prompt File Settings
 
 Prompt files (prompt.md files) allow JSON settings using front matter.
 This allows you to configure api, model, template and maxTokens parameter individually for each prompt.md file.
