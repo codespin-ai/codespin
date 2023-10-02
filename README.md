@@ -81,7 +81,8 @@ Here's an example prompt file with custom configuration.
   "model": "gpt-3.5-turbo-16k"
 }
 ---
-Create a NodeJS app to print the sum of the squares of integers. The app should take numbers as CLI args.
+Create a NodeJS app to print the sum of the squares of integers.
+The app should take numbers as CLI args.
 ```
 
 ## Custom Templates
