@@ -22,7 +22,7 @@ function extractGenerateArgs(argv: Arguments) {
     api: argv.api as string,
     model: argv.model as string,
     maxTokens: argv.maxTokens as number,
-    update: argv.update as boolean,
+    write: argv.write as boolean,
     writePrompt: argv.writePrompt as string,
     template: argv.template as string,
     debug: argv.debug as boolean,
@@ -38,7 +38,7 @@ function extractScaffoldArgs(argv: Arguments) {
     api: argv.api as string,
     model: argv.model as string,
     maxTokens: argv.maxTokens as number,
-    update: argv.update as boolean,
+    write: argv.write as boolean,
     writePrompt: argv.writePrompt as string,
     template: argv.template as string,
     debug: argv.debug as boolean,
@@ -91,10 +91,10 @@ async function main() {
             describe: "Name of the prompt file",
             type: "string",
           })
-          .option("update", {
+          .option("write", {
             type: "boolean",
             default: false,
-            describe: "Update source file with generated code",
+            describe: "Write generated code to source file",
           })
           .option("writePrompt", {
             type: "string",
@@ -144,6 +144,11 @@ async function main() {
           .positional("filename", {
             describe: "Name of the scaffold prompt file",
             type: "string",
+          })
+          .option("write", {
+            type: "boolean",
+            default: false,
+            describe: "Write generated code to source file",
           })
           .option("writePrompt", {
             type: "string",

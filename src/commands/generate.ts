@@ -18,7 +18,7 @@ type GenerateArgs = {
   api?: string;
   model?: string;
   maxTokens?: number;
-  update?: boolean;
+  write?: boolean;
   writePrompt?: string;
   template?: string;
   debug?: boolean;
@@ -43,7 +43,7 @@ export async function generate(args: GenerateArgs): Promise<CommandResult> {
     };
   }
 
-  const isUpdate = codeFileExists && (await isCommitted(args.promptFile));
+  const isWrite = codeFileExists && (await isCommitted(args.promptFile));
 
   const promptSettings = await readPromptSettings(args.promptFile);
 
@@ -58,36 +58,36 @@ export async function generate(args: GenerateArgs): Promise<CommandResult> {
 
   let templatePath: string;
 
-  if (isUpdate) {
-    templatePath = args.update
-      ? `${defaultTemplateDir}/regenerate-update.md`
+  if (isWrite) {
+    templatePath = args.write
+      ? `${defaultTemplateDir}/regenerate-write.md`
       : `${defaultTemplateDir}/regenerate.md`;
 
     if (!(await fileExists(templatePath))) {
-      templatePath = args.update
-        ? `${fallbackTemplateDir}/regenerate-update.md`
+      templatePath = args.write
+        ? `${fallbackTemplateDir}/regenerate-write.md`
         : `${fallbackTemplateDir}/regenerate.md`;
     }
   } else {
-    templatePath = args.update
-      ? `${defaultTemplateDir}/generate-update.md`
+    templatePath = args.write
+      ? `${defaultTemplateDir}/generate-write.md`
       : `${defaultTemplateDir}/generate.md`;
 
     if (!(await fileExists(templatePath))) {
-      templatePath = args.update
-        ? `${fallbackTemplateDir}/generate-update.md`
+      templatePath = args.write
+        ? `${fallbackTemplateDir}/generate-write.md`
         : `${fallbackTemplateDir}/generate.md`;
     }
   }
 
-  const codegenPrompt = await readFileContents(args.promptFile, isUpdate);
+  const codegenPrompt = await readFileContents(args.promptFile, isWrite);
 
   let templateArgs: any = {
     codeFile,
     codegenPrompt,
   };
 
-  if (isUpdate) {
+  if (isWrite) {
     const promptDiff = await getDiff(args.promptFile);
     if (!promptDiff) {
       return { success: false, message: "Prompt hasn't changed." };
@@ -133,7 +133,7 @@ export async function generate(args: GenerateArgs): Promise<CommandResult> {
 
   if (completionResult.success) {
     const code = completionResult.files[0].contents;
-    if (args.update) {
+    if (args.write) {
       await fs.writeFile(codeFile, code);
       if (args.exec) {
         await execCommand(args.exec, [codeFile]);

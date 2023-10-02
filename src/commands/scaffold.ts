@@ -17,7 +17,7 @@ type ScaffoldArgs = {
   api?: string;
   model?: string;
   maxTokens?: number;
-  update?: boolean;
+  write?: boolean;
   writePrompt?: string;
   template?: string;
   debug?: boolean;
@@ -55,13 +55,13 @@ export async function scaffold(args: ScaffoldArgs): Promise<CommandResult> {
     const __filename = url.fileURLToPath(import.meta.url);
     const fallbackTemplateDir = join(__filename, "../../../templates/default");
 
-    let templatePath = args.update
-      ? join(defaultTemplateDir, "scaffold-update.md")
+    let templatePath = args.write
+      ? join(defaultTemplateDir, "scaffold-write.md")
       : join(defaultTemplateDir, "scaffold.md");
 
     if (!(await fileExists(templatePath))) {
-      templatePath = args.update
-        ? join(fallbackTemplateDir, "scaffold-update.md")
+      templatePath = args.write
+        ? join(fallbackTemplateDir, "scaffold-write.md")
         : join(fallbackTemplateDir, "scaffold.md");
     }
 
@@ -106,7 +106,7 @@ export async function scaffold(args: ScaffoldArgs): Promise<CommandResult> {
     );
 
     if (completionResult.success) {
-      if (args.update) {
+      if (args.write) {
         await extractFilesToDisk(
           scaffoldPromptFileDir,
           completionResult,
