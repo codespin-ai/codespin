@@ -133,7 +133,7 @@ If custom templates are specified and the template is not found, the built-in te
 
 ## Using with ChatGPT
 
-Using codespin with an API key is the easiest option. However, if you don't have an API key but have access to ChatGPT there are some work arounds.
+Using codespin with an API key is the easiest option. However, if you don't have an API key but have access to ChatGPT there are some workarounds.
 
 Use the `--write-file` command to write out the final LLM prompt to a file, like this:
 ```
