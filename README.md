@@ -84,7 +84,22 @@ Here's an example prompt file with custom configuration.
 Create a NodeJS app to print the sum of the squares of integers. The app should take numbers as CLI args.
 ```
 
-### Custom Templates
+## Custom Templates
 
 To define your own custom templates, refer to the examples at https://github.com/codespin-ai/codespin-cli/tree/main/templates/default
-Your custom template directory should have all six files.
+
+Your custom template directory can have one or more of these files.
+- scaffold.md // For scaffold
+- generate.md // For generating a new source code file
+- regenerate.md // For regenerating an existing source code file
+- scaffold-write.md // For scaffold with the --write option
+- generate-write.md // For generating a new source code file with the --write option
+- regenerate-write.md // For regenerating an existing source code file with the --write option
+
+If custom templates are specified and the template is not found, the built-in templates are used as a fallback.
+
+## Tips
+
+1. Keep committing prompts and code whenever you're happy with the generated code.
+2. It's totally fine to make minor edits to the generated code. Regeneration will usually take into consideration your edits.
+3. If you want to make major edits, do it by editing the prompt files.
