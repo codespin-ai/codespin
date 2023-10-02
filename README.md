@@ -89,10 +89,10 @@ The app should take numbers as CLI args. Use functional style code.
 These are common to the scaffold and generate commands
 
 - `--write`: Write generated code to source file.
-- `--writePrompt`: Write the prompt out to the specified path
+- `--write-prompt`: Write the prompt out to the specified path
 - `--api`: API service to use. Defaults to OpenAI.
 - `--model`: The model to use. Defaults to gpt-3.5-turbo
-- `--maxTokens`: Maximum number of tokens for generated code
+- `--max-tokens`: Maximum number of tokens for generated code
 - `--template`: Path to the template to be used. Defaults to built-in templates.
 - `--exec`: Execute a command for each generated file. For example, you might want to run a formatting tool.
 - `--debug`: Enable debug mode. Prints prompts, responses etc.
@@ -135,9 +135,9 @@ If custom templates are specified and the template is not found, the built-in te
 
 Using codespin with an API key is the easiest option. However, if you don't have an API key but have access to ChatGPT there are some work arounds.
 
-Use the `--write-file` command to write out the final LLM prompt to a file, like this:
+Use the `--write-prompt` command to write out the final LLM prompt to a file, like this:
 ```
-codespin generate something.py.prompt.md --write-file /some/where/a/file.txt.
+codespin generate something.py.prompt.md --write-prompt /some/where/a/file.txt.
 ```
 
 Copy the contents of /some/where/a/file.txt and paste it in ChatGPT. 
