@@ -5,6 +5,7 @@ import { exec } from "child_process";
 import { tmpdir } from "os";
 import { join } from "path";
 import { removeFrontMatter } from "../prompts/removeFrontMatter.js";
+import { generateRandomString } from "../text/getRandomString.js";
 
 async function execPromise(command: string): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -21,7 +22,10 @@ async function execPromise(command: string): Promise<string> {
 }
 
 async function createTempFile(content: string): Promise<string> {
-  const tempPath = join(tmpdir(), `${Date.now()}.tmp`);
+  const tempPath = join(
+    tmpdir(),
+    `${Date.now()}-${generateRandomString()}.tmp`
+  );
   await fs.writeFile(tempPath, content, "utf8");
   return tempPath;
 }
