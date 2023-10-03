@@ -46,16 +46,18 @@ export async function scaffold(args: ScaffoldArgs): Promise<CommandResult> {
 
     const promptSettings = await readPromptSettings(args.scaffoldPromptFile);
 
-    const defaultTemplateDir =
+    const templateDir = join(
+      "codespin/templates/",
       args.template ||
-      promptSettings?.template ||
-      config.template ||
-      "codespin/templates/default";
+        promptSettings?.template ||
+        config.template ||
+        "codespin/templates/default"
+    );
 
     const __filename = url.fileURLToPath(import.meta.url);
     const fallbackTemplateDir = join(__filename, "../../../templates/default");
 
-    let templatePath = join(defaultTemplateDir, "scaffold.md");
+    let templatePath = join(templateDir, "scaffold.md");
 
     if (!(await fileExists(templatePath))) {
       templatePath = join(fallbackTemplateDir, "scaffold.md");

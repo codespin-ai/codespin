@@ -48,11 +48,10 @@ export async function generate(args: GenerateArgs): Promise<CommandResult> {
 
   const promptSettings = await readPromptSettings(args.promptFile);
 
-  const defaultTemplateDir =
-    args.template ||
-    promptSettings?.template ||
-    config.template ||
-    "codespin/templates/default";
+  const templateDir = join(
+    "codespin/templates/",
+    args.template || promptSettings?.template || config.template || "default"
+  );
 
   const __filename = url.fileURLToPath(import.meta.url);
   const fallbackTemplateDir = join(__filename, "../../../templates/default");
@@ -60,13 +59,13 @@ export async function generate(args: GenerateArgs): Promise<CommandResult> {
   let templatePath: string;
 
   if (regenerating) {
-    templatePath = `${defaultTemplateDir}/regenerate.md`;
+    templatePath = `${templateDir}/regenerate.md`;
 
     if (!(await fileExists(templatePath))) {
       templatePath = `${fallbackTemplateDir}/regenerate.md`;
     }
   } else {
-    templatePath = `${defaultTemplateDir}/generate.md`;
+    templatePath = `${templateDir}/generate.md`;
 
     if (!(await fileExists(templatePath))) {
       templatePath = `${fallbackTemplateDir}/generate.md`;
