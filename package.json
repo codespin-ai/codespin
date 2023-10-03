@@ -1,6 +1,6 @@
 {
   "name": "codespin",
-  "version": "0.0.26",
+  "version": "0.0.27",
   "description": "Source code generation with LLM prompts",
   "main": "dist/index.js",
   "scripts": {
@@ -19,7 +19,7 @@
     "llm",
     "codegen"
   ],
-  "license":"MIT",
+  "license": "MIT",
   "author": "CodeSpin.AI",
   "bugs": {
     "url": "https://github.com/codespin-ai/codespin-cli/issues"
