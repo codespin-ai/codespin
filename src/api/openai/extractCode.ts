@@ -7,7 +7,6 @@ export function extractCode(
   response: string
 ): { name: string; contents: string }[] {
   const result = parseFileContents(response);
-  console.log({ result });
   return result;
 }
 
