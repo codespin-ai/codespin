@@ -12,7 +12,7 @@ import { execCommand } from "../process/execCommand.js";
 import { readConfig } from "../settings/readConfig.js";
 import { removeFrontMatter } from "../prompts/removeFrontMatter.js";
 
-type ScaffoldArgs = {
+export type ScaffoldArgs = {
   scaffoldPromptFile: string;
   api?: string;
   model?: string;

@@ -14,7 +14,7 @@ import { readConfig } from "../settings/readConfig.js";
 import { addLineNumbers } from "../text/addLineNumbers.js";
 import { removeFrontMatter } from "../prompts/removeFrontMatter.js";
 
-type GenerateArgs = {
+export type GenerateArgs = {
   promptFile: string;
   api?: string;
   model?: string;
@@ -25,6 +25,7 @@ type GenerateArgs = {
   debug?: boolean;
   exec?: string;
   config?: string;
+  modify?: boolean;
 };
 
 export async function generate(args: GenerateArgs): Promise<CommandResult> {
@@ -59,10 +60,18 @@ export async function generate(args: GenerateArgs): Promise<CommandResult> {
   let templatePath: string;
 
   if (regenerating) {
-    templatePath = `${templateDir}/regenerate.md`;
+    if (args.modify) {
+      templatePath = `${templateDir}/modify.md`;
 
-    if (!(await fileExists(templatePath))) {
-      templatePath = `${fallbackTemplateDir}/regenerate.md`;
+      if (!(await fileExists(templatePath))) {
+        templatePath = `${fallbackTemplateDir}/modify.md`;
+      }
+    } else {
+      templatePath = `${templateDir}/regenerate.md`;
+
+      if (!(await fileExists(templatePath))) {
+        templatePath = `${fallbackTemplateDir}/regenerate.md`;
+      }
     }
   } else {
     templatePath = `${templateDir}/generate.md`;

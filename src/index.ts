@@ -2,8 +2,8 @@
 
 import yargs, { Arguments } from "yargs";
 import { init } from "./commands/init.js";
-import { generate } from "./commands/generate.js";
-import { scaffold } from "./commands/scaffold.js";
+import { GenerateArgs, generate } from "./commands/generate.js";
+import { ScaffoldArgs, scaffold } from "./commands/scaffold.js";
 import { CommandResult } from "./commands/CommandResult.js";
 import { isGitRepo } from "./git/isGitRepo.js";
 import { getPackageVersion } from "./getPackageVersion.js";
@@ -16,7 +16,7 @@ function extractInitArgs(argv: Arguments) {
 }
 
 // Convert yargs arguments to GenerateArgs type for generate command
-function extractGenerateArgs(argv: Arguments) {
+function extractGenerateArgs(argv: Arguments): GenerateArgs {
   return {
     promptFile: argv.filename as string,
     api: argv.api as string,
@@ -28,11 +28,12 @@ function extractGenerateArgs(argv: Arguments) {
     debug: argv.debug as boolean,
     exec: argv.exec as string,
     config: argv.config as string,
+    modify: argv.modify as boolean,
   };
 }
 
 // Convert yargs arguments to ScaffoldArgs type for generate command
-function extractScaffoldArgs(argv: Arguments) {
+function extractScaffoldArgs(argv: Arguments): ScaffoldArgs {
   return {
     scaffoldPromptFile: argv.filename as string,
     api: argv.api as string,
@@ -99,6 +100,10 @@ async function main() {
           .option("writePrompt", {
             type: "string",
             describe: "Write the prompt out to the specified path",
+          })
+          .option("modify", {
+            type: "string",
+            describe: "Modify a source file",
           })
           .option("api", {
             type: "string",
