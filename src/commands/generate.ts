@@ -26,6 +26,7 @@ export type GenerateArgs = {
   exec?: string;
   config?: string;
   modify?: boolean;
+  scaffold?: boolean;
 };
 
 export async function generate(args: GenerateArgs): Promise<CommandResult> {
@@ -57,28 +58,24 @@ export async function generate(args: GenerateArgs): Promise<CommandResult> {
   const __filename = url.fileURLToPath(import.meta.url);
   const fallbackTemplateDir = join(__filename, "../../../templates/default");
 
+  async function findTemplate(name: string): Promise<string> {
+    const templatePath = `${templateDir}/${name}`;
+
+    return (await fileExists(templatePath))
+      ? templatePath
+      : `${fallbackTemplateDir}/${name}`;
+  }
+
   let templatePath: string;
 
   if (regenerating) {
     if (args.modify) {
-      templatePath = `${templateDir}/modify.md`;
-
-      if (!(await fileExists(templatePath))) {
-        templatePath = `${fallbackTemplateDir}/modify.md`;
-      }
+      templatePath = await findTemplate("modify.md");
     } else {
-      templatePath = `${templateDir}/regenerate.md`;
-
-      if (!(await fileExists(templatePath))) {
-        templatePath = `${fallbackTemplateDir}/regenerate.md`;
-      }
+      templatePath = await findTemplate("regenerate.md");
     }
   } else {
-    templatePath = `${templateDir}/generate.md`;
-
-    if (!(await fileExists(templatePath))) {
-      templatePath = `${fallbackTemplateDir}/generate.md`;
-    }
+    templatePath = await findTemplate("generate.md");
   }
 
   const codegenPromptFileRawContents = removeFrontMatter(
