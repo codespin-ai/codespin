@@ -66,7 +66,7 @@ To regenerate a file, use the `regenerate.md` template instead of `generate.md`.
 codespin generate main.py.prompt.md --template regenerate.md --include main.py --write
 ```
 
-## Parameters for codespin generate
+#### Parameters for codespin generate
 
 Options available with the `codespin generate` command include:
 
