@@ -105,7 +105,7 @@ model: gpt-3.5-turbo-16k
 Generate a Python CLI script named index.py that accepts a set of arguments and prints their sum.
 ```
 
-A prompt file can optionally contain YAML front-matter for the `--template`, `--api`, `--model`, and `--max-token` parameters.
+A prompt file can optionally contain YAML front-matter for the `--include`, `--template`, `--api`, `--model` and `--max-token` parameters.
 
 ## Immediate Mode for Prompting
 
