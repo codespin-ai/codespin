@@ -20,11 +20,7 @@ To list all commands:
 codespin help
 ```
 
-To get specific help for a command:
-
-```sh
-codespin <command> help
-```
+To get specific help for a command, just type in `codespin command help`.
 
 For example:
 
