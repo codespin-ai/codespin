@@ -1,4 +1,3 @@
-import { CommandResult } from "./CommandResult.js";
 import { promises as fs } from "fs";
 import path from "path";
 import { resolve } from "path";
@@ -15,20 +14,16 @@ const DEFAULT_JSON_CONTENT = {
   model: "gpt-3.5-turbo",
 };
 
-async function init(args: InitArgs): Promise<CommandResult> {
+async function init(args: InitArgs): Promise<void> {
   const currentDir = process.cwd();
   const configFile = resolve(currentDir, "codespin.json");
 
   try {
     // Check if codespin.json already exists
     if (await fileExists(configFile)) {
-      if (!args.force) {
-        return {
-          success: false,
-          message:
-            "codespin.json already exists. Use the --force option to overwrite.",
-        };
-      }
+      throw new Error(
+        "codespin.json already exists. Use the --force option to overwrite."
+      );
     }
     await fs.writeFile(
       configFile,
@@ -52,12 +47,9 @@ async function init(args: InitArgs): Promise<CommandResult> {
       resolve(currentDir, "codespin/templates")
     );
 
-    return { success: true, message: "Initialization completed." };
+    console.log("Initialization completed.");
   } catch (err: any) {
-    return {
-      success: false,
-      message: `Error during initialization: ${err.message}`,
-    };
+    console.log(`Error during initialization: ${err.message}`);
   }
 }
 

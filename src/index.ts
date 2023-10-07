@@ -1,23 +1,10 @@
 #!/usr/bin/env node
 
-import yargs, { Arguments } from "yargs";
+import yargs from "yargs";
+import { generate } from "./commands/generate.js";
 import { init } from "./commands/init.js";
-import { GenerateArgs, generate } from "./commands/generate.js";
-import { CommandResult } from "./commands/CommandResult.js";
-import { isGitRepo } from "./git/isGitRepo.js";
 import { getPackageVersion } from "./getPackageVersion.js";
-
-function printResult(result: CommandResult) {
-  if (result.success) {
-    if (result.message) {
-      console.log(result.message);
-    }
-  } else {
-    if (result.message) {
-      console.error(result.message);
-    }
-  }
-}
+import { isGitRepo } from "./git/isGitRepo.js";
 
 async function main() {
   if (!(await isGitRepo())) {
@@ -35,8 +22,7 @@ async function main() {
           describe: "Force overwrite the codespin.json config file",
         }),
       async (argv) => {
-        const result = await init(argv);
-        printResult(result);
+        await init(argv);
       }
     )
     .command(
@@ -45,61 +31,65 @@ async function main() {
       (yargs) =>
         yargs
           .positional("promptFile", {
-            describe: "Name of the prompt file",
+            describe: "Name of the prompt file.",
             demandOption: true,
             type: "string",
           })
           .option("write", {
             type: "boolean",
             default: false,
-            describe: "Write generated code to source file",
+            describe: "Write generated code to source file.",
           })
           .option("include", {
-            describe: "List of files",
+            describe:
+              "List of files to include in the prompt. This provides additional context during code generation.",
             type: "array",
             string: true,
           })
           .option("writePrompt", {
             type: "string",
-            describe: "Write the prompt out to the specified path",
-          })
-          .option("modify", {
-            type: "boolean",
-            describe: "Modify a source file",
+            describe:
+              "Write the generated prompt out to the specified path. Does not call the API.",
           })
           .option("api", {
             type: "string",
             default: "openai",
-            describe: "API service to use",
+            describe:
+              "API to use, such as 'openai'. Only 'openai' is supported now.",
           })
           .option("model", {
             type: "string",
-            describe: "Model name to use",
+            describe: "Name of the model to use. Such as 'gpt-4'.",
           })
           .option("maxTokens", {
             type: "number",
-            describe: "Maximum number of tokens for generated code",
+            describe: "Maximum number of tokens for generated code.",
           })
           .option("template", {
             type: "string",
             demandOption: true,
-            describe: "Path to the template directory",
+            describe: "Path to the template directory.",
           })
           .option("exec", {
             type: "string",
-            describe: "Execute a command for each generated file",
+            describe: "Execute a command for each generated file.",
           })
           .option("debug", {
             type: "boolean",
-            describe: "Enable debug mode",
+            describe:
+              "Enable debug mode. This prints a debug messages for every step.",
           })
           .option("config", {
             type: "string",
-            describe: "Path to config file",
+            describe: "Path to config file.",
+          })
+          .option("baseDir", {
+            type: "string",
+            describe:
+              "Path to directory relative to which files are generated. Defaults to the directory of the prompt file.",
           }),
       async (argv) => {
-        const result = await generate(argv);
-        printResult(result);
+        await generate(argv);
       }
     )
     .command("version", "Display the current version", {}, () => {

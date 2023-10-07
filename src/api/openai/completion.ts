@@ -2,14 +2,14 @@ import { extractCode } from "./extractCode.js";
 
 type CompletionResult =
   | {
-      success: true;
+      ok: true;
       files: {
         name: string;
         contents: string;
       }[];
     }
   | {
-      success: false;
+      ok: false;
       error: {
         code: string;
         message: string;
@@ -32,7 +32,7 @@ async function completion(
   // Check if the API key is available
   if (!OPENAI_API_KEY) {
     return {
-      success: false,
+      ok: false,
       error: {
         code: "missing_api_key",
         message: "OPENAI_API_KEY is not set in the environment variables.",
@@ -73,7 +73,7 @@ async function completion(
     // Check if the response has an error
     if (data.error) {
       return {
-        success: false,
+        ok: false,
         error: {
           code: data.error.code,
           message: data.error.message,
@@ -84,7 +84,7 @@ async function completion(
     // If the finish reason isn't "stop", return an error
     if (data.choices[0].finish_reason !== "stop") {
       return {
-        success: false,
+        ok: false,
         error: {
           code: data.choices[0].finish_reason,
           message: data.choices[0].finish_reason,
@@ -93,11 +93,11 @@ async function completion(
     }
 
     const codeCompletion = data.choices[0].message.content;
-    return { success: true, files: extractCode(codeCompletion) };
+    return { ok: true, files: extractCode(codeCompletion) };
   } catch (error: any) {
     // If an error occurs during the fetch, return an error
     return {
-      success: false,
+      ok: false,
       error: {
         code: "fetch_error",
         message:

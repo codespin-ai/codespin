@@ -1,5 +1,5 @@
 import { promises as fs } from "fs";
-import TOML from "@iarna/toml";
+import * as yaml from "js-yaml";
 
 export type PromptSettings = {
   model?: string;
@@ -21,21 +21,13 @@ export async function readPromptSettings(
 
     const frontMatter = frontMatterMatch[1];
 
-    // Try to parse as JSON first
+    // Parse as YAML
     try {
-      const frontMatterJSON = JSON.parse(frontMatter);
-      return frontMatterJSON as PromptSettings;
-    } catch (jsonError) {
-      // If JSON parsing fails, try to parse as TOML
-      try {
-        const frontMatterTOML = TOML.parse(frontMatter);
-        return frontMatterTOML as PromptSettings;
-      } catch (tomlError) {
-        // If TOML parsing also fails, throw an error
-        throw new Error(
-          `Invalid front-matter format. Neither JSON nor TOML could be parsed.`
-        );
-      }
+      const frontMatterYAML = yaml.load(frontMatter);
+      return frontMatterYAML as PromptSettings;
+    } catch (yamlError) {
+      // If YAML parsing fails, throw an error
+      throw new Error(`Invalid front-matter format. YAML could not be parsed.`);
     }
   } catch (error) {
     console.error(`Error reading front matter from ${filePath}:`, error);

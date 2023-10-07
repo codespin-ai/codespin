@@ -28,10 +28,12 @@
   "dependencies": {
     "@iarna/toml": "^2.2.5",
     "@types/handlebars": "^4.1.0",
+    "@types/js-yaml": "^4.0.6",
     "@types/node": "^20.7.1",
     "@types/node-fetch": "^2.6.6",
     "@types/yargs": "^17.0.25",
     "handlebars": "^4.7.8",
+    "js-yaml": "^4.1.0",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
