@@ -14,6 +14,7 @@ import { addLineNumbers } from "../text/addLineNumbers.js";
 import { pathExists } from "../fs/pathExists.js";
 import { isGitRepo } from "../git/isGitRepo.js";
 import { exception } from "../exception.js";
+import * as url from "url";
 
 export type GenerateArgs = {
   promptFile: string | undefined;
@@ -130,7 +131,11 @@ export async function generate(args: GenerateArgs): Promise<void> {
     ? resolve(templateName)
     : (await pathExists(resolve("codespin/templates", templateName)))
     ? resolve("codespin/templates", templateName)
-    : undefined;
+    : (() => {
+        const __filename = url.fileURLToPath(import.meta.url);
+        const builtInTemplatesDir = join(__filename, "../../../templates");
+        return resolve(builtInTemplatesDir, templateName);
+      })();
 
   if (!templatePath) {
     throw new Error(

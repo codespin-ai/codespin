@@ -38,6 +38,13 @@ Set up the `OPENAI_API_KEY` environment variable. If you don't have an account, 
 
 If you don't possess an `OPENAI_API_KEY`, you can [use it with ChatGPT](#using-with-chatgpt).
 
+
+Ready? Let's try it out.
+
+```
+codespin generate --prompt 'Make a python program (in main.py) that prints Hello, World!'
+```
+
 ### codespin init
 
 This command initializes your profile directory with some configurations.
