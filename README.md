@@ -40,61 +40,31 @@ You simply need to go to the project directory and do:
 codespin init
 ```
 
-### codespin scaffold
-
-Generates an initial set of files for a module or a project.
-
-Describe what you want in a file ending with a "prompt.md" extension.
-Files will be generated relative to the location of the prompt file.
-
-If `--write` is not mentioned, it'll simply print the code on the screen.
-
-```
-codespin scaffold my-project.prompt.md --write
-```
-
-Here's an example of a simple scaffold prompt.
-
-```
-// blog-app.prompt.md
-Create a blog app API in Python.
-
-It should have APIs to:
-1. add a blog post
-2. delete a blog post
-3. update a blog post
-4. add a comment to a post
-5. delete a comment
-
-Use postgres.
-```
-
 ### codespin generate
 
-Generate source code for a single file.
+Generate source code based on a prompt file.
 
-Describe what the file needs to do in a prompt file named "sourcefile.ext.prompt.md".
-The corresponding sourcefile file will be updated. If the sourcefile doesn't exist, it'll be created.
+Describe what the file needs to do in a prompt file, ideally named "sourcefile.ext.prompt.md" (eg: main.py.prompt.md).
 
-If `--write` is not mentioned, it'll simply print the code on the screen.
-
-```
-codespin generate main.py.prompt.md --write
-```
-
-Here's an example of a prompt file. 
-Note how the prompt filename is prefixed with the name of the source code file.
+When generating code for the first time, pass `generate.md` as the template name. 
+This template can be found under `codespin/templates` after you do a `codespin init`.
+Pass `--write` to write to the disk, without which codespin will merely print to the screen.
 
 ```
-// index.js.prompt.md
-Create a NodeJS app to print the sum of the squares of integers. 
-The app should take numbers as CLI args. Use functional style code.
+codespin generate main.py.prompt.md --template default/generate.md
 ```
 
+When regenerating, include the existing source code file with the `--include` parameter.
+This passes the existing source code so that the code generator understands the context better.
+Also remember to use the `regenerate.md` template instead of the `generate.md` template.
 
-## Common CLI options
+```
+codespin generate main.py.prompt.md --template regenerate.md --include main.py --write
+```
 
-These are common to the scaffold and generate commands
+## Parameters for codespin generate
+
+These options are available with the `codespin generate` command:
 
 - `--write`: Write generated code to source file.
 - `--write-prompt`: Write the prompt out to the specified path
@@ -102,6 +72,7 @@ These are common to the scaffold and generate commands
 - `--model`: The model to use. Defaults to gpt-3.5-turbo
 - `--max-tokens`: Maximum number of tokens for generated code
 - `--template`: Path to the template to be used. Defaults to built-in templates.
+- `--include`: Path to the template to be used. Defaults to built-in templates.
 - `--exec`: Execute a command for each generated file. For example, you might want to run a formatting tool.
 - `--debug`: Enable debug mode. Prints prompts, responses etc.
 - `--config`: Path to codespin config
@@ -109,15 +80,16 @@ These are common to the scaffold and generate commands
 
 ## Prompt File Settings
 
-Prompt files (prompt.md files) allow JSON settings using front matter.
-This allows you to configure api, model, template and maxTokens parameter individually for each prompt.md file.
+Prompt files (prompt.md files) you to specify settings with JSON or TOML front matter.
+This allows you to configure include, template, api, model and maxTokens parameter individually for each prompt.md file.
 
 Here's an example prompt file with custom configuration.
 
 ```
 ---
 {
-  "template": "mytemplates/nodejs/typescript",
+  "include": "main.py",
+  "template": "typescript",
   "model": "gpt-3.5-turbo-16k"
 }
 ---
@@ -127,15 +99,17 @@ The app should take numbers as CLI args.
 
 ## Custom Templates
 
-To define your own custom templates, refer to the examples at https://github.com/codespin-ai/codespin-cli/tree/main/templates/default
+To use custom templates, create a new directory under `codespin/templates`, which would have already been created by `codespin init`. 
 
-Your custom template directory can have one or more of these files.
+Then under this directory, you can create all or some of the following files:
 - scaffold.md // For scaffold
 - generate.md // For generating a new source code file
 - regenerate.md // For regenerating an existing source code file
 - modify.md // For modifying an existing source code file in part
 
-If custom templates are specified and the template is not found, the built-in templates are used as a fallback.
+You can refer to the examples at https://github.com/codespin-ai/codespin-cli/tree/main/templates/default
+
+If custom templates were specified (with the `--template` argument) but the template is not found, built-in templates will be used as a fallback.
 
 ## Using with ChatGPT
 

@@ -1,50 +1,16 @@
 // getDiff.ts
 
 import { promises as fs } from "fs";
-import { exec } from "child_process";
-import { tmpdir } from "os";
-import { join } from "path";
-import { removeFrontMatter } from "../prompts/removeFrontMatter.js";
-import { generateRandomString } from "../text/getRandomString.js";
+import { execPromise } from "../process/execPromise.js";
+import { createTempFile } from "../fs/createTempFile.js";
 
-async function execPromise(command: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    exec(command, (error, stdout, stderr) => {
-      if (error && error.code !== 1) {
-        reject(error);
-      } else if (stderr) {
-        reject(new Error(stderr));
-      } else {
-        resolve(stdout);
-      }
-    });
-  });
-}
 
-async function createTempFile(content: string): Promise<string> {
-  const tempPath = join(
-    tmpdir(),
-    `${Date.now()}-${generateRandomString()}.tmp`
-  );
-  await fs.writeFile(tempPath, content, "utf8");
-  return tempPath;
-}
-
-async function getDiff(filePath: string): Promise<string> {
-  const contentCurrent = await fs.readFile(filePath, "utf8");
-
-  const contentCommitted = await execPromise(`git show HEAD:${filePath}`);
-
-  let contentToDiffCurrent = contentCurrent;
-  let contentToDiffCommitted = contentCommitted;
-
-  if (filePath.endsWith(".prompt.md")) {
-    contentToDiffCurrent = await removeFrontMatter(contentCurrent);
-    contentToDiffCommitted = await removeFrontMatter(contentCommitted);
-  }
-
-  const tempPathCurrent = await createTempFile(contentToDiffCurrent);
-  const tempPathCommitted = await createTempFile(contentToDiffCommitted);
+export async function getDiff(
+  newContent: string,
+  oldContent: string
+): Promise<string> {
+  const tempPathCurrent = await createTempFile(newContent);
+  const tempPathCommitted = await createTempFile(oldContent);
 
   try {
     const diff = await execPromise(
@@ -58,5 +24,3 @@ async function getDiff(filePath: string): Promise<string> {
     ]);
   }
 }
-
-export { getDiff };

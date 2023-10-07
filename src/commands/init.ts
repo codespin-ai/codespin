@@ -10,7 +10,7 @@ type InitArgs = {
 };
 
 const DEFAULT_JSON_CONTENT = {
-  template: "codespin/templates/default",
+  templates: "codespin/templates",
   api: "openai",
   model: "gpt-3.5-turbo",
 };
@@ -40,19 +40,16 @@ async function init(args: InitArgs): Promise<CommandResult> {
     await createDirectoriesIfNotExist(
       resolve(currentDir, "codespin/templates")
     );
-    await createDirectoriesIfNotExist(
-      resolve(currentDir, "codespin/templates/default")
-    );
 
     // Copy default templates into it.
 
     const __filename = url.fileURLToPath(import.meta.url);
-    const defaultTemplatesDir = join(__filename, "../../../templates/default");
+    const builtInTemplatesDir = join(__filename, "../../../templates");
 
     // Copy all templates into the codespin directory.
     await copyFiles(
-      defaultTemplatesDir,
-      resolve(currentDir, "codespin/templates/default")
+      builtInTemplatesDir,
+      resolve(currentDir, "codespin/templates")
     );
 
     return { success: true, message: "Initialization completed." };

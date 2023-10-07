@@ -5,7 +5,7 @@ import { readPromptSettings } from "../prompts/readPromptSettings.js";
 import { promises as fs } from "fs";
 import { CommandResult } from "./CommandResult.js";
 import { writeToFile } from "../fs/writeToFile.js";
-import { join } from "path";
+import { dirname, join } from "path";
 import { fileExists } from "../fs/fileExists.js";
 import * as url from "url";
 import { isCommitted } from "../git/isCommitted.js";
@@ -13,101 +13,77 @@ import { execCommand } from "../process/execCommand.js";
 import { readConfig } from "../settings/readConfig.js";
 import { addLineNumbers } from "../text/addLineNumbers.js";
 import { removeFrontMatter } from "../prompts/removeFrontMatter.js";
+import { extractFilesToDisk } from "../fs/extractFilesToDisk.js";
+import { getFileFromCommit } from "../git/getFileFromCommit.js";
+import { findFileInDirOrParents } from "../fs/findFileInDirOrParents.js";
 
 export type GenerateArgs = {
   promptFile: string;
-  api?: string;
-  model?: string;
-  maxTokens?: number;
-  write?: boolean;
-  writePrompt?: string;
-  template?: string;
-  debug?: boolean;
-  exec?: string;
-  config?: string;
-  modify?: boolean;
-  scaffold?: boolean;
+  api: string | undefined;
+  model: string | undefined;
+  maxTokens: number | undefined;
+  write: boolean | undefined;
+  writePrompt: string | undefined;
+  template: string;
+  debug: boolean | undefined;
+  exec: string | undefined;
+  config: string | undefined;
+  modify: boolean | undefined;
+  include: string | string[] | undefined;
 };
 
 export async function generate(args: GenerateArgs): Promise<CommandResult> {
-  const config = await readConfig(args.config || "codespin.json");
+  const projectRoot = findFileInDirOrParents(process.cwd(), "codespin.json");
 
-  const codeFile = args.promptFile.replace(".prompt.md", "");
-  const codeFileExists = await fs
-    .stat(codeFile)
-    .then(() => true)
-    .catch(() => false);
-
-  if (!args.promptFile.endsWith(".prompt.md")) {
-    return {
-      success: false,
-      message:
-        "Invalid prompt file name. Prompt files should end with .prompt.md.",
-    };
+  if (!projectRoot) {
+    console.error(
+      "The file codespin.json was not found in this project. Have you run 'codespin init' at the root of the project?"
+    );
+    return { success: false };
   }
 
-  const regenerating = codeFileExists && (await isCommitted(args.promptFile));
+  const config = await readConfig(args.config || "codespin.json");
+
+  const includedFiles = args.include
+    ? Array.isArray(args.include)
+      ? args.include
+      : [args.include]
+    : [];
+
+  const includedFilesContents = await includedFiles.reduce(async (acc, inc) => {
+    const fileContents = addLineNumbers(await fs.readFile(inc, "utf-8"));
+    (await acc)[inc] = fileContents;
+    return acc;
+  }, Promise.resolve({}) as Promise<Record<string, string>>);
+
+  const promptFileDir = dirname(args.promptFile);
 
   const promptSettings = await readPromptSettings(args.promptFile);
 
-  const templateDir = join(
-    "codespin/templates/",
-    args.template || promptSettings?.template || config.template || "default"
-  );
-
-  const __filename = url.fileURLToPath(import.meta.url);
-  const fallbackTemplateDir = join(__filename, "../../../templates/default");
-
-  async function findTemplate(name: string): Promise<string> {
-    const templatePath = `${templateDir}/${name}`;
-
-    return (await fileExists(templatePath))
-      ? templatePath
-      : `${fallbackTemplateDir}/${name}`;
-  }
-
-  let templatePath: string;
-
-  if (regenerating) {
-    if (args.modify) {
-      templatePath = await findTemplate("modify.md");
-    } else {
-      templatePath = await findTemplate("regenerate.md");
-    }
-  } else {
-    templatePath = await findTemplate("generate.md");
-  }
-
-  const codegenPromptFileRawContents = removeFrontMatter(
+  // Prompt file contents without frontMatter.
+  const promptFileContents = removeFrontMatter(
     await fs.readFile(args.promptFile, "utf-8")
   );
+  const promptFileContentsWithLineNumbers = addLineNumbers(promptFileContents);
 
-  const codegenPrompt = regenerating
-    ? addLineNumbers(codegenPromptFileRawContents)
-    : codegenPromptFileRawContents;
+  const isPromptFileCommitted = await isCommitted(args.promptFile);
 
-  let templateArgs: any = {
-    codeFile,
-    codegenPrompt,
-  };
+  const promptDiff = isPromptFileCommitted
+    ? await (async () => {
+        const promptFileContentsFromCommit = removeFrontMatter(
+          await getFileFromCommit(args.promptFile)
+        );
+        return await getDiff(promptFileContents, promptFileContentsFromCommit);
+      })()
+    : "";
 
-  if (regenerating) {
-    const promptDiff = await getDiff(args.promptFile);
-    if (!promptDiff) {
-      return { success: false, message: "Prompt hasn't changed." };
-    }
-    const codeFileContents = addLineNumbers(
-      await fs.readFile(codeFile, "utf-8")
-    );
+  const templatePath = join("codespin/templates", args.template);
 
-    templateArgs = {
-      ...templateArgs,
-      codeFileContents,
-      promptDiff,
-    };
-  }
-
-  const evaluatedPrompt = await evaluateTemplate(templatePath, templateArgs);
+  const evaluatedPrompt = await evaluateTemplate(args.template, {
+    prompt: promptFileContentsWithLineNumbers,
+    promptDiff,
+    includedFiles,
+  });
 
   if (args.debug) {
     console.log("--- PROMPT ---");
@@ -140,14 +116,22 @@ export async function generate(args: GenerateArgs): Promise<CommandResult> {
   if (completionResult.success) {
     const code = completionResult.files[0].contents;
     if (args.write) {
-      await fs.writeFile(codeFile, code);
-      if (args.exec) {
-        await execCommand(args.exec, [codeFile]);
-      }
+      const extractResult = await extractFilesToDisk(
+        promptFileDir,
+        completionResult,
+        args.exec
+      );
+      return {
+        success: true,
+        message: `Generated ${extractResult
+          .filter((x) => x.generated)
+          .join(", ")}. Skipped ${extractResult
+          .filter((x) => !x.generated)
+          .join(", ")}.`,
+      };
     } else {
-      console.log(code);
+      return { success: true, message: code };
     }
-    return { success: true, message: `Generated ${codeFile}.` };
   }
   return {
     success: false,
