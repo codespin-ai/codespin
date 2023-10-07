@@ -210,9 +210,15 @@ export async function generate(args: GenerateArgs): Promise<void> {
       console.log(code);
     }
   } else {
-    throw new Error(
-      `${completionResult.error.code}: ${completionResult.error.message}`
-    );
+    if (completionResult.error.code === "length") {
+      throw new Error(
+        "Ran out of tokens. Increase token size by specifying the --max-tokens argument."
+      );
+    } else {
+      throw new Error(
+        `${completionResult.error.code}: ${completionResult.error.message}`
+      );
+    }
   }
 }
 

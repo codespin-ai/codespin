@@ -1,4 +1,4 @@
-import { extractCode } from "./extractCode.js";
+import { extractCode } from "../../prompts/extractCode.js";
 
 type CompletionResult =
   | {
@@ -19,7 +19,7 @@ type CompletionResult =
 async function completion(
   prompt: string,
   model: string | undefined = "gpt-3.5-turbo",
-  maxTokens: number | undefined = prompt.length,
+  maxTokens: number | undefined = 4000 - prompt.length,
   debug: boolean | undefined = false
 ): Promise<CompletionResult> {
   const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
