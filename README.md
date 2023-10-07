@@ -57,7 +57,7 @@ Describe the requirements in a prompt file, ideally with a `.prompt.md` extensio
 When generating code for the first time, use `generate.md` as the template name. This template is located under `codespin/templates` after executing `codespin init`. Use `--write` to save to the disk, otherwise, codespin will only display it on the screen.
 
 ```sh
-codespin generate main.py.prompt.md --template default/generate.md
+codespin generate main.py.prompt.md --template default/generate.md --write
 ```
 
 To regenerate a file, use the `regenerate.md` template instead of `generate.md`. Remember to include the existing source code file using the `--include` parameter for better context understanding by the code generator.
@@ -70,18 +70,16 @@ codespin generate main.py.prompt.md --template regenerate.md --include main.py -
 
 Options available with the `codespin generate` command include:
 
-- `--promptFile`: (Required) Name of the prompt file.
-- `--template`: (Required) Path to the template directory.
 - `--write`: Save generated code to a source file. Defaults to 'false'.
-- `--writePrompt`: Save the generated prompt to the specified path without making an API call.
+- `--write-prompt`: Save the generated prompt to the specified path without making an API call.
 - `--api`: API service to utilize, like 'openai'. Defaults to 'openai'.
 - `--model`: Name of the desired model. E.g., 'gpt-4'.
-- `--maxTokens`: Maximum tokens allowed for the generated code.
+- `--max-tokens`: Maximum tokens allowed for the generated code.
 - `--include`: List of files to include in the prompt for better context during code generation.
 - `--exec`: Executes a command for each generated file. Useful for, e.g., running a formatting tool.
 - `--debug`: Enables debug mode, displaying debug messages for each step.
 - `--config`: Specifies the path to a config file.
-- `--baseDir`: Designates the directory path relative to where files are generated. Defaults to the directory of the prompt file.
+- `--base-dir`: Designates the directory path relative to where files are generated. Defaults to the directory of the prompt file.
 - `-h, --help`: Displays help.
 
 ## The Prompt File
