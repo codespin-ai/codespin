@@ -5,7 +5,7 @@ export type PromptSettings = {
   model?: string;
   maxTokens?: number;
   template?: string;
-  include?: string | string[];
+  include?: string[];
 };
 
 export async function readPromptSettings(
@@ -24,6 +24,9 @@ export async function readPromptSettings(
     // Parse as YAML
     try {
       const frontMatterYAML = yaml.load(frontMatter);
+      if (typeof (frontMatterYAML as any).include === "string") {
+        (frontMatterYAML as any).include = [(frontMatterYAML as any).include];
+      }
       return frontMatterYAML as PromptSettings;
     } catch (yamlError) {
       // If YAML parsing fails, throw an error

@@ -21,7 +21,7 @@ export type FileContent = {
 
 export async function evaluateTemplate(
   templatePath: string,
-  args: any
+  args: TemplateArgs
 ): Promise<string> {
   try {
     // 1. Read the template file

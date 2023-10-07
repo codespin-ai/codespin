@@ -2,7 +2,6 @@ import { promises as fs } from "fs";
 import { dirname, join, resolve } from "path";
 import { completion as openaiCompletion } from "../api/openai/completion.js";
 import { extractFilesToDisk } from "../fs/extractFilesToDisk.js";
-import { findFileInDirOrParents } from "../fs/findFileInDirOrParents.js";
 import { writeToFile } from "../fs/writeToFile.js";
 import { getDiff } from "../git/getDiff.js";
 import { getFileFromCommit } from "../git/getFileFromCommit.js";
@@ -31,38 +30,48 @@ export type GenerateArgs = {
 };
 
 export async function generate(args: GenerateArgs): Promise<void> {
-  const projectRoot = await findFileInDirOrParents(
-    process.cwd(),
-    "codespin.json"
-  );
-
   const configFile = resolve(args.config || "codespin.json");
 
   const config = (await pathExists(configFile))
     ? await readConfig(configFile)
     : undefined;
 
-  const includedFiles = await (args.include || []).reduce(async (acc, inc) => {
-    const contents = await fs.readFile(inc, "utf-8");
-    const previousContents = isGitRepo()
-      ? await getFileFromCommit(inc)
-      : undefined;
-    (await acc)[inc] = {
-      name: inc,
-      contents,
-      contentsWithLineNumbers: addLineNumbers(contents),
-      previousContents,
-      previousContentsWithLineNumbers: previousContents
-        ? addLineNumbers(previousContents)
-        : undefined,
-      hasDifferences: contents === previousContents,
-    };
-    return acc;
-  }, Promise.resolve({}) as Promise<Record<string, FileContent>>);
-
   const promptFileDir = dirname(args.promptFile);
 
   const promptSettings = await readPromptSettings(args.promptFile);
+
+  const filesToInclude = removeDuplicates(promptSettings?.include || []).concat(
+    args.include || []
+  );
+
+  const includedFilesOrNothing = await Promise.all(
+    filesToInclude.map(async (inc) => {
+      if (await pathExists(inc)) {
+        const contents = await fs.readFile(inc, "utf-8");
+        const previousContents = isGitRepo()
+          ? await getFileFromCommit(inc)
+          : undefined;
+        return {
+          name: inc,
+          contents,
+          contentsWithLineNumbers: addLineNumbers(contents),
+          previousContents,
+          previousContentsWithLineNumbers: previousContents
+            ? addLineNumbers(previousContents)
+            : undefined,
+          hasDifferences: contents === previousContents,
+        };
+      } else {
+        return undefined;
+      }
+    })
+  );
+
+  const includedFiles = (
+    includedFilesOrNothing.filter(
+      (x) => typeof x !== "undefined"
+    ) as FileContent[]
+  ).filter((x) => x.contents || x.previousContents);
 
   // Prompt file contents without frontMatter.
   const prompt = removeFrontMatter(await fs.readFile(args.promptFile, "utf-8"));
@@ -164,15 +173,15 @@ export async function generate(args: GenerateArgs): Promise<void> {
         completionResult,
         args.exec
       );
-      console.log(
-        `Generated ${extractResult
-          .filter((x) => x.generated)
-          .map((x) => x.file)
-          .join(", ")}. Skipped ${extractResult
-          .filter((x) => !x.generated)
-          .map((x) => x.file)
-          .join(", ")}.`
-      );
+      const generatedFiles = extractResult.filter((x) => x.generated);
+      const skippedFiles = extractResult.filter((x) => !x.generated);
+
+      if (generatedFiles.length) {
+        console.log(`Generated ${generatedFiles.map((x) => x.file).join(", ")}.`);
+      }
+      if (skippedFiles.length) {
+        console.log(`Skipped ${skippedFiles.map((x) => x.file).join(", ")}.`);
+      }
     } else {
       console.log(code);
     }
@@ -181,4 +190,8 @@ export async function generate(args: GenerateArgs): Promise<void> {
       `${completionResult.error.code}: ${completionResult.error.message}`
     );
   }
+}
+
+function removeDuplicates(arr: string[]): string[] {
+  return [...new Set(arr)];
 }
