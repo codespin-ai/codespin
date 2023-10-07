@@ -22,15 +22,18 @@ async function main() {
       }
     )
     .command(
-      "generate <promptFile>",
+      "generate [promptFile]",
       "Generate a source code from a prompt",
       (yargs) =>
         yargs
           .positional("promptFile", {
             describe: "Name of the prompt file.",
-            demandOption: true,
             type: "string",
           })
+          .option("prompt", {
+            type: "string",
+            describe: "Specify the prompt directly on the command line.",
+          })          
           .option("write", {
             type: "boolean",
             default: false,

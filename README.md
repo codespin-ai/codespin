@@ -76,6 +76,7 @@ Looking at the differences between the current version of a file and the last co
 
 #### Options for codespin generate
 
+- `--prompt`: Specify the prompt directly on the command line.
 - `--template`: Specify the template to use. If unspecified, "generate.md" is used.
 - `--write`: Save generated code to a source file. Defaults to 'false'.
 - `--write-prompt`: Save the generated prompt to the specified path without making an API call.
@@ -105,6 +106,16 @@ Generate a Python CLI script named index.py that accepts a set of arguments and 
 ```
 
 A prompt file can optionally contain YAML front-matter for the `--template`, `--api`, `--model`, and `--max-token` parameters.
+
+## Immediate Mode for Prompting
+
+You can specify a prompt directly as an arg too.
+
+```sh
+codespin generate --prompt 'Create a file main.py which contains a function to add two numbers.'
+```
+
+As always, you must use `--write` to write it out to a file.
 
 ## Custom Templates
 

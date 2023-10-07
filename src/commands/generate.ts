@@ -13,9 +13,11 @@ import { readConfig } from "../settings/readConfig.js";
 import { addLineNumbers } from "../text/addLineNumbers.js";
 import { pathExists } from "../fs/pathExists.js";
 import { isGitRepo } from "../git/isGitRepo.js";
+import { exception } from "../exception.js";
 
 export type GenerateArgs = {
-  promptFile: string;
+  promptFile: string | undefined;
+  prompt: string | undefined;
   api: string | undefined;
   model: string | undefined;
   maxTokens: number | undefined;
@@ -36,9 +38,11 @@ export async function generate(args: GenerateArgs): Promise<void> {
     ? await readConfig(configFile)
     : undefined;
 
-  const promptFileDir = dirname(args.promptFile);
+  const promptFileDir = args.promptFile ? dirname(args.promptFile) : undefined;
 
-  const promptSettings = await readPromptSettings(args.promptFile);
+  const promptSettings = args.promptFile
+    ? await readPromptSettings(args.promptFile)
+    : {};
 
   const filesToInclude = removeDuplicates(promptSettings?.include || []).concat(
     args.include || []
@@ -74,15 +78,25 @@ export async function generate(args: GenerateArgs): Promise<void> {
   ).filter((x) => x.contents || x.previousContents);
 
   // Prompt file contents without frontMatter.
-  const prompt = removeFrontMatter(await fs.readFile(args.promptFile, "utf-8"));
+  const prompt = args.promptFile
+    ? removeFrontMatter(await fs.readFile(args.promptFile, "utf-8"))
+    : args.prompt ||
+      exception(
+        "The prompt file must be specified. See 'codespin generate help'."
+      );
+
   const promptWithLineNumbers = addLineNumbers(prompt);
 
-  const isPromptFileCommitted = await isCommitted(args.promptFile);
+  const isPromptFileCommitted = args.promptFile
+    ? await isCommitted(args.promptFile)
+    : false;
 
   const { previousPrompt, previousPromptWithLineNumbers, promptDiff } =
     isPromptFileCommitted
       ? await (async () => {
-          const fileFromCommit = await getFileFromCommit(args.promptFile);
+          const fileFromCommit = args.promptFile
+            ? await getFileFromCommit(args.promptFile)
+            : exception("invariant exception: missing prompt file");
           const previousPrompt =
             fileFromCommit !== undefined
               ? removeFrontMatter(fileFromCommit)
@@ -169,7 +183,7 @@ export async function generate(args: GenerateArgs): Promise<void> {
     const code = completionResult.files[0].contents;
     if (args.write) {
       const extractResult = await extractFilesToDisk(
-        args.baseDir || promptFileDir,
+        args.baseDir || promptFileDir || process.cwd(),
         completionResult,
         args.exec
       );
@@ -177,7 +191,9 @@ export async function generate(args: GenerateArgs): Promise<void> {
       const skippedFiles = extractResult.filter((x) => !x.generated);
 
       if (generatedFiles.length) {
-        console.log(`Generated ${generatedFiles.map((x) => x.file).join(", ")}.`);
+        console.log(
+          `Generated ${generatedFiles.map((x) => x.file).join(", ")}.`
+        );
       }
       if (skippedFiles.length) {
         console.log(`Skipped ${skippedFiles.map((x) => x.file).join(", ")}.`);
