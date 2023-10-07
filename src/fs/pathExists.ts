@@ -1,6 +1,6 @@
 import { access, constants } from "fs/promises";
 
-export async function fileExists(filePath: string) {
+export async function pathExists(filePath: string) {
   try {
     // Use the access method to check if the file exists
     await access(filePath, constants.F_OK);

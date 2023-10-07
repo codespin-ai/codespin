@@ -7,12 +7,12 @@ import { writeToFile } from "../fs/writeToFile.js";
 import { getDiff } from "../git/getDiff.js";
 import { getFileFromCommit } from "../git/getFileFromCommit.js";
 import { isCommitted } from "../git/isCommitted.js";
-import { evaluateTemplate } from "../prompts/evaluateTemplate.js";
+import { FileContent, evaluateTemplate } from "../prompts/evaluateTemplate.js";
 import { readPromptSettings } from "../prompts/readPromptSettings.js";
 import { removeFrontMatter } from "../prompts/removeFrontMatter.js";
 import { readConfig } from "../settings/readConfig.js";
 import { addLineNumbers } from "../text/addLineNumbers.js";
-import { fileExists } from "../fs/fileExists.js";
+import { pathExists } from "../fs/pathExists.js";
 
 export type GenerateArgs = {
   promptFile: string;
@@ -37,18 +37,22 @@ export async function generate(args: GenerateArgs): Promise<void> {
 
   const configFile = resolve(args.config || "codespin.json");
 
-  const config = (await fileExists(configFile))
+  const config = (await pathExists(configFile))
     ? await readConfig(configFile)
     : undefined;
 
   const includedFiles = await (args.include || []).reduce(async (acc, inc) => {
-    const fileContents = addLineNumbers(await fs.readFile(inc, "utf-8"));
+    const contents = await fs.readFile(inc, "utf-8");
+    const previousContents = await getFileFromCommit(inc);
     (await acc)[inc] = {
       name: inc,
-      contents: fileContents,
+      contents,
+      contentsWithLineNumbers: addLineNumbers(contents),
+      previousContents,
+      previousContentsWithLineNumbers: addLineNumbers(previousContents),
     };
     return acc;
-  }, Promise.resolve({}) as Promise<Record<string, { name: string; contents: string }>>);
+  }, Promise.resolve({}) as Promise<Record<string, FileContent>>);
 
   const promptFileDir = dirname(args.promptFile);
 
@@ -60,20 +64,31 @@ export async function generate(args: GenerateArgs): Promise<void> {
 
   const isPromptFileCommitted = await isCommitted(args.promptFile);
 
-  const promptDiff = isPromptFileCommitted
-    ? await (async () => {
-        const promptFileContentsFromCommit = removeFrontMatter(
-          await getFileFromCommit(args.promptFile)
-        );
-        return await getDiff(prompt, promptFileContentsFromCommit);
-      })()
-    : "";
+  const { previousPrompt, previousPromptWithLineNumbers, promptDiff } =
+    isPromptFileCommitted
+      ? await (async () => {
+          const previousPrompt = removeFrontMatter(
+            await getFileFromCommit(args.promptFile)
+          );
+          const previousPromptWithLineNumbers = addLineNumbers(previousPrompt);
+          const promptDiff = await getDiff(prompt, previousPrompt);
+          return {
+            previousPrompt,
+            previousPromptWithLineNumbers,
+            promptDiff,
+          };
+        })()
+      : {
+          previousPrompt: "",
+          previousPromptWithLineNumbers: "",
+          promptDiff: "",
+        };
 
   // For template resolution, first we check relative to the current path.
   // If not found, we'll check in the codespin/templates directory.
-  const templatePath = (await fileExists(args.template))
+  const templatePath = (await pathExists(args.template))
     ? resolve(args.template)
-    : (await fileExists(resolve("codespin/templates", args.template)))
+    : (await pathExists(resolve("codespin/templates", args.template)))
     ? resolve("codespin/templates", args.template)
     : undefined;
 
@@ -82,7 +97,10 @@ export async function generate(args: GenerateArgs): Promise<void> {
   }
 
   const evaluatedPrompt = await evaluateTemplate(templatePath, {
-    prompt: promptWithLineNumbers,
+    prompt,
+    promptWithLineNumbers,
+    previousPrompt,
+    previousPromptWithLineNumbers,
     promptDiff,
     files: includedFiles,
   });
@@ -92,9 +110,13 @@ export async function generate(args: GenerateArgs): Promise<void> {
     console.log(evaluatedPrompt);
   }
 
-  if (args.writePrompt) {
+  if (typeof args.writePrompt !== "undefined") {
+    if (!args.writePrompt) {
+      throw new Error(`Specify a file path for the --write-prompt parameter.`);
+    }
     await writeToFile(args.writePrompt, evaluatedPrompt);
     console.log(`Wrote prompt to ${args.writePrompt}`);
+    return;
   }
 
   const model = args.model || promptSettings?.model || config?.model;

@@ -54,20 +54,29 @@ This command generates source code based on a prompt file.
 
 Describe the requirements in a prompt file, ideally with a `.prompt.md` extension, e.g., `main.py.prompt.md`.
 
-When generating code for the first time, use `generate.md` as the template name. This template is located under `codespin/templates` after executing `codespin init`. Use `--write` to save to the disk, otherwise, codespin will only display it on the screen.
+Use `--write` to save to the disk, otherwise, codespin will only display it on the screen.
 
 ```sh
-codespin generate main.py.prompt.md --template default/generate.md --write
+codespin generate main.py.prompt.md --write
 ```
 
-To regenerate a file, use the `regenerate.md` template instead of `generate.md`. Remember to include the existing source code file using the `--include` parameter for better context understanding by the code generator.
+#### Regenerating code
+
+To regenerate a file, pass the existing source code file using the `--include` parameter for better context understanding by the code generator.
 
 ```sh
-codespin generate main.py.prompt.md --template regenerate.md --include main.py --write
+codespin generate main.py.prompt.md --include main.py --write
 ```
+
+NOTE: For regeneration to be effective, you need to:
+- Use a git repository 
+- keep committing both the prompt files and generated source code every time you're happy with generated code.
+
+Looking at the differences between the current version of a file and the last committed version helps the LLM understand the context better.
 
 #### Options for codespin generate
 
+- `--template`: Specify the template to use. If unspecified, "generate.md" is used.
 - `--write`: Save generated code to a source file. Defaults to 'false'.
 - `--write-prompt`: Save the generated prompt to the specified path without making an API call.
 - `--api`: API service to utilize, like 'openai'. Defaults to 'openai'.
@@ -97,45 +106,53 @@ Generate a Python CLI script named index.py that accepts a set of arguments and 
 
 A prompt file can optionally contain YAML front-matter for the `--template`, `--api`, `--model`, and `--max-token` parameters.
 
-## Templates
-
-Determine the template using the `--template` argument.
-
-The following templates are automatically installed when you execute `codespin init`:
-
-- `generate.md`
-- `regenerate.md`
-- `scaffold.md`
-
-Use "generate.md" when generating a file for the first time. Use "regenerate.md" when regenerating a file (don't forget the `--include` argument). Use "scaffold.md" when you wish to generate multiple files, like when creating a new project or module.
-
-Initially, the template path is searched in the current directory. If not found, it checks the "codespin/templates" directory. An error is thrown if it's missing in both.
-
-### Custom Templates
-
-You can craft custom templates to dictate aspects like coding style, frameworks, etc.
+## Custom Templates
 
 A CodeSpin Template is essentially a [HandleBars.JS](https://github.com/handlebars-lang/handlebars.js) template.
 
-For example:
+You can specify custom templates with the `--template` argument. 
+
+```sh
+codespin generate main.py.prompt.md --template mypythontemplate.md --include main.py --write
+```
+
+Usually, you'd craft custom templates to dictate aspects like coding style, frameworks, etc. 
+
+Here's a barebones template:
 
 ```handlebars
-{{codegenPrompt}}
+{{prompt}}
 
 Respond with just the code (for the entire file) in the format:
 
-$START_FILE_CONTENTS:{{./somefilename.ext}}$
+$START_FILE_CONTENTS:{{./some/path/filename.ext}}$
 import a from "./a";
 function someFunction() {
 // code here
 }
-$END_FILE_CONTENTS:{{codeFile}}$
+$END_FILE_CONTENTS:{{./some/path/filename.ext}}$
 ```
 
-Custom templates can utilize variables like:
+Custom templates can utilize the following variables:
 
-- `codegenPrompt`: The content of the prompt file
-- `includedFiles`: An array of { name: string, content: string } items representing files pointed out by the `--include` argument.
+```ts
+type TemplateArgs = {
+  prompt: string;
+  promptWithLineNumbers: string;
+  previousPrompt: string; // from git commit
+  previousPromptWithLineNumbers: string; // from git commit
+  promptDiff: string; // git diff
+  files: FileContent[]; // files added with --include
+};
+
+type FileContent = {
+  name: string;
+  contents: string; 
+  contentsWithLineNumbers: string;
+  previousContents: string; // from git commit
+  previousContentsWithLineNumbers: string; // from git commit
+};
+```
 
 ## Using with ChatGPT
 
@@ -144,7 +161,7 @@ Using codespin with an API key is the most straightforward method. However, if y
 Use the `--write-prompt` command to export the final LLM prompt to a file:
 
 ```sh
-codespin generate something.py.prompt.md --write-prompt /path/to/file.txt --template generate.md
+codespin generate something.py.prompt.md --write-prompt /path/to/file.txt
 ```
 
 Copy the content of `/path/to/file.txt` and input it into ChatGPT. Then, update the source file manually based on ChatGPT's response.
@@ -152,5 +169,6 @@ Copy the content of `/path/to/file.txt` and input it into ChatGPT. Then, update 
 ## Tips
 
 1. Regularly commit prompts and code when satisfied with the generated output.
-2. It's entirely acceptable to make slight modifications to the generated code. Regeneration generally respects your edits as long as you use the `--include` argument for the source code.
-3. For significant modifications, consider updating the prompt files.
+2. It's entirely acceptable to make slight manual modifications to the generated code. 
+3. Regeneration generally respects your edits as long as you use the `--include` argument for the source code
+4. For significant modifications, consider updating the prompt files rather than directly editing the source code.

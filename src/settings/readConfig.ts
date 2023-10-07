@@ -1,12 +1,12 @@
 import fs from "fs/promises";
 import { CodeSpinConfig } from "./CodeSpinConfig.js";
-import { fileExists } from "../fs/fileExists.js";
+import { pathExists } from "../fs/pathExists.js";
 
 export async function readConfig(
   filePath: string
 ): Promise<CodeSpinConfig> {
   try {
-    if (await fileExists(filePath)) {
+    if (await pathExists(filePath)) {
       const data = await fs.readFile(filePath, "utf-8");
       return JSON.parse(data);
     } else {

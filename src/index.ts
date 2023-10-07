@@ -7,10 +7,6 @@ import { getPackageVersion } from "./getPackageVersion.js";
 import { isGitRepo } from "./git/isGitRepo.js";
 
 async function main() {
-  if (!(await isGitRepo())) {
-    console.error("codespin must be run in a git repo.");
-  }
-
   yargs(process.argv.slice(2))
     .command(
       "init",
@@ -26,7 +22,7 @@ async function main() {
       }
     )
     .command(
-      "generate <filename>",
+      "generate <promptFile>",
       "Generate a source code from a prompt",
       (yargs) =>
         yargs
@@ -95,6 +91,7 @@ async function main() {
     .command("version", "Display the current version", {}, () => {
       console.log(getPackageVersion());
     })
+    .showHelpOnFail(false)
     .help("help")
     .alias("h", "help").argv;
 }
