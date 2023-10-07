@@ -131,10 +131,13 @@ export async function generate(args: GenerateArgs): Promise<void> {
     ? resolve(templateName)
     : (await pathExists(resolve("codespin/templates", templateName)))
     ? resolve("codespin/templates", templateName)
-    : (() => {
+    : await (async () => {
         const __filename = url.fileURLToPath(import.meta.url);
         const builtInTemplatesDir = join(__filename, "../../../templates");
-        return resolve(builtInTemplatesDir, templateName);
+        const builtInTemplatePath = resolve(builtInTemplatesDir, templateName);
+        return (await pathExists(builtInTemplatePath))
+          ? builtInTemplatePath
+          : undefined;
       })();
 
   if (!templatePath) {
