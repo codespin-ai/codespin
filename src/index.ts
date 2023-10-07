@@ -32,17 +32,20 @@ async function main() {
           })
           .option("prompt", {
             type: "string",
+            alias: "p",
             describe: "Specify the prompt directly on the command line.",
           })          
           .option("write", {
             type: "boolean",
             default: false,
+            alias: "w",
             describe: "Write generated code to source file.",
           })
           .option("include", {
+            type: "array",
+            alias: "i",
             describe:
               "List of files to include in the prompt. This provides additional context during code generation.",
-            type: "array",
             string: true,
           })
           .option("writePrompt", {
@@ -66,10 +69,12 @@ async function main() {
           })
           .option("template", {
             type: "string",
+            alias: "t",
             describe: "Path to the template file.",
           })
           .option("exec", {
             type: "string",
+            alias: "e",
             describe: "Execute a command for each generated file.",
           })
           .option("debug", {
@@ -79,6 +84,7 @@ async function main() {
           })
           .option("config", {
             type: "string",
+            alias: "c",
             describe: "Path to config file.",
           })
           .option("baseDir", {

@@ -79,17 +79,17 @@ Looking at the differences between the current version of a file and the last co
 
 #### Options for codespin generate
 
-- `--prompt`: Specify the prompt directly on the command line.
-- `--template`: Specify the template to use. If unspecified, "generate.md" is used.
-- `--write`: Save generated code to a source file. Defaults to 'false'.
+- `-p, --prompt`: Specify the prompt directly on the command line.
+- `-t, --template`: Specify the template to use. If unspecified, "generate.md" is used.
+- `-w, --write`: Save generated code to a source file. Defaults to 'false'.
 - `--write-prompt`: Save the generated prompt to the specified path without making an API call.
 - `--api`: API service to utilize, like 'openai'. Defaults to 'openai'.
 - `--model`: Name of the desired model. E.g., 'gpt-4'.
 - `--max-tokens`: Maximum tokens allowed for the generated code.
-- `--include`: List of files to include in the prompt for better context during code generation.
-- `--exec`: Executes a command for each generated file. Useful for, e.g., running a formatting tool.
+- `-i, --include`: List of files to include in the prompt for better context during code generation. Repeat for including multiple files.
+- `-e, --exec`: Executes a command for each generated file. Useful for, e.g., running a formatting tool.
 - `--debug`: Enables debug mode, displaying debug messages for each step.
-- `--config`: Specifies the path to a config file.
+- `-c, --config`: Specifies the path to a config file.
 - `--base-dir`: Designates the directory path relative to where files are generated. Defaults to the directory of the prompt file.
 - `-h, --help`: Displays help.
 
