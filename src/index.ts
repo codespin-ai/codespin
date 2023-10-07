@@ -63,8 +63,7 @@ async function main() {
           })
           .option("template", {
             type: "string",
-            demandOption: true,
-            describe: "Path to the template directory.",
+            describe: "Path to the template file.",
           })
           .option("exec", {
             type: "string",

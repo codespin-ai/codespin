@@ -14,17 +14,13 @@ export async function extractFilesToDisk(
   const files = await Promise.all(
     data.files.map(async (file) => {
       const generatedFilePath = join(baseDir, file.name);
-      if (!(await pathExists(generatedFilePath))) {
-        await ensureDirectoryExists(generatedFilePath);
-        await writeFile(generatedFilePath, file.contents);
+      await ensureDirectoryExists(generatedFilePath);
+      await writeFile(generatedFilePath, file.contents);
 
-        if (exec) {
-          await execCommand(exec, [generatedFilePath]);
-        }
-        return { generated: true, file: file.name };
-      } else {
-        return { generated: false, file: file.name };
+      if (exec) {
+        await execCommand(exec, [generatedFilePath]);
       }
+      return { generated: true, file: file.name };
     })
   );
 

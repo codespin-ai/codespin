@@ -4,9 +4,9 @@ import Handlebars from "handlebars";
 export type TemplateArgs = {
   prompt: string;
   promptWithLineNumbers: string;
-  previousPrompt: string;
-  previousPromptWithLineNumbers: string;
-  promptDiff: string;
+  previousPrompt: string | undefined;
+  previousPromptWithLineNumbers: string | undefined;
+  promptDiff: string | undefined;
   files: FileContent[];
 };
 
@@ -14,8 +14,9 @@ export type FileContent = {
   name: string;
   contents: string;
   contentsWithLineNumbers: string;
-  previousContents: string;
-  previousContentsWithLineNumbers: string;
+  previousContents: string | undefined;
+  previousContentsWithLineNumbers: string | undefined;
+  hasDifferences: boolean;
 };
 
 export async function evaluateTemplate(

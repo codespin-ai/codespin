@@ -13,6 +13,7 @@ import { removeFrontMatter } from "../prompts/removeFrontMatter.js";
 import { readConfig } from "../settings/readConfig.js";
 import { addLineNumbers } from "../text/addLineNumbers.js";
 import { pathExists } from "../fs/pathExists.js";
+import { isGitRepo } from "../git/isGitRepo.js";
 
 export type GenerateArgs = {
   promptFile: string;
@@ -21,7 +22,7 @@ export type GenerateArgs = {
   maxTokens: number | undefined;
   write: boolean | undefined;
   writePrompt: string | undefined;
-  template: string;
+  template: string | undefined;
   debug: boolean | undefined;
   exec: string | undefined;
   config: string | undefined;
@@ -43,13 +44,18 @@ export async function generate(args: GenerateArgs): Promise<void> {
 
   const includedFiles = await (args.include || []).reduce(async (acc, inc) => {
     const contents = await fs.readFile(inc, "utf-8");
-    const previousContents = await getFileFromCommit(inc);
+    const previousContents = isGitRepo()
+      ? await getFileFromCommit(inc)
+      : undefined;
     (await acc)[inc] = {
       name: inc,
       contents,
       contentsWithLineNumbers: addLineNumbers(contents),
       previousContents,
-      previousContentsWithLineNumbers: addLineNumbers(previousContents),
+      previousContentsWithLineNumbers: previousContents
+        ? addLineNumbers(previousContents)
+        : undefined,
+      hasDifferences: contents === previousContents,
     };
     return acc;
   }, Promise.resolve({}) as Promise<Record<string, FileContent>>);
@@ -67,11 +73,19 @@ export async function generate(args: GenerateArgs): Promise<void> {
   const { previousPrompt, previousPromptWithLineNumbers, promptDiff } =
     isPromptFileCommitted
       ? await (async () => {
-          const previousPrompt = removeFrontMatter(
-            await getFileFromCommit(args.promptFile)
-          );
-          const previousPromptWithLineNumbers = addLineNumbers(previousPrompt);
-          const promptDiff = await getDiff(prompt, previousPrompt);
+          const fileFromCommit = await getFileFromCommit(args.promptFile);
+          const previousPrompt =
+            fileFromCommit !== undefined
+              ? removeFrontMatter(fileFromCommit)
+              : undefined;
+          const previousPromptWithLineNumbers =
+            previousPrompt !== undefined
+              ? addLineNumbers(previousPrompt)
+              : undefined;
+          const promptDiff =
+            previousPrompt !== undefined
+              ? await getDiff(prompt, previousPrompt)
+              : undefined;
           return {
             previousPrompt,
             previousPromptWithLineNumbers,
@@ -84,16 +98,21 @@ export async function generate(args: GenerateArgs): Promise<void> {
           promptDiff: "",
         };
 
+  // If the template is not provided, we'll use generate.md
   // For template resolution, first we check relative to the current path.
   // If not found, we'll check in the codespin/templates directory.
-  const templatePath = (await pathExists(args.template))
-    ? resolve(args.template)
-    : (await pathExists(resolve("codespin/templates", args.template)))
-    ? resolve("codespin/templates", args.template)
+  const templateName = args.template || "generate.md";
+
+  const templatePath = (await pathExists(templateName))
+    ? resolve(templateName)
+    : (await pathExists(resolve("codespin/templates", templateName)))
+    ? resolve("codespin/templates", templateName)
     : undefined;
 
   if (!templatePath) {
-    throw new Error(`The template ${args.template} was not found.`);
+    throw new Error(
+      `The template ${templatePath} was not found. Have you done 'codespin init'?`
+    );
   }
 
   const evaluatedPrompt = await evaluateTemplate(templatePath, {
@@ -148,8 +167,10 @@ export async function generate(args: GenerateArgs): Promise<void> {
       console.log(
         `Generated ${extractResult
           .filter((x) => x.generated)
+          .map((x) => x.file)
           .join(", ")}. Skipped ${extractResult
           .filter((x) => !x.generated)
+          .map((x) => x.file)
           .join(", ")}.`
       );
     } else {
