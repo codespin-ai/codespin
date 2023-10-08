@@ -161,18 +161,23 @@ export async function generate(args: GenerateArgs): Promise<void> {
     console.log(evaluatedPrompt);
   }
 
-  if (
-    typeof args.printPrompt !== "undefined" ||
-    typeof args.writePrompt !== "undefined"
-  ) {
+  if (args.printPrompt || typeof args.writePrompt !== "undefined") {
     if (args.printPrompt) {
       console.log(evaluatedPrompt);
     }
-    if (!args.writePrompt) {
-      throw new Error(`Specify a file path for the --write-prompt parameter.`);
+
+    if (typeof args.writePrompt !== "undefined") {
+      // If --write-prompt is specified but no file is mentioned
+      if (!args.writePrompt) {
+        throw new Error(
+          `Specify a file path for the --write-prompt parameter.`
+        );
+      }
+
+      await writeToFile(args.writePrompt, evaluatedPrompt);
+      console.log(`Wrote prompt to ${args.writePrompt}`);
     }
-    await writeToFile(args.writePrompt, evaluatedPrompt);
-    console.log(`Wrote prompt to ${args.writePrompt}`);
+
     return;
   }
 
