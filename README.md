@@ -35,10 +35,16 @@ Set up the `OPENAI_API_KEY` environment variable. If you don't have an account, 
 If you don't possess an `OPENAI_API_KEY`, you can [use it with ChatGPT](#using-with-chatgpt).
 
 
-Ready? Let's try it out.
+Ready? Let's try it out. This prints the contents of main.py to the screen.
 
 ```
 codespin generate --prompt 'Make a python program (in main.py) that prints Hello, World!'
+```
+
+If you want it to write out the file, use the `--write` option.
+
+```
+codespin generate --prompt 'Make a python program (in main.py) that prints Hello, World!' --write
 ```
 
 ### codespin init
@@ -112,7 +118,7 @@ A prompt file can optionally contain YAML front-matter for the `--include`, `--t
 
 ## Immediate Mode for Prompting
 
-You can specify a prompt directly as an arg too.
+You can specify a prompt directly as an argument like this:
 
 ```sh
 codespin generate --prompt 'Create a file main.py which contains a function to add two numbers.'
