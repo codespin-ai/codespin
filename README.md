@@ -34,7 +34,6 @@ Set up the `OPENAI_API_KEY` environment variable. If you don't have an account, 
 
 If you don't possess an `OPENAI_API_KEY`, you can [use it with ChatGPT](#using-with-chatgpt).
 
-
 Ready? Let's try it out. This prints the contents of main.py to the screen.
 
 ```
@@ -64,6 +63,7 @@ This command generates source code based on a prompt file.
 First, describe the requirements in a prompt file. Let's use the suffix prompt.md as a convention.
 
 In `main.py.prompt.md`:
+
 ```
 Make a python program (in main.py) that prints Hello, World!
 Add a shebang, so that it's directly executable.
@@ -77,17 +77,16 @@ codespin generate main.py.prompt.md --write
 
 This would create a main.py file which prints "Hello, World!".
 
-
 #### Regenerating code
 
-To regenerate a file you must modify the contents of a prompt file, and also pass the existing source code using the `--include` parameter. 
+To regenerate a file you must modify the contents of a prompt file, and also pass the existing source code using the `--include` parameter.
 This helps with better context understanding by the code generator.
 
 ```sh
 codespin generate main.py.prompt.md --include main.py --write
 ```
 
-IMPORTANT: For regeneration to be truly effective, you need to be using a git repository and keep committing the prompt and generated code files whenever you're apply with an edit.
+💡 For regeneration to be truly effective, you need to be using a git repository and keep committing the prompt and generated code files whenever you're apply with an edit.
 This allows the code generator to inspect the delta between prompts (working copy and HEAD) and apply the necessary changes accurately.
 
 #### Options for codespin generate
@@ -138,13 +137,13 @@ As always, you must use `--write` to write it out to a file.
 
 A CodeSpin Template is essentially a [HandleBars.JS](https://github.com/handlebars-lang/handlebars.js) template.
 
-You can specify custom templates with the `--template` argument. 
+You can specify custom templates with the `--template` argument.
 
 ```sh
 codespin generate main.py.prompt.md --template mypythontemplate.md --include main.py --write
 ```
 
-Usually, you'd craft custom templates to dictate aspects like coding style, frameworks, etc. 
+Usually, you'd craft custom templates to dictate aspects like coding style, frameworks, etc.
 
 Here's a barebones template:
 
@@ -175,7 +174,7 @@ type TemplateArgs = {
 
 type FileContent = {
   name: string;
-  contents: string; 
+  contents: string;
   contentsWithLineNumbers: string;
   previousContents: string; // from git commit
   previousContentsWithLineNumbers: string; // from git commit
@@ -205,11 +204,4 @@ Then use the `codespin parse` command to parse the content. Like this:
 codespin parse gptresponse.txt --write
 ```
 
-Tip: When copying the response from ChatGPT, use the copy icon. Selecting text and copying doesn't retain formatting.
-
-## Tips
-
-1. Regularly commit prompts and code when satisfied with the generated output.
-2. It's entirely acceptable to make slight manual modifications to the generated code. 
-3. Regeneration generally respects your edits as long as you use the `--include` argument for the source code
-4. For significant modifications, consider updating the prompt files rather than directly editing the source code.
+💡: When copying the response from ChatGPT, use the copy icon. Selecting text and copying doesn't retain formatting.
