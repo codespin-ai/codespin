@@ -1,8 +1,6 @@
 import { promises as fs } from "fs";
-import path from "path";
-import { resolve } from "path";
+import { join, resolve } from "path";
 import * as url from "url";
-import { join } from "path";
 import { copyFilesInDir } from "../fs/copyFilesInDir.js";
 import { pathExists } from "../fs/pathExists.js";
 
@@ -16,7 +14,7 @@ const DEFAULT_JSON_CONTENT = {
   model: "gpt-3.5-turbo",
 };
 
-async function init(args: InitArgs): Promise<void> {
+export async function init(args: InitArgs): Promise<void> {
   const currentDir = process.cwd();
   const configFile = resolve(currentDir, "codespin.json");
 
@@ -27,7 +25,7 @@ async function init(args: InitArgs): Promise<void> {
         "codespin.json already exists. Use the --force option to overwrite."
       );
     }
-    
+
     await fs.writeFile(
       configFile,
       JSON.stringify(DEFAULT_JSON_CONTENT, null, 2)
@@ -66,5 +64,3 @@ async function createDirectoriesIfNotExist(
     }
   }
 }
-
-export { init };

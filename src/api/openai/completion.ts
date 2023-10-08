@@ -92,7 +92,7 @@ async function completion(
       };
     }
 
-    const codeCompletion = data.choices[0].message.content;
+    const codeCompletion = data.choices[0].message.content as string;
     return { ok: true, files: extractCode(codeCompletion) };
   } catch (error: any) {
     // If an error occurs during the fetch, return an error

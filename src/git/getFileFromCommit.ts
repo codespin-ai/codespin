@@ -1,5 +1,4 @@
 import { execPromise } from "../process/execPromise.js";
-import { isGitRepo } from "./isGitRepo.js";
 
 export async function getFileFromCommit(
   filePath: string

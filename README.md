@@ -172,13 +172,26 @@ type FileContent = {
 
 Using codespin with an API key is the most straightforward method. However, if you lack an API key but have access to ChatGPT, there are alternatives.
 
-Use the `--write-prompt` command to export the final LLM prompt to a file:
+Use the `--print-prompt` command to print the final LLM prompt to the screen, or `--write-prompt` command to write it to a file.
 
 ```sh
+# Print to the screen
+codespin generate something.py.prompt.md --print-prompt
+
+# Or write to a file
 codespin generate something.py.prompt.md --write-prompt /path/to/file.txt
 ```
 
-Copy the content of `/path/to/file.txt` and input it into ChatGPT. Then, update the source file manually based on ChatGPT's response.
+Now copy and paste the prompt into ChatGPT. Save ChatGPT's response in a test file, say gptresponse.txt.
+
+Then use the `codespin parse` command to parse the content. Like this:
+
+```sh
+# Remember to mention --write
+codespin parse gptresponse.txt --write
+```
+
+Tip: When copying the response from ChatGPT, use the copy icon. Selecting text and copying doesn't retain formatting.
 
 ## Tips
 

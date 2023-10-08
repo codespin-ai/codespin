@@ -3,8 +3,8 @@
 import yargs from "yargs";
 import { generate } from "./commands/generate.js";
 import { init } from "./commands/init.js";
+import { parse } from "./commands/parse.js";
 import { getPackageVersion } from "./getPackageVersion.js";
-import { isGitRepo } from "./git/isGitRepo.js";
 
 async function main() {
   yargs(process.argv.slice(2))
@@ -34,7 +34,7 @@ async function main() {
             type: "string",
             alias: "p",
             describe: "Specify the prompt directly on the command line.",
-          })          
+          })
           .option("write", {
             type: "boolean",
             default: false,
@@ -99,6 +99,41 @@ async function main() {
           }),
       async (argv) => {
         await generate(argv);
+      }
+    )
+    .command(
+      "parse <filename>",
+      "Extract files from an LLM response stored in a text file",
+      (yargs) =>
+        yargs
+          .positional("filename", {
+            describe: "Name of the prompt file.",
+            demandOption: true,
+            type: "string",
+          })
+          .option("write", {
+            type: "boolean",
+            default: false,
+            alias: "w",
+            describe: "Write generated code to source file.",
+          })
+          .option("exec", {
+            type: "string",
+            alias: "e",
+            describe: "Execute a command for each generated file.",
+          })
+          .option("config", {
+            type: "string",
+            alias: "c",
+            describe: "Path to config file.",
+          })
+          .option("baseDir", {
+            type: "string",
+            describe:
+              "Path to directory relative to which files are generated. Defaults to the directory of the prompt file.",
+          }),
+      async (argv) => {
+        await parse(argv);
       }
     )
     .command("version", "Display the current version", {}, () => {

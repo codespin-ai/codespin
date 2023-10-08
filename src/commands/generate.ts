@@ -1,20 +1,20 @@
 import { promises as fs } from "fs";
 import { dirname, join, resolve } from "path";
+import * as url from "url";
 import { completion as openaiCompletion } from "../api/openai/completion.js";
+import { exception } from "../exception.js";
 import { extractFilesToDisk } from "../fs/extractFilesToDisk.js";
+import { pathExists } from "../fs/pathExists.js";
 import { writeToFile } from "../fs/writeToFile.js";
 import { getDiff } from "../git/getDiff.js";
 import { getFileFromCommit } from "../git/getFileFromCommit.js";
 import { isCommitted } from "../git/isCommitted.js";
+import { isGitRepo } from "../git/isGitRepo.js";
 import { FileContent, evaluateTemplate } from "../prompts/evaluateTemplate.js";
 import { readPromptSettings } from "../prompts/readPromptSettings.js";
 import { removeFrontMatter } from "../prompts/removeFrontMatter.js";
 import { readConfig } from "../settings/readConfig.js";
 import { addLineNumbers } from "../text/addLineNumbers.js";
-import { pathExists } from "../fs/pathExists.js";
-import { isGitRepo } from "../git/isGitRepo.js";
-import { exception } from "../exception.js";
-import * as url from "url";
 
 export type GenerateArgs = {
   promptFile: string | undefined;
@@ -200,7 +200,6 @@ export async function generate(args: GenerateArgs): Promise<void> {
   );
 
   if (completionResult.ok) {
-    const code = completionResult.files[0].contents;
     if (args.write) {
       const extractResult = await extractFilesToDisk(
         args.baseDir || promptFileDir || process.cwd(),
@@ -219,7 +218,13 @@ export async function generate(args: GenerateArgs): Promise<void> {
         console.log(`Skipped ${skippedFiles.map((x) => x.file).join(", ")}.`);
       }
     } else {
-      console.log(code);
+      for (const file of completionResult.files) {
+        const header = `FILE: ${file.name}`;
+        console.log(header);
+        console.log("-".repeat(header.length));
+        console.log(file.contents);
+        console.log();
+      }
     }
   } else {
     if (completionResult.error.code === "length") {

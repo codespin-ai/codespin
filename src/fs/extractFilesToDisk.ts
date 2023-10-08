@@ -1,8 +1,7 @@
 import { writeFile } from "fs/promises";
-import { ensureDirectoryExists } from "./ensureDirectoryExists.js";
-import { pathExists } from "./pathExists.js";
-import { execCommand } from "../process/execCommand.js";
 import { join } from "path";
+import { execCommand } from "../process/execCommand.js";
+import { ensureDirectoryExists } from "./ensureDirectoryExists.js";
 
 export async function extractFilesToDisk(
   baseDir: string,
