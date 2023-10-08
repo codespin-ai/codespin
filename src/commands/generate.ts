@@ -23,6 +23,7 @@ export type GenerateArgs = {
   model: string | undefined;
   maxTokens: number | undefined;
   write: boolean | undefined;
+  printPrompt: boolean | undefined;
   writePrompt: string | undefined;
   template: string | undefined;
   debug: boolean | undefined;
@@ -160,7 +161,13 @@ export async function generate(args: GenerateArgs): Promise<void> {
     console.log(evaluatedPrompt);
   }
 
-  if (typeof args.writePrompt !== "undefined") {
+  if (
+    typeof args.printPrompt !== "undefined" ||
+    typeof args.writePrompt !== "undefined"
+  ) {
+    if (args.printPrompt) {
+      console.log(evaluatedPrompt);
+    }
     if (!args.writePrompt) {
       throw new Error(`Specify a file path for the --write-prompt parameter.`);
     }

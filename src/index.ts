@@ -48,6 +48,11 @@ async function main() {
               "List of files to include in the prompt. This provides additional context during code generation.",
             string: true,
           })
+          .option("printPrompt", {
+            type: "boolean",
+            describe:
+              "Print the generated prompt to the screen. Does not call the API.",
+          })
           .option("writePrompt", {
             type: "string",
             describe:
