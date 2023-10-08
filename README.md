@@ -61,33 +61,41 @@ codespin init
 
 This command generates source code based on a prompt file.
 
-Describe the requirements in a prompt file, ideally with a `.prompt.md` extension, e.g., `main.py.prompt.md`.
+First, describe the requirements in a prompt file. Let's use the suffix prompt.md as a convention.
 
-Use `--write` to save to the disk, otherwise, codespin will only display it on the screen.
+In `main.py.prompt.md`:
+```
+Make a python program (in main.py) that prints Hello, World!
+Add a shebang, so that it's directly executable.
+```
+
+Now to generate code:
 
 ```sh
 codespin generate main.py.prompt.md --write
 ```
 
+This would create a main.py file which prints "Hello, World!".
+
+
 #### Regenerating code
 
-To regenerate a file, pass the existing source code file using the `--include` parameter for better context understanding by the code generator.
+To regenerate a file you must modify the contents of a prompt file, and also pass the existing source code using the `--include` parameter. 
+This helps with better context understanding by the code generator.
 
 ```sh
 codespin generate main.py.prompt.md --include main.py --write
 ```
 
-NOTE: For regeneration to be effective, you need to:
-- Use a git repository 
-- keep committing both the prompt files and generated source code every time you're happy with generated code.
-
-Looking at the differences between the current version of a file and the last committed version helps the LLM understand the context better.
+IMPORTANT: For regeneration to be truly effective, you need to be using a git repository and keep committing the prompt and generated code files whenever you're apply with an edit.
+This allows the code generator to inspect the delta between prompts (working copy and HEAD) and apply the necessary changes accurately.
 
 #### Options for codespin generate
 
 - `-p, --prompt`: Specify the prompt directly on the command line.
 - `-t, --template`: Specify the template to use. If unspecified, "generate.md" is used.
 - `-w, --write`: Save generated code to a source file. Defaults to 'false'.
+- `--print-prompt`: Print the generated prompt to the screen without making an API call.
 - `--write-prompt`: Save the generated prompt to the specified path without making an API call.
 - `--api`: API service to utilize, like 'openai'. Defaults to 'openai'.
 - `--model`: Name of the desired model. E.g., 'gpt-4'.
@@ -103,7 +111,7 @@ Looking at the differences between the current version of a file and the last co
 
 A prompt file (usually with a `.prompt.md` extension) contains generation instructions.
 
-A basic prompt file might look like this, optionally including a front-matter:
+A basic prompt file would look like this, optionally including a front-matter:
 
 ```markdown
 ---
@@ -114,7 +122,7 @@ model: gpt-3.5-turbo-16k
 Generate a Python CLI script named index.py that accepts a set of arguments and prints their sum.
 ```
 
-A prompt file can optionally contain YAML front-matter for the `--include`, `--template`, `--api`, `--model` and `--max-token` parameters.
+The front-matter can include values for `--include`, `--template`, `--api`, `--model` and `--max-token` parameters.
 
 ## Immediate Mode for Prompting
 
