@@ -34,42 +34,53 @@ Set up the `OPENAI_API_KEY` environment variable. If you don't have an account, 
 
 If you don't possess an `OPENAI_API_KEY`, you can [use it with ChatGPT](#using-with-chatgpt).
 
-Ready? Let's try it out. This prints the contents of main.py to the screen.
+Ready? Let's try it out. The following statement generates code for a Hello World app and prints it to the screen.
 
 ```
 codespin generate --prompt 'Make a python program (in main.py) that prints Hello, World!'
 ```
 
-If you want it to write out the file, use the `--write` option.
+If you want it to write out the file, you must use the `--write` option.
 
 ```
 codespin generate --prompt 'Make a python program (in main.py) that prints Hello, World!' --write
 ```
 
+That was simple, wasn't it? We're just getting started.
+
+
 ### codespin init
 
-This command initializes your profile directory with some configurations.
+For serious use, you must treat prompts as first class citizens in your project.
+You need to save prompts in files and commit them in git, just as you would do with source code.
 
-Simply navigate to the project directory and run:
+Let's start by initializing your project directory with some configuration:
 
 ```sh
 codespin init
 ```
 
+This would have created codespin.json, as well as some directories that hold code generation templates.
+
+
 ### codespin generate
 
-This command generates source code based on a prompt file.
+The generate command is how you'd generate source code.
 
-First, describe the requirements in a prompt file. Let's use the suffix prompt.md as a convention.
+First, let's create a "prompt file" to describe functional requirements.
+One suggested convention is to have a prompt file for each source code file you want to generate.
+A good name for a prompt file would be a "prompt.md" suffix attached to the name of the source code file you want to generate. 
 
-In `main.py.prompt.md`:
+For example, the prompt file describing main.py could be called "main.py.prompt.md".
+
+`main.py.prompt.md`:
 
 ```
 Make a python program (in main.py) that prints Hello, World!
 Add a shebang, so that it's directly executable.
 ```
 
-Now to generate code:
+Once you've saved main.py.prompt.md, you can generate main.py from it.
 
 ```sh
 codespin generate main.py.prompt.md --write
@@ -77,9 +88,10 @@ codespin generate main.py.prompt.md --write
 
 This would create a main.py file which prints "Hello, World!".
 
+
 #### Regenerating code
 
-To regenerate a file you must modify the contents of a prompt file, and also pass the existing source code using the `--include` parameter.
+To regenerate a file you must modify the contents of a prompt file, and then pass the existing source code using the `--include` parameter.
 This helps with better context understanding by the code generator.
 
 ```sh
