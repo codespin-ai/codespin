@@ -68,7 +68,7 @@ This would have created codespin.json, as well as some directories that hold cod
 The generate command is how you'd generate source code.
 
 First, let's create a "prompt file" to describe functional requirements.
-One suggested convention is to have a prompt file for each source code file you want to generate.
+The suggested convention is to have a prompt file for each source code file you want to generate.
 A good name for a prompt file would be a "prompt.md" suffix attached to the name of the source code file you want to generate. 
 
 For example, the prompt file describing main.py could be called "main.py.prompt.md".
