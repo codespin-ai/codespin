@@ -48,7 +48,6 @@ codespin generate --prompt 'Make a python program (in main.py) that prints Hello
 
 That was simple, wasn't it? We're just getting started.
 
-
 ### codespin init
 
 For serious use, you must treat prompts as first class citizens in your project.
@@ -62,16 +61,15 @@ codespin init
 
 This would have created codespin.json, as well as some directories that hold code generation templates.
 
-
 ### codespin generate
 
 The generate command is how you'd generate source code.
 
 First, let's create a "prompt file" to describe functional requirements.
 The suggested convention is to have a prompt file for each source code file you want to generate.
-A good name for a prompt file would be a "prompt.md" suffix attached to the name of the source code file you want to generate. 
+A good name for a prompt file would be a "prompt.md" suffix attached to the name of the source code file you want to generate.
 
-For example, the prompt file describing main.py could be called "main.py.prompt.md".
+For example, a prompt file describing main.py could be called "main.py.prompt.md".
 
 `main.py.prompt.md`:
 
@@ -88,7 +86,6 @@ codespin generate main.py.prompt.md --write
 
 This would create a main.py file which prints "Hello, World!".
 
-
 #### Regenerating code
 
 To regenerate a file you must modify the contents of a prompt file, and then pass the existing source code using the `--include` parameter.
@@ -98,7 +95,7 @@ This helps with better context understanding by the code generator.
 codespin generate main.py.prompt.md --include main.py --write
 ```
 
-💡 For regeneration to be truly effective, you need to be using a git repository and keep committing the prompt and generated code files whenever you're apply with an edit.
+💡 For regeneration to be truly effective, you need to be using a git repository and keep committing both the prompt and generated code files every time you make successful edits using code generation.
 This allows the code generator to inspect the delta between prompts (working copy and HEAD) and apply the necessary changes accurately.
 
 #### Options for codespin generate
@@ -120,24 +117,30 @@ This allows the code generator to inspect the delta between prompts (working cop
 
 ## The Prompt File
 
-A prompt file (usually with a `.prompt.md` extension) contains generation instructions.
+A prompt file (usually with a `.prompt.md` extension) contains instructions about what the source code file should contain.
 
-A basic prompt file would look like this, optionally including a front-matter:
+I prompt file (in this example, main.py.prompt.md) would look like this:
+
+```markdown
+Generate a Python CLI script named index.py that accepts a set of arguments and prints their sum.
+```
+
+You can optionally include front-matter to define the `--include`, `--template`, `--api`, `--model` and `--max-tokens` parameters.
+
+Like this:
 
 ```markdown
 ---
-api: openai
 model: gpt-3.5-turbo-16k
+maxTokens: 8000
 ---
 
 Generate a Python CLI script named index.py that accepts a set of arguments and prints their sum.
 ```
 
-The front-matter can include values for `--include`, `--template`, `--api`, `--model` and `--max-token` parameters.
+## Immediate Mode Prompting
 
-## Immediate Mode for Prompting
-
-You can specify a prompt directly as an argument like this:
+As you've seen previously, you can include the prompt directly on the command line.
 
 ```sh
 codespin generate --prompt 'Create a file main.py which contains a function to add two numbers.'
@@ -147,14 +150,9 @@ As always, you must use `--write` to write it out to a file.
 
 ## Custom Templates
 
+Custom templates should be placed in the `codespin/templates` directory of your project.
+
 A CodeSpin Template is essentially a [HandleBars.JS](https://github.com/handlebars-lang/handlebars.js) template.
-
-You can specify custom templates with the `--template` argument.
-
-```sh
-codespin generate main.py.prompt.md --template mypythontemplate.md --include main.py --write
-```
-
 Usually, you'd craft custom templates to dictate aspects like coding style, frameworks, etc.
 
 Here's a barebones template:
@@ -170,6 +168,12 @@ function someFunction() {
 // code here
 }
 $END_FILE_CONTENTS:{{./some/path/filename.ext}}$
+```
+
+While generating code, you must specify custom templates with the `--template` argument.
+
+```sh
+codespin generate main.py.prompt.md --template mypythontemplate.md --include main.py --write
 ```
 
 Custom templates can utilize the following variables:
@@ -212,8 +216,12 @@ Now copy and paste the prompt into ChatGPT. Save ChatGPT's response in a test fi
 Then use the `codespin parse` command to parse the content. Like this:
 
 ```sh
-# Remember to mention --write
+# As always, use --write for writing to the disk
 codespin parse gptresponse.txt --write
 ```
 
 💡: When copying the response from ChatGPT, use the copy icon. Selecting text and copying doesn't retain formatting.
+
+## Contributing
+
+If you find more effective templates or prompts, please open a Pull Request.
