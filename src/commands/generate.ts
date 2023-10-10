@@ -46,8 +46,16 @@ export async function generate(args: GenerateArgs): Promise<void> {
     ? await readPromptSettings(args.promptFile)
     : {};
 
-  const filesToInclude = removeDuplicates(promptSettings?.include || []).concat(
-    args.include || []
+  const filesToInclude = removeDuplicates(
+    (promptSettings?.include || [])
+      .concat(args.include || [])
+      // If a prompt file is named source.ext.prompt.md,
+      // we auto include source.ext
+      .concat(
+        args.promptFile?.endsWith(".prompt.md")
+          ? [args.promptFile.replace(/\.prompt\.md$/, "")]
+          : []
+      )
   );
 
   const includedFilesOrNothing = await Promise.all(

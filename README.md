@@ -88,11 +88,13 @@ This would create a main.py file which prints "Hello, World!".
 
 #### Regenerating code
 
-To regenerate a file you must modify the contents of a prompt file, and then pass the existing source code using the `--include` parameter.
-This helps with better context understanding by the code generator.
+To regenerate a file you must first modify the contents of a prompt file, and then call `codespin generate` passing relevant existing source code using the `--include` (alias `-i`) parameter.
+The included files help with better context understanding by the code generator.
+
+For example, if main.py (which is automatically included if you use the `[source.ext].prompt.md` naming convention) depends on dep1.py and dep2.py:
 
 ```sh
-codespin generate main.py.prompt.md --include main.py --write
+codespin generate main.py.prompt.md -i dep1.py -i dep2.py --write
 ```
 
 💡 For regeneration to be truly effective, you need to be using a git repository and keep committing both the prompt and generated code files every time you make successful edits using code generation.
@@ -146,7 +148,7 @@ As you've seen previously, you can include the prompt directly on the command li
 codespin generate --prompt 'Create a file main.py which contains a function to add two numbers.'
 ```
 
-As always, you must use `--write` to write it out to a file.
+As always, you must use `--write` (or `-w`) to write out code generated files.
 
 ## Custom Templates
 
@@ -170,7 +172,7 @@ function someFunction() {
 $END_FILE_CONTENTS:{{./some/path/filename.ext}}$
 ```
 
-While generating code, you must specify custom templates with the `--template` argument.
+While generating code, you must specify custom templates with the `--template` (or `-t`) argument.
 
 ```sh
 codespin generate main.py.prompt.md --template mypythontemplate.md --include main.py --write
