@@ -1,5 +1,4 @@
 import { promises as fs } from "fs";
-import Handlebars from "handlebars";
 
 export type TemplateArgs = {
   prompt: string;
@@ -8,6 +7,8 @@ export type TemplateArgs = {
   previousPromptWithLineNumbers: string | undefined;
   promptDiff: string | undefined;
   files: FileContent[];
+  sourceFile: FileContent | undefined;
+  multi: boolean | undefined;
 };
 
 export type FileContent = {
@@ -24,15 +25,8 @@ export async function evaluateTemplate(
   args: TemplateArgs
 ): Promise<string> {
   try {
-    // 1. Read the template file
-    const templateStr = await fs.readFile(templatePath, "utf-8");
-
-    // 2. Compile the template with Handlebars
-    const template = Handlebars.compile(templateStr, { noEscape: true });
-
-    // 3. Evaluate the template with the provided args
-    const result = template(args);
-
+    const template = await import(templatePath);
+    const result = await template.default(args);
     return result;
   } catch (error: any) {
     throw new Error(`Failed to evaluate the template: ${error.message}`);

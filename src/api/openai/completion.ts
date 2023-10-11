@@ -1,4 +1,5 @@
 import { extractCode } from "../../prompts/extractCode.js";
+import { writeToConsole } from "../../writeToConsole.js";
 
 type CompletionResult =
   | {
@@ -25,8 +26,8 @@ async function completion(
   const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
   if (debug) {
-    console.log(`OPENAI: model=${model}`);
-    console.log(`OPENAI: maxTokens=${maxTokens}`);
+    writeToConsole(`OPENAI: model=${model}`);
+    writeToConsole(`OPENAI: maxTokens=${maxTokens}`);
   }
 
   // Check if the API key is available
@@ -66,8 +67,8 @@ async function completion(
 
     // If the debug parameter is set, stringify and print the response from OpenAI.
     if (debug) {
-      console.log("---OPENAI RESPONSE---");
-      console.log(JSON.stringify({ data }));
+      writeToConsole("---OPENAI RESPONSE---");
+      writeToConsole(JSON.stringify({ data }));
     }
 
     // Check if the response has an error

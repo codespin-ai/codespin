@@ -3,18 +3,19 @@ import { dirname, join, resolve } from "path";
 import * as url from "url";
 import { completion as openaiCompletion } from "../api/openai/completion.js";
 import { exception } from "../exception.js";
+import { getFileContent } from "../files/getFileContent.js";
 import { extractFilesToDisk } from "../fs/extractFilesToDisk.js";
 import { pathExists } from "../fs/pathExists.js";
 import { writeToFile } from "../fs/writeToFile.js";
 import { getDiff } from "../git/getDiff.js";
 import { getFileFromCommit } from "../git/getFileFromCommit.js";
 import { isCommitted } from "../git/isCommitted.js";
-import { isGitRepo } from "../git/isGitRepo.js";
 import { FileContent, evaluateTemplate } from "../prompts/evaluateTemplate.js";
 import { readPromptSettings } from "../prompts/readPromptSettings.js";
 import { removeFrontMatter } from "../prompts/removeFrontMatter.js";
 import { readConfig } from "../settings/readConfig.js";
 import { addLineNumbers } from "../text/addLineNumbers.js";
+import { writeToConsole } from "../writeToConsole.js";
 
 export type GenerateArgs = {
   promptFile: string | undefined;
@@ -30,7 +31,9 @@ export type GenerateArgs = {
   exec: string | undefined;
   config: string | undefined;
   include: string[] | undefined;
+  exclude: string[] | undefined;
   baseDir: string | undefined;
+  multi: boolean | undefined;
 };
 
 export async function generate(args: GenerateArgs): Promise<void> {
@@ -46,39 +49,39 @@ export async function generate(args: GenerateArgs): Promise<void> {
     ? await readPromptSettings(args.promptFile)
     : {};
 
+  // Get the source file, if it's a single file code-gen.
+  // Single file prompts have a source.ext.prompt.md extension.
+  const { sourceFileName } = await (async () => {
+    if (
+      args.promptFile !== undefined &&
+      /\.[a-zA-Z0-9]+\.prompt\.md$/.test(args.promptFile)
+    ) {
+      if (!args.multi) {
+        const sourceFileName = args.promptFile.replace(/\.prompt\.md$/, "");
+
+        const sourceFileExists = await pathExists(sourceFileName);
+        if (sourceFileExists) {
+          return { sourceFileName };
+        }
+      }
+    }
+    return { sourceFileName: undefined };
+  })();
+
+  // Check if this file isn't excluded explicitly
+  const sourceFile =
+    sourceFileName && !(args.exclude || []).includes(sourceFileName)
+      ? await getFileContent(sourceFileName)
+      : undefined;
+
+  // Remove dupes, and
+  // then remove files which have been explicitly excluded
   const filesToInclude = removeDuplicates(
-    (promptSettings?.include || [])
-      .concat(args.include || [])
-      // If a prompt file is named source.ext.prompt.md,
-      // we auto include source.ext
-      .concat(
-        args.promptFile?.endsWith(".prompt.md")
-          ? [args.promptFile.replace(/\.prompt\.md$/, "")]
-          : []
-      )
-  );
+    (promptSettings?.include || []).concat(args.include || [])
+  ).filter((x) => !(args.exclude || []).includes(x));
 
   const includedFilesOrNothing = await Promise.all(
-    filesToInclude.map(async (inc) => {
-      if (await pathExists(inc)) {
-        const contents = await fs.readFile(inc, "utf-8");
-        const previousContents = isGitRepo()
-          ? await getFileFromCommit(inc)
-          : undefined;
-        return {
-          name: inc,
-          contents,
-          contentsWithLineNumbers: addLineNumbers(contents),
-          previousContents,
-          previousContentsWithLineNumbers: previousContents
-            ? addLineNumbers(previousContents)
-            : undefined,
-          hasDifferences: contents === previousContents,
-        };
-      } else {
-        return undefined;
-      }
-    })
+    filesToInclude.map(getFileContent)
   );
 
   const includedFiles = (
@@ -131,23 +134,21 @@ export async function generate(args: GenerateArgs): Promise<void> {
           promptDiff: "",
         };
 
-  // If the template is not provided, we'll use generate.md
-  // For template resolution, first we check relative to the current path.
-  // If not found, we'll check in the codespin/templates directory.
-  const templateName = args.template || "generate.md";
-
-  const templatePath = (await pathExists(templateName))
-    ? resolve(templateName)
-    : (await pathExists(resolve("codespin/templates", templateName)))
-    ? resolve("codespin/templates", templateName)
-    : await (async () => {
-        const __filename = url.fileURLToPath(import.meta.url);
-        const builtInTemplatesDir = join(__filename, "../../../templates");
-        const builtInTemplatePath = resolve(builtInTemplatesDir, templateName);
-        return (await pathExists(builtInTemplatePath))
-          ? builtInTemplatePath
-          : undefined;
-      })();
+  // If the template is not provided, we'll use the default template.
+  const templatePath =
+    args.template && (await pathExists(args.template))
+      ? resolve(args.template)
+      : await (async () => {
+          const __filename = url.fileURLToPath(import.meta.url);
+          const builtInTemplatesDir = join(__filename, "../../templates");
+          const builtInTemplatePath = resolve(
+            builtInTemplatesDir,
+            "default.js"
+          );
+          return (await pathExists(builtInTemplatePath))
+            ? builtInTemplatePath
+            : undefined;
+        })();
 
   if (!templatePath) {
     throw new Error(
@@ -162,16 +163,18 @@ export async function generate(args: GenerateArgs): Promise<void> {
     previousPromptWithLineNumbers,
     promptDiff,
     files: includedFiles,
+    sourceFile,
+    multi: args.multi,
   });
 
   if (args.debug) {
-    console.log("--- PROMPT ---");
-    console.log(evaluatedPrompt);
+    writeToConsole("--- PROMPT ---");
+    writeToConsole(evaluatedPrompt);
   }
 
   if (args.printPrompt || typeof args.writePrompt !== "undefined") {
     if (args.printPrompt) {
-      console.log(evaluatedPrompt);
+      writeToConsole(evaluatedPrompt);
     }
 
     if (typeof args.writePrompt !== "undefined") {
@@ -183,7 +186,7 @@ export async function generate(args: GenerateArgs): Promise<void> {
       }
 
       await writeToFile(args.writePrompt, evaluatedPrompt);
-      console.log(`Wrote prompt to ${args.writePrompt}`);
+      writeToConsole(`Wrote prompt to ${args.writePrompt}`);
     }
 
     return;
@@ -218,20 +221,22 @@ export async function generate(args: GenerateArgs): Promise<void> {
       const skippedFiles = extractResult.filter((x) => !x.generated);
 
       if (generatedFiles.length) {
-        console.log(
+        writeToConsole(
           `Generated ${generatedFiles.map((x) => x.file).join(", ")}.`
         );
       }
       if (skippedFiles.length) {
-        console.log(`Skipped ${skippedFiles.map((x) => x.file).join(", ")}.`);
+        writeToConsole(
+          `Skipped ${skippedFiles.map((x) => x.file).join(", ")}.`
+        );
       }
     } else {
       for (const file of completionResult.files) {
         const header = `FILE: ${file.name}`;
-        console.log(header);
-        console.log("-".repeat(header.length));
-        console.log(file.contents);
-        console.log();
+        writeToConsole(header);
+        writeToConsole("-".repeat(header.length));
+        writeToConsole(file.contents);
+        writeToConsole();
       }
     }
   } else {

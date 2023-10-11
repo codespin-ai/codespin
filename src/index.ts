@@ -5,6 +5,7 @@ import { generate } from "./commands/generate.js";
 import { init } from "./commands/init.js";
 import { parse } from "./commands/parse.js";
 import { getPackageVersion } from "./getPackageVersion.js";
+import { writeToConsole } from "./writeToConsole.js";
 
 async function main() {
   yargs(process.argv.slice(2))
@@ -46,6 +47,12 @@ async function main() {
             alias: "i",
             describe:
               "List of files to include in the prompt. This provides additional context during code generation.",
+            string: true,
+          })
+          .option("exclude", {
+            type: "array",
+            describe:
+              "(Advanced) List of files to exclude in the prompt. Used to override automatically included source files.",
             string: true,
           })
           .option("printPrompt", {
@@ -92,6 +99,11 @@ async function main() {
             alias: "c",
             describe: "Path to config file.",
           })
+          .option("multi", {
+            type: "boolean",
+            describe:
+              "(Advanced) Explicitly indicate that the code generation will output multiple files. This is usually auto-inferred.",
+          })
           .option("baseDir", {
             type: "string",
             describe:
@@ -137,7 +149,7 @@ async function main() {
       }
     )
     .command("version", "Display the current version", {}, () => {
-      console.log(getPackageVersion());
+      writeToConsole(getPackageVersion());
     })
     .showHelpOnFail(false)
     .help("help")

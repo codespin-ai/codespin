@@ -65,8 +65,22 @@ This would have created codespin.json, as well as some directories that hold cod
 
 The generate command is how you'd generate source code.
 
-First, let's create a "prompt file" to describe functional requirements.
-The suggested convention is to have a prompt file for each source code file you want to generate.
+First, let's create a "prompt file" to describe source code. In the following example, we're calling it `main.py.prompt.md`:
+
+```
+Make a python program (in main.py) that prints Hello, World!
+Add a shebang, so that it's directly executable.
+```
+
+Now generate the code with:
+
+```sh
+codespin generate main.py.prompt.md --write
+```
+
+If you're describing code for single file, you need to name the prompt file in the format "source.ext.prompt.md",
+
+you need to have a prompt file for each source code file you want to generate.
 A good name for a prompt file would be a "prompt.md" suffix attached to the name of the source code file you want to generate.
 
 For example, a prompt file describing main.py could be called "main.py.prompt.md".
@@ -103,7 +117,7 @@ This allows the code generator to inspect the delta between prompts (working cop
 #### Options for codespin generate
 
 - `-p, --prompt`: Specify the prompt directly on the command line.
-- `-t, --template`: Specify the template to use. If unspecified, "generate.md" is used.
+- `-t, --template`: Specify the template to use. If unspecified a built-in default template is used.
 - `-w, --write`: Save generated code to a source file. Defaults to 'false'.
 - `--print-prompt`: Print the generated prompt to the screen without making an API call.
 - `--write-prompt`: Save the generated prompt to the specified path without making an API call.
@@ -152,35 +166,10 @@ As always, you must use `--write` (or `-w`) to write out code generated files.
 
 ## Custom Templates
 
-Custom templates should be placed in the `codespin/templates` directory of your project.
+A CodeSpin Template is a file containing a JS function with the following signature:
 
-A CodeSpin Template is essentially a [HandleBars.JS](https://github.com/handlebars-lang/handlebars.js) template.
-Usually, you'd craft custom templates to dictate aspects like coding style, frameworks, etc.
-
-Here's a barebones template:
-
-```handlebars
-{{prompt}}
-
-Respond with just the code (for the entire file) in the format:
-
-$START_FILE_CONTENTS:{{./some/path/filename.ext}}$
-import a from "./a";
-function someFunction() {
-// code here
-}
-$END_FILE_CONTENTS:{{./some/path/filename.ext}}$
-```
-
-While generating code, you must specify custom templates with the `--template` (or `-t`) argument.
-
-```sh
-codespin generate main.py.prompt.md --template mypythontemplate.md --include main.py --write
-```
-
-Custom templates can utilize the following variables:
-
-```ts
+```js
+// type of args to the template
 type TemplateArgs = {
   prompt: string;
   promptWithLineNumbers: string;
@@ -197,6 +186,21 @@ type FileContent = {
   previousContents: string; // from git commit
   previousContentsWithLineNumbers: string; // from git commit
 };
+
+// The templating function that generates the LLM prompt.
+export default function generate(args: TemplateArgs) {
+  if (args.promptDiff) {
+    return withPromptDiff(args);
+  } else {
+    return withoutPromptDiff(args);
+  }
+}
+```
+
+While generating code, you must specify custom templates with the `--template` (or `-t`) argument.
+
+```sh
+codespin generate main.py.prompt.md --template mypythontemplate.js --include main.py --write
 ```
 
 ## Using with ChatGPT

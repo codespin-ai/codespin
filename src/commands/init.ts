@@ -3,13 +3,13 @@ import { join, resolve } from "path";
 import * as url from "url";
 import { copyFilesInDir } from "../fs/copyFilesInDir.js";
 import { pathExists } from "../fs/pathExists.js";
+import { writeToConsole } from "../writeToConsole.js";
 
 type InitArgs = {
   force?: boolean;
 };
 
 const DEFAULT_JSON_CONTENT = {
-  templates: "codespin/templates",
   api: "openai",
   model: "gpt-3.5-turbo",
 };
@@ -31,26 +31,9 @@ export async function init(args: InitArgs): Promise<void> {
       JSON.stringify(DEFAULT_JSON_CONTENT, null, 2)
     );
 
-    // Create codespin directories.
-    await createDirectoriesIfNotExist(resolve(currentDir, "codespin"));
-    await createDirectoriesIfNotExist(
-      resolve(currentDir, "codespin/templates")
-    );
-
-    // Copy default templates into it.
-
-    const __filename = url.fileURLToPath(import.meta.url);
-    const builtInTemplatesDir = join(__filename, "../../../templates");
-
-    // Copy all templates into the codespin directory.
-    await copyFilesInDir(
-      builtInTemplatesDir,
-      resolve(currentDir, "codespin/templates")
-    );
-
-    console.log("Initialization completed.");
+    writeToConsole("Initialization completed.");
   } catch (err: any) {
-    console.log(`Error during initialization: ${err.message}`);
+    writeToConsole(`Error during initialization: ${err.message}`);
   }
 }
 

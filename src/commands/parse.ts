@@ -1,6 +1,7 @@
 import { promises as fs } from "fs";
 import { extractFilesToDisk } from "../fs/extractFilesToDisk.js";
 import { extractCode } from "../prompts/extractCode.js";
+import { writeToConsole } from "../writeToConsole.js";
 
 type ParseArgs = {
   filename: string;
@@ -24,18 +25,20 @@ export async function parse(args: ParseArgs): Promise<void> {
     const skippedFiles = extractResult.filter((x) => !x.generated);
 
     if (generatedFiles.length) {
-      console.log(`Generated ${generatedFiles.map((x) => x.file).join(", ")}.`);
+      writeToConsole(
+        `Generated ${generatedFiles.map((x) => x.file).join(", ")}.`
+      );
     }
     if (skippedFiles.length) {
-      console.log(`Skipped ${skippedFiles.map((x) => x.file).join(", ")}.`);
+      writeToConsole(`Skipped ${skippedFiles.map((x) => x.file).join(", ")}.`);
     }
   } else {
     for (const file of files) {
       const header = `FILE: ${file.name}`;
-      console.log(header);
-      console.log("-".repeat(header.length));
-      console.log(file.contents);
-      console.log();
+      writeToConsole(header);
+      writeToConsole("-".repeat(header.length));
+      writeToConsole(file.contents);
+      writeToConsole();
     }
   }
 }
