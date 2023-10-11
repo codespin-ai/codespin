@@ -6,6 +6,15 @@ type WithRequired<T, K extends keyof T> = Omit<T, K> & {
   [P in K]-?: UndefinedToNever<T[P]>;
 };
 
+function argsHasPreviousPrompt(
+  args: TemplateArgs
+): args is WithRequired<
+  TemplateArgs,
+  "previousPrompt" | "previousPromptWithLineNumbers"
+> {
+  return args.previousPrompt !== undefined;
+}
+
 function argsHasSourceFile(
   args: TemplateArgs
 ): args is WithRequired<TemplateArgs, "sourceFile"> {
@@ -21,7 +30,11 @@ export default async function generate(args: TemplateArgs) {
 }
 
 function withPromptDiff(args: TemplateArgs) {
-  if (argsHasSourceFile(args) && args.sourceFile.previousContents) {
+  if (
+    argsHasSourceFile(args) &&
+    argsHasPreviousPrompt(args) &&
+    args.sourceFile.previousContents
+  ) {
     const argsWithSource: WithRequired<TemplateArgs, "sourceFile"> = args;
 
     return (
@@ -29,7 +42,7 @@ function withPromptDiff(args: TemplateArgs) {
         `The following prompt (with line numbers added) was used to generate source code for the file ${args.sourceFile?.name} provided later.`,
         true
       ) +
-      printPrompt(args, true) +
+      printPreviousPrompt(args, true) +
       printSourceFile(argsWithSource, false, true) +
       printIncludeFiles(args, false, false) +
       printLine(
@@ -66,6 +79,19 @@ function printLine(line: string, addBlankLine = false): string {
 function printPrompt(args: TemplateArgs, useLineNumbers: boolean) {
   return printLine(
     useLineNumbers ? args.promptWithLineNumbers : args.prompt,
+    true
+  );
+}
+
+function printPreviousPrompt(
+  args: WithRequired<
+    TemplateArgs,
+    "previousPrompt" | "previousPromptWithLineNumbers"
+  >,
+  useLineNumbers: boolean
+) {
+  return printLine(
+    useLineNumbers ? args.previousPromptWithLineNumbers : args.previousPrompt,
     true
   );
 }
