@@ -51,12 +51,18 @@ function withPromptDiff(args: TemplateArgs) {
       ) +
       printPromptDiff(args) +
       printLine(
-        "Based on the changes to the prompt, regenerate the source code."
+        "Based on the changes to the prompt, regenerate the source code. Retain the original code and structure wherever possible."
       ) +
       printFileTemplate(args)
     );
   } else {
     return (
+      (args.sourceFile
+        ? printLine(
+            `From the following prompt, generate source code for the file ${args.sourceFile.name}.`,
+            true
+          )
+        : "") +
       printPrompt(args, false) +
       printIncludeFiles(args, false, false) +
       printFileTemplate(args)
@@ -66,6 +72,12 @@ function withPromptDiff(args: TemplateArgs) {
 
 function withoutPromptDiff(args: TemplateArgs) {
   return (
+    (args.sourceFile
+      ? printLine(
+          `From the following prompt, generate source code for the file ${args.sourceFile.name}.`,
+          true
+        )
+      : "") +
     printPrompt(args, false) +
     printIncludeFiles(args, false, false) +
     printFileTemplate(args)
@@ -101,15 +113,18 @@ function printPromptDiff(args: TemplateArgs): string {
 }
 
 function printFileTemplate(args: TemplateArgs) {
+  const filePath = args.sourceFile
+    ? args.sourceFile.name
+    : "./some/path/filename.ext";
   const a = `
   Respond with just the code (but exclude invocation examples etc) in the following format:
 
-  $START_FILE_CONTENTS:./some/path/filename.ext$
+  $START_FILE_CONTENTS:${filePath}$
   import a from "./a";
   function somethingSomething() {
     //....
   }
-  $END_FILE_CONTENTS:./some/path/filename.ext$
+  $END_FILE_CONTENTS:${filePath}$
   `;
 
   return fixTemplateWhitespace(a);

@@ -43,8 +43,6 @@ export async function generate(args: GenerateArgs): Promise<void> {
     ? await readConfig(configFile)
     : undefined;
 
-  const promptFileDir = args.promptFile ? dirname(args.promptFile) : undefined;
-
   const promptSettings = args.promptFile
     ? await readPromptSettings(args.promptFile)
     : {};
@@ -219,7 +217,7 @@ export async function generate(args: GenerateArgs): Promise<void> {
   if (completionResult.ok) {
     if (args.write) {
       const extractResult = await extractFilesToDisk(
-        args.baseDir || promptFileDir || process.cwd(),
+        args.baseDir || process.cwd(),
         completionResult,
         args.exec
       );
