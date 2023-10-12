@@ -12,11 +12,6 @@ export async function getDiff(
   const tempPathCurrent = await createTempFile(newContent);
   const tempPathCommitted = await createTempFile(oldContent);
 
-  console.log({
-    tempPathCurrent,
-    tempPathCommitted,
-  });
-
   try {
     const diff = await execPromise(
       `git diff --no-index ${tempPathCommitted} ${tempPathCurrent}`
