@@ -25,6 +25,9 @@ async function completion(
 ): Promise<CompletionResult> {
   const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
+  // This is optional.
+  const OPENAI_COMPLETIONS_ENDPOINT = process.env.OPENAI_COMPLETIONS_ENDPOINT;
+
   if (debug) {
     writeToConsole(`OPENAI: model=${model}`);
     writeToConsole(`OPENAI: maxTokens=${maxTokens}`);
@@ -41,9 +44,12 @@ async function completion(
     };
   }
 
+  const openaiCompletionsEndpoint =
+    OPENAI_COMPLETIONS_ENDPOINT || "https://api.openai.com/v1/chat/completions";
+
   try {
     // Make a POST request to the OpenAI API
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch(openaiCompletionsEndpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

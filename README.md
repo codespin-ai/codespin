@@ -223,6 +223,14 @@ codespin parse gptresponse.txt --write
 
 💡: When copying the response from ChatGPT, use the copy icon. Selecting text and copying doesn't retain formatting.
 
+## Using Azure OpenAI API
+
+You may use Azure's OpenAI endpoint by setting the OPENAI_COMPLETIONS_ENDPOINT environment variable.
+
+```sh
+export OPENAI_COMPLETIONS_ENDPOINT='https://YOUR_RESOURCE_NAME.openai.azure.com/openai/deployments/YOUR_DEPLOYMENT_NAME/completions'
+```
+
 ## Contributing
 
 If you find more effective templates or prompts, please open a Pull Request.
