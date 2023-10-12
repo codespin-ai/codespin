@@ -107,26 +107,28 @@ export async function generate(args: GenerateArgs): Promise<void> {
   const { previousPrompt, previousPromptWithLineNumbers, promptDiff } =
     isPromptFileCommitted
       ? await (async () => {
-          const fileFromCommit = args.promptFile
-            ? await getFileFromCommit(args.promptFile)
-            : exception("invariant exception: missing prompt file");
-          const previousPrompt =
-            fileFromCommit !== undefined
-              ? removeFrontMatter(fileFromCommit)
-              : undefined;
-          const previousPromptWithLineNumbers =
-            previousPrompt !== undefined
-              ? addLineNumbers(previousPrompt)
-              : undefined;
-          const promptDiff =
-            previousPrompt !== undefined
-              ? await getDiff(prompt, previousPrompt)
-              : undefined;
-          return {
-            previousPrompt,
-            previousPromptWithLineNumbers,
-            promptDiff,
-          };
+          if (args.promptFile) {
+            const fileFromCommit = await getFileFromCommit(args.promptFile);
+            const previousPrompt =
+              fileFromCommit !== undefined
+                ? removeFrontMatter(fileFromCommit)
+                : undefined;
+            const previousPromptWithLineNumbers =
+              previousPrompt !== undefined
+                ? addLineNumbers(previousPrompt)
+                : undefined;
+            const promptDiff =
+              previousPrompt !== undefined
+                ? await getDiff(prompt, previousPrompt, args.promptFile)
+                : undefined;
+            return {
+              previousPrompt,
+              previousPromptWithLineNumbers,
+              promptDiff,
+            };
+          } else {
+            exception("invariant exception: missing prompt file");
+          }
         })()
       : {
           previousPrompt: "",
@@ -138,6 +140,10 @@ export async function generate(args: GenerateArgs): Promise<void> {
   const templatePath =
     args.template && (await pathExists(args.template))
       ? resolve(args.template)
+      : (await pathExists(
+          resolve("codespin/templates", args.template || "default.mjs")
+        ))
+      ? resolve("codespin/templates", args.template || "default.mjs")
       : await (async () => {
           const __filename = url.fileURLToPath(import.meta.url);
           const builtInTemplatesDir = join(__filename, "../../templates");

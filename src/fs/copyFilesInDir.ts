@@ -3,7 +3,8 @@ import path from "path";
 
 export async function copyFilesInDir(
   srcDir: string,
-  destDir: string
+  destDir: string,
+  transformFilename: (filename: string) => string | undefined
 ): Promise<void> {
   try {
     // Check if the source and destination directories exist
@@ -25,8 +26,13 @@ export async function copyFilesInDir(
     // Copy each file from the source directory to the destination directory
     await Promise.all(
       files.map(async (file) => {
+        const transformedFilename = transformFilename(file);
+        if (!transformedFilename) {
+          return; // Skip copying if transformFilename returns undefined
+        }
+
         const srcFilePath = path.join(srcDir, file);
-        const destFilePath = path.join(destDir, file);
+        const destFilePath = path.join(destDir, transformedFilename);
 
         const fileStats = await fs.stat(srcFilePath);
 

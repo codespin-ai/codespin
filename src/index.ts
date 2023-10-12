@@ -23,7 +23,7 @@ async function main() {
       }
     )
     .command(
-      "generate [promptFile]",
+      ["generate [promptFile]", "gen"],
       "Generate a source code from a prompt",
       (yargs) =>
         yargs
@@ -152,6 +152,7 @@ async function main() {
       writeToConsole(getPackageVersion());
     })
     .showHelpOnFail(false)
+    .completion()
     .help("help")
     .alias("h", "help").argv;
 }

@@ -31,6 +31,26 @@ export async function init(args: InitArgs): Promise<void> {
       JSON.stringify(DEFAULT_JSON_CONTENT, null, 2)
     );
 
+    // Create codespin directories.
+    await createDirectoriesIfNotExist(resolve(currentDir, "codespin"));
+    await createDirectoriesIfNotExist(
+      resolve(currentDir, "codespin/templates")
+    );
+
+    // Copy default templates into it.
+
+    const __filename = url.fileURLToPath(import.meta.url);
+    const builtInTemplatesDir = join(__filename, "../../templates");
+
+    // Copy all templates into the codespin directory.
+    // Copy only js files.
+    await copyFilesInDir(
+      builtInTemplatesDir,
+      resolve(currentDir, "codespin/templates"),
+      (filename) =>
+        filename.endsWith(".js") ? filename.replace(/\.js$/, ".mjs") : undefined
+    );
+
     writeToConsole("Initialization completed.");
   } catch (err: any) {
     writeToConsole(`Error during initialization: ${err.message}`);
