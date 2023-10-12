@@ -57,13 +57,14 @@ function withPromptDiff(args: TemplateArgs) {
     );
   } else {
     return (
-      (args.sourceFile
+      (args.targetFilePath
         ? printLine(
-            `From the following prompt, generate source code for the file ${args.sourceFile.name}.`,
+            `From the following prompt (enclosed between "-----"), generate source code for the file ${args.targetFilePath}.`,
             true
-          )
+          ) + printLine("-----", true)
         : "") +
       printPrompt(args, false) +
+      printLine("-----", true) +
       printIncludeFiles(args, false, false) +
       printFileTemplate(args)
     );
@@ -72,20 +73,21 @@ function withPromptDiff(args: TemplateArgs) {
 
 function withoutPromptDiff(args: TemplateArgs) {
   return (
-    (args.sourceFile
+    (args.targetFilePath
       ? printLine(
-          `From the following prompt, generate source code for the file ${args.sourceFile.name}.`,
+          `From the following prompt (enclosed between "-----"), generate source code for the file ${args.targetFilePath}.`,
           true
-        )
+        ) + printLine("-----", true)
       : "") +
     printPrompt(args, false) +
+    printLine("-----", true) +
     printIncludeFiles(args, false, false) +
     printFileTemplate(args)
   );
 }
 
 function printLine(line: string, addBlankLine = false): string {
-  return line + (addBlankLine ? "\n" + "\n" : "\n");
+  return line + (!line.endsWith("\n") ? "\n" : "") + (addBlankLine ? "\n" : "");
 }
 
 function printPrompt(args: TemplateArgs, useLineNumbers: boolean) {
@@ -113,8 +115,8 @@ function printPromptDiff(args: TemplateArgs): string {
 }
 
 function printFileTemplate(args: TemplateArgs) {
-  const filePath = args.sourceFile
-    ? args.sourceFile.name
+  const filePath = args.targetFilePath
+    ? args.targetFilePath
     : "./some/path/filename.ext";
   const a = `
   Respond with just the code (but exclude invocation examples etc) in the following format:

@@ -1,4 +1,3 @@
-import { promises as fs } from "fs";
 
 export type TemplateArgs = {
   prompt: string;
@@ -8,6 +7,7 @@ export type TemplateArgs = {
   promptDiff: string | undefined;
   files: FileContent[];
   sourceFile: FileContent | undefined;
+  targetFilePath: string | undefined;
   multi: boolean | undefined;
 };
 

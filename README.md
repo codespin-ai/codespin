@@ -167,7 +167,7 @@ export default function generate(args: TemplateArgs): string {
 }
 
 // Arguments to the templating function
-type TemplateArgs = {
+export type TemplateArgs = {
   prompt: string,
   promptWithLineNumbers: string,
   previousPrompt: string | undefined,
@@ -175,6 +175,7 @@ type TemplateArgs = {
   promptDiff: string | undefined,
   files: FileContent[],
   sourceFile: FileContent | undefined,
+  targetFilePath: string | undefined,
   multi: boolean | undefined,
 };
 

@@ -49,27 +49,25 @@ export async function generate(args: GenerateArgs): Promise<void> {
 
   // Get the source file, if it's a single file code-gen.
   // Single file prompts have a source.ext.prompt.md extension.
-  const { sourceFileName } = await (async () => {
+  const targetFilePath = await (async () => {
     if (
       args.promptFile !== undefined &&
       /\.[a-zA-Z0-9]+\.prompt\.md$/.test(args.promptFile)
     ) {
       if (!args.multi) {
         const sourceFileName = args.promptFile.replace(/\.prompt\.md$/, "");
-
-        const sourceFileExists = await pathExists(sourceFileName);
-        if (sourceFileExists) {
-          return { sourceFileName };
-        }
+        return sourceFileName;
       }
     }
-    return { sourceFileName: undefined };
+    return undefined;
   })();
 
   // Check if this file isn't excluded explicitly
   const sourceFile =
-    sourceFileName && !(args.exclude || []).includes(sourceFileName)
-      ? await getFileContent(sourceFileName)
+    targetFilePath &&
+    (await pathExists(targetFilePath)) &&
+    !(args.exclude || []).includes(targetFilePath)
+      ? await getFileContent(targetFilePath)
       : undefined;
 
   // Remove dupes, and
@@ -169,6 +167,7 @@ export async function generate(args: GenerateArgs): Promise<void> {
     files: includedFiles,
     sourceFile,
     multi: args.multi,
+    targetFilePath
   });
 
   if (args.debug) {
