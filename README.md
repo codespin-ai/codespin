@@ -40,7 +40,7 @@ Ready? Let's try it out. The following statement generates code for a Hello Worl
 codespin generate --prompt 'Make a python program (in main.py) that prints Hello, World!'
 ```
 
-If you want it to write out the file, you must use the `--write` option.
+If you want it to write out the file, you must use the `--write` (or `-w`) option.
 
 ```
 codespin generate --prompt 'Make a python program (in main.py) that prints Hello, World!' --write
@@ -78,10 +78,8 @@ Now generate the code with:
 codespin generate main.py.prompt.md --write
 ```
 
-If you're describing code for single file, you need to name the prompt file in the format "source.ext.prompt.md",
-
-you need to have a prompt file for each source code file you want to generate.
-A good name for a prompt file would be a "prompt.md" suffix attached to the name of the source code file you want to generate.
+If you're describing code for single file, you need to name the prompt file in the format "source.ext.prompt.md". 
+There should be a prompt file for each source code file you want to generate.
 
 For example, a prompt file describing main.py could be called "main.py.prompt.md".
 
@@ -162,7 +160,7 @@ As you've seen previously, you can include the prompt directly on the command li
 codespin generate --prompt 'Create a file main.py which contains a function to add two numbers.'
 ```
 
-As always, you must use `--write` (or `-w`) to write out code generated files.
+As always, you must use `--write` to write out code generated files.
 
 ## Custom Templates
 
