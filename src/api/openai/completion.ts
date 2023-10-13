@@ -5,7 +5,7 @@ type CompletionResult =
   | {
       ok: true;
       files: {
-        name: string;
+        path: string;
         contents: string;
       }[];
     }

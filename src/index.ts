@@ -49,6 +49,13 @@ async function main() {
               "List of files to include in the prompt. This provides additional context during code generation.",
             string: true,
           })
+          .option("declare", {
+            type: "array",
+            alias: "d",
+            describe:
+              "List of files containing declarations (class definitions, method signatures etc) to include. This provides additional context during code generation.",
+            string: true,
+          })
           .option("exclude", {
             type: "array",
             describe:

@@ -6,20 +6,20 @@ import { ensureDirectoryExists } from "./ensureDirectoryExists.js";
 export async function extractFilesToDisk(
   baseDir: string,
   data: {
-    files: { name: string; contents: string }[];
+    files: { path: string; contents: string }[];
   },
   exec: string | undefined
 ): Promise<{ generated: boolean; file: string }[]> {
   const files = await Promise.all(
     data.files.map(async (file) => {
-      const generatedFilePath = join(baseDir, file.name);
+      const generatedFilePath = join(baseDir, file.path);
       await ensureDirectoryExists(generatedFilePath);
       await writeFile(generatedFilePath, file.contents);
 
       if (exec) {
         await execCommand(exec, [generatedFilePath]);
       }
-      return { generated: true, file: file.name };
+      return { generated: true, file: file.path };
     })
   );
 

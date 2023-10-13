@@ -34,7 +34,7 @@ export async function parse(args: ParseArgs): Promise<void> {
     }
   } else {
     for (const file of files) {
-      const header = `FILE: ${file.name}`;
+      const header = `FILE: ${file.path}`;
       writeToConsole(header);
       writeToConsole("-".repeat(header.length));
       writeToConsole(file.contents);

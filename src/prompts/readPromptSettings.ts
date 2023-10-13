@@ -6,6 +6,7 @@ export type PromptSettings = {
   maxTokens?: number;
   template?: string;
   include?: string[];
+  declare?: string[];
 };
 
 export async function readPromptSettings(

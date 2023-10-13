@@ -1,10 +1,18 @@
-import { FileContent, TemplateArgs } from "../prompts/evaluateTemplate.js";
+import { TemplateArgs } from "../prompts/evaluateTemplate.js";
 
 type UndefinedToNever<T> = T extends undefined ? never : T;
 
 type WithRequired<T, K extends keyof T> = Omit<T, K> & {
   [P in K]-?: UndefinedToNever<T[P]>;
 };
+
+export default async function generate(args: TemplateArgs): Promise<string> {
+  if (args.promptDiff) {
+    return withPromptDiff(args);
+  } else {
+    return withoutPromptDiff(args);
+  }
+}
 
 function argsHasPreviousPrompt(
   args: TemplateArgs
@@ -19,14 +27,6 @@ function argsHasSourceFile(
   args: TemplateArgs
 ): args is WithRequired<TemplateArgs, "sourceFile"> {
   return args.sourceFile !== undefined;
-}
-
-export default async function generate(args: TemplateArgs) {
-  if (args.promptDiff) {
-    return withPromptDiff(args);
-  } else {
-    return withoutPromptDiff(args);
-  }
 }
 
 function withPromptDiff(args: TemplateArgs) {
@@ -44,6 +44,7 @@ function withPromptDiff(args: TemplateArgs) {
       ) +
       printPreviousPrompt(args, true) +
       printSourceFile(argsWithSource, false, true) +
+      printDeclarations(args) +
       printIncludeFiles(args, false, false) +
       printLine(
         `But now I'm making the following changes to the original prompt. The diff of the prompt is given below.`,
@@ -65,6 +66,7 @@ function withPromptDiff(args: TemplateArgs) {
         : "") +
       printPrompt(args, false) +
       printLine("-----", true) +
+      printDeclarations(args) +
       printIncludeFiles(args, false, false) +
       printFileTemplate(args)
     );
@@ -81,13 +83,16 @@ function withoutPromptDiff(args: TemplateArgs) {
       : "") +
     printPrompt(args, false) +
     printLine("-----", true) +
+    printDeclarations(args) +
     printIncludeFiles(args, false, false) +
     printFileTemplate(args)
   );
 }
 
-function printLine(line: string, addBlankLine = false): string {
-  return line + (!line.endsWith("\n") ? "\n" : "") + (addBlankLine ? "\n" : "");
+function printLine(line: string | undefined, addBlankLine = false): string {
+  return line
+    ? line + (!line.endsWith("\n") ? "\n" : "") + (addBlankLine ? "\n" : "")
+    : "\n";
 }
 
 function printPrompt(args: TemplateArgs, useLineNumbers: boolean) {
@@ -118,7 +123,7 @@ function printFileTemplate(args: TemplateArgs) {
   const filePath = args.targetFilePath
     ? args.targetFilePath
     : "./some/path/filename.ext";
-  const a = `
+  const tmpl = `
   Respond with just the code (but exclude invocation examples etc) in the following format:
 
   $START_FILE_CONTENTS:${filePath}$
@@ -129,7 +134,7 @@ function printFileTemplate(args: TemplateArgs) {
   $END_FILE_CONTENTS:${filePath}$
   `;
 
-  return fixTemplateWhitespace(a);
+  return printLine(fixTemplateWhitespace(tmpl), true);
 }
 
 function printSourceFile(
@@ -138,25 +143,45 @@ function printSourceFile(
   usePrevious: boolean
 ) {
   const text =
-    (usePrevious
-      ? `Here is the previous code for ${args.sourceFile.name}${
-          useLineNumbers ? " with line numbers" : ""
-        }`
-      : `Here is the code for ${args.sourceFile.name}${
-          useLineNumbers ? " with line numbers" : ""
-        }`) +
-    "\n\n" +
-    "```\n" +
-    (usePrevious
-      ? useLineNumbers
-        ? args.sourceFile.previousContentsWithLineNumbers
-        : args.sourceFile.previousContents
-      : useLineNumbers
-      ? args.sourceFile.contentsWithLineNumbers
-      : args.sourceFile.contents) +
-    "\n```\n" +
-    "\n";
+    printLine(
+      usePrevious
+        ? `Here is the previous code for ${args.sourceFile.name}${
+            useLineNumbers ? " with line numbers" : ""
+          }`
+        : `Here is the code for ${args.sourceFile.name}${
+            useLineNumbers ? " with line numbers" : ""
+          }`
+    ) +
+    printLine("```") +
+    printLine(
+      usePrevious
+        ? useLineNumbers
+          ? args.sourceFile.previousContentsWithLineNumbers
+          : args.sourceFile.previousContents
+        : useLineNumbers
+        ? args.sourceFile.contentsWithLineNumbers
+        : args.sourceFile.contents
+    ) +
+    printLine("") +
+    printLine("```", true);
   return text;
+}
+
+function printDeclarations(args: TemplateArgs) {
+  if (args.declarations.length === 0) {
+    return "";
+  } else {
+    const text =
+      "I'm also adding relevant declarations for external dependencies so that you understand the code better.\n\n" +
+      args.declarations.map(
+        (file) =>
+          printLine(`Declarations for ${file.name}:`) +
+          printLine("```") +
+          printLine(file.declarations) +
+          printLine("```", true)
+      );
+    return text;
+  }
 }
 
 function printIncludeFiles(
@@ -168,20 +193,21 @@ function printIncludeFiles(
     return "";
   } else {
     const text =
-      "Additionally, I've added some relevant existing code to help you understand the context better.\n\n" +
+      "Additionally, I've added some relevant external files to help you understand the context better.\n\n" +
       args.files.map(
         (file) =>
-          `Source code for ${file.name}:\n` +
-          "```\n" +
-          (usePrevious
-            ? useLineNumbers
-              ? file.previousContentsWithLineNumbers
-              : file.previousContents
-            : useLineNumbers
-            ? file.contentsWithLineNumbers
-            : file.contents) +
-          "\n```\n" +
-          "\n"
+          printLine(`Source code for ${file.name}:`) +
+          printLine("```") +
+          printLine(
+            usePrevious
+              ? useLineNumbers
+                ? file.previousContentsWithLineNumbers
+                : file.previousContents
+              : useLineNumbers
+              ? file.contentsWithLineNumbers
+              : file.contents
+          ) +
+          printLine("```", true)
       );
     return text;
   }

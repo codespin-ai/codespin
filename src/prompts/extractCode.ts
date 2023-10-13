@@ -1,11 +1,11 @@
 type FileInfo = {
-  name: string;
+  path: string;
   contents: string;
 };
 
 export function extractCode(
   response: string
-): { name: string; contents: string }[] {
+): { path: string; contents: string }[] {
   const result = parseFileContents(response);
   return result;
 }
@@ -20,7 +20,7 @@ const parseFileContents = (input: string): FileInfo[] => {
       const match = content.match(/\$START_FILE_CONTENTS:(.*?)\$(.*)/s);
       if (match && match.length === 3) {
         return {
-          name: match[1].trim(),
+          path: match[1].trim(),
           contents: match[2].trim(),
         };
       }

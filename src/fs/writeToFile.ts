@@ -8,7 +8,12 @@ import { promises as fs } from "fs";
  */
 export async function writeToFile(
   path: string,
-  contents: string
+  contents: string,
+  append: boolean
 ): Promise<void> {
-  await fs.writeFile(path, contents, "utf-8");
+  if (!append) {
+    await fs.writeFile(path, contents, "utf-8");
+  } else {
+    await fs.appendFile(path, contents);
+  }
 }

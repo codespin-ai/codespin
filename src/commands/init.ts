@@ -4,6 +4,7 @@ import * as url from "url";
 import { copyFilesInDir } from "../fs/copyFilesInDir.js";
 import { pathExists } from "../fs/pathExists.js";
 import { writeToConsole } from "../writeToConsole.js";
+import { writeToFile } from "../fs/writeToFile.js";
 
 type InitArgs = {
   force?: boolean;
@@ -50,6 +51,16 @@ export async function init(args: InitArgs): Promise<void> {
       (filename) =>
         filename.endsWith(".js") ? filename.replace(/\.js$/, ".mjs") : undefined
     );
+
+    // Create codespin/declarations
+    await createDirectoriesIfNotExist(
+      resolve(currentDir, "codespin/declarations")
+    );
+
+    // exclude codespin/declarations in .gitignore
+    if (await pathExists(".gitignore")) {
+      await writeToFile(".gitignore", "codespin/declarations", true);
+    }
 
     writeToConsole("Initialization completed.");
   } catch (err: any) {

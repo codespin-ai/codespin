@@ -1,4 +1,3 @@
-
 export type TemplateArgs = {
   prompt: string;
   promptWithLineNumbers: string;
@@ -6,6 +5,10 @@ export type TemplateArgs = {
   previousPromptWithLineNumbers: string | undefined;
   promptDiff: string | undefined;
   files: FileContent[];
+  declarations: {
+    name: string;
+    declarations: string;
+  }[];
   sourceFile: FileContent | undefined;
   targetFilePath: string | undefined;
   multi: boolean | undefined;

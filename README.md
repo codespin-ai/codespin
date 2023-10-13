@@ -106,7 +106,7 @@ Place database code in a different file (a database layer).
 
 #### Frontmatter in Prompt Files
 
-You can also include front-matter to define the `--include`, `--template`, `--api`, `--model`, and `--max-tokens` parameters:
+You can also include front-matter to define the `--include`, `--declare`, `--template`, `--api`, `--model`, and `--max-tokens` parameters:
 
 ```markdown
 ---
@@ -126,6 +126,14 @@ For example, if `main.py` depends on `dep1.py` and `dep2.py`:
 ```sh
 codespin generate main.py.prompt.md -i dep1.py -i dep2.py --write
 ```
+
+But in some cases, including entire files (with `--include` or `-i`) will result in larger context sizes. To reduce the size of the context, you can send just the declarations/signatures found in a file with the `--declarations` (or `-d`) option.
+
+```sh
+codespin generate main.py.prompt.md -d dep1.py -d dep2.py --write
+```
+
+But do note that creating declarations will require a call to the LLM. Declarations are then cached until the file changes.
 
 💡 For effective regeneration, use a git repository and commit both the prompt and generated code files after each successful code generation. This lets the code generator inspect the differences between prompts and apply changes accurately.
 
