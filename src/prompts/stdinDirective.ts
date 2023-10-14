@@ -19,7 +19,7 @@ export async function stdinDirective(contents: string): Promise<string> {
     }
   }
 
-  // Replace 'codespin::stdin' with the content piped into the process or empty string.
-  const replacedContents = contents.replace(/codespin::stdin/g, stdinContent);
+  // Replace 'codespin:stdin' with the content piped into the process or empty string.
+  const replacedContents = contents.replace(/codespin:stdin/g, stdinContent);
   return replacedContents;
 }
