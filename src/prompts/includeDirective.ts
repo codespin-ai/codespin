@@ -1,6 +1,6 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { findGitProjectRoot } from "../git/findGitProjectRoot.js";
+import { resolveProjectFilePath } from "../fs/resolveProjectFilePath.js";
 
 export async function includeDirective(
   contents: string,
@@ -12,11 +12,16 @@ export async function includeDirective(
 
   // Using a while loop to iterate through all matches
   while ((match = includePattern.exec(contents)) !== null) {
-    const includePath = match[1];
+    const includedPath = match[1];
 
-    const fullPath = promptFilePath
-      ? path.resolve(path.dirname(promptFilePath), includePath)
-      : includePath;
+    const fullPath = await resolveProjectFilePath(
+      includedPath,
+      promptFilePath ? path.dirname(promptFilePath) : process.cwd(),
+      {
+        missingGit:
+          "The codespin:include directive referred to path relative to the project root (starting with a '/'). This is supported only in projects under git.",
+      }
+    );
 
     let includedContent;
     try {

@@ -1,8 +1,8 @@
 import { readFile } from "fs/promises";
-import { FileContent } from "../prompts/evaluateTemplate.js";
-import { isGitRepo } from "../git/isGitRepo.js";
-import { getFileFromCommit } from "../git/getFileFromCommit.js";
 import { pathExists } from "../fs/pathExists.js";
+import { getFileFromCommit } from "../git/getFileFromCommit.js";
+import { isGitRepo } from "../git/isGitRepo.js";
+import { FileContent } from "../prompts/evaluateTemplate.js";
 import { addLineNumbers } from "../text/addLineNumbers.js";
 
 export async function getFileContent(
@@ -13,8 +13,9 @@ export async function getFileContent(
     const previousContents = isGitRepo()
       ? await getFileFromCommit(filePath)
       : undefined;
+
     return {
-      name: filePath,
+      path: filePath,
       contents,
       contentsWithLineNumbers: addLineNumbers(contents),
       previousContents,

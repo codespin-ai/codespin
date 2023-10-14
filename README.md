@@ -119,8 +119,8 @@ Generate a Python CLI script named index.py that accepts arguments and prints th
 
 #### Includes in Prompt Files
 
-It's quite common requirement to mention a standard set of instructions in all prompt files; such as mentioning coding convetions for a project.
-To do this, you can define the common prompt text in a file and include this file from other prompts with the `codespin:include:<path>` directive.
+It's quite a common requirement to mention a standard set of rules in all prompt files; such as mentioning coding convetions for a project.
+The include directive (`codespin:include:<path>`) let's you write common rules in a file, and include them in prompts as needed.
 
 For example, if you had a `./codegen/conventions.txt` file:
 
@@ -210,7 +210,7 @@ export type TemplateArgs = {
 };
 
 type FileContent = {
-  name: string,
+  path: string,
   contents: string,
   contentsWithLineNumbers: string,
   previousContents: string | undefined,

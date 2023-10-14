@@ -30,7 +30,7 @@ export async function getDeclarationsDirectoryAndAssert(): Promise<string> {
   const gitDir = await getDeclarationsDirectory();
 
   if (!gitDir) {
-    exception(`Declarations can only be used when the project is under git.`);
+    exception(`Declarations can be used only when the project is under git.`);
   }
 
   return gitDir;

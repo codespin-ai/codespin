@@ -1,3 +1,4 @@
+import path from "path";
 import { TemplateArgs } from "../prompts/evaluateTemplate.js";
 
 type UndefinedToNever<T> = T extends undefined ? never : T;
@@ -39,7 +40,9 @@ function withPromptDiff(args: TemplateArgs) {
 
     return (
       printLine(
-        `The following prompt (with line numbers added) was used to generate source code for the file ${args.sourceFile?.name} provided later.`,
+        `The following prompt (with line numbers added) was used to generate source code for the file ${relativePath(
+          args.sourceFile?.path
+        )} provided later.`,
         true
       ) +
       printPreviousPrompt(args, true) +
@@ -60,7 +63,9 @@ function withPromptDiff(args: TemplateArgs) {
     return (
       (args.targetFilePath
         ? printLine(
-            `From the following prompt (enclosed between "-----"), generate source code for the file ${args.targetFilePath}.`,
+            `From the following prompt (enclosed between "-----"), generate source code for the file ${relativePath(
+              args.targetFilePath
+            )}.`,
             true
           ) + printLine("-----", true)
         : "") +
@@ -77,7 +82,9 @@ function withoutPromptDiff(args: TemplateArgs) {
   return (
     (args.targetFilePath
       ? printLine(
-          `From the following prompt (enclosed between "-----"), generate source code for the file ${args.targetFilePath}.`,
+          `From the following prompt (enclosed between "-----"), generate source code for the file ${relativePath(
+            args.targetFilePath
+          )}.`,
           true
         ) + printLine("-----", true)
       : "") +
@@ -102,6 +109,10 @@ function printPrompt(args: TemplateArgs, useLineNumbers: boolean) {
   );
 }
 
+function relativePath(filePath: string) {
+  return path.relative(process.cwd(), filePath);
+}
+
 function printPreviousPrompt(
   args: WithRequired<
     TemplateArgs,
@@ -121,7 +132,7 @@ function printPromptDiff(args: TemplateArgs): string {
 
 function printFileTemplate(args: TemplateArgs) {
   const filePath = args.targetFilePath
-    ? args.targetFilePath
+    ? relativePath(args.targetFilePath)
     : "./some/path/filename.ext";
   const tmpl = `
   Respond with just the code (but exclude invocation examples etc) in the following format:
@@ -145,10 +156,10 @@ function printSourceFile(
   const text =
     printLine(
       usePrevious
-        ? `Here is the previous code for ${args.sourceFile.name}${
+        ? `Here is the previous code for ${relativePath(args.sourceFile.path)}${
             useLineNumbers ? " with line numbers" : ""
           }`
-        : `Here is the code for ${args.sourceFile.name}${
+        : `Here is the code for ${relativePath(args.sourceFile.path)}${
             useLineNumbers ? " with line numbers" : ""
           }`
     ) +
@@ -175,7 +186,7 @@ function printDeclarations(args: TemplateArgs) {
       "I'm also adding relevant declarations for external dependencies so that you understand the code better.\n\n" +
       args.declarations.map(
         (file) =>
-          printLine(`Declarations for ${file.name}:`) +
+          printLine(`Declarations for ${relativePath(file.path)}:`) +
           printLine("```") +
           printLine(file.declarations) +
           printLine("```", true)
@@ -196,7 +207,7 @@ function printIncludeFiles(
       "Additionally, I've added some relevant external files to help you understand the context better.\n\n" +
       args.files.map(
         (file) =>
-          printLine(`Source code for ${file.name}:`) +
+          printLine(`Source code for ${relativePath(file.path)}:`) +
           printLine("```") +
           printLine(
             usePrevious

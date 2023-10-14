@@ -6,7 +6,7 @@ export type TemplateArgs = {
   promptDiff: string | undefined;
   files: FileContent[];
   declarations: {
-    name: string;
+    path: string;
     declarations: string;
   }[];
   sourceFile: FileContent | undefined;
@@ -15,7 +15,7 @@ export type TemplateArgs = {
 };
 
 export type FileContent = {
-  name: string;
+  path: string;
   contents: string;
   contentsWithLineNumbers: string;
   previousContents: string | undefined;

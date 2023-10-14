@@ -1,20 +1,21 @@
+import path from "path";
 import { CompletionOptions } from "../api/CompletionOptions.js";
 import { generateDeclaration } from "./generateDeclaration.js";
 
 export async function getDeclarations(
-  files: string[],
+  filePaths: string[],
   api: string,
   completionOptions: CompletionOptions
-): Promise<{ name: string; declarations: string }[]> {
+): Promise<{ path: string; declarations: string }[]> {
   return await Promise.all(
-    files.map(async (file) => {
+    filePaths.map(async (filePath) => {
       const declarations = await generateDeclaration(
-        file,
+        filePath,
         api,
         completionOptions
       );
       return {
-        name: file,
+        path: filePath,
         declarations,
       };
     })

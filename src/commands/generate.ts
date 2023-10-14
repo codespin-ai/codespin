@@ -1,9 +1,13 @@
+import path from "path";
+import { CompletionOptions } from "../api/CompletionOptions.js";
 import { getCompletionAPI } from "../api/getCompletionAPI.js";
 import { getFileContent } from "../files/getFileContent.js";
-import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
+import { resolveProjectFilePath } from "../fs/resolveProjectFilePath.js";
 import { pathExists } from "../fs/pathExists.js";
+import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
 import { writeToFile } from "../fs/writeToFile.js";
 import { FileContent, evaluateTemplate } from "../prompts/evaluateTemplate.js";
+import { extractCode } from "../prompts/extractCode.js";
 import { getPrompt } from "../prompts/getPrompt.js";
 import {
   PromptSettings,
@@ -13,9 +17,6 @@ import { readConfig } from "../settings/readConfig.js";
 import { getDeclarations } from "../sourceCode/getDeclarations.js";
 import { getTemplatePath } from "../templating/getTemplatePath.js";
 import { writeToConsole } from "../writeToConsole.js";
-import { CompletionOptions } from "../api/CompletionOptions.js";
-import { extractCode } from "../prompts/extractCode.js";
-import path from "path";
 
 export type GenerateArgs = {
   promptFile: string | undefined;
@@ -41,6 +42,15 @@ export type GenerateArgs = {
 };
 
 export async function generate(args: GenerateArgs): Promise<void> {
+  // Convert everything to absolute paths
+  const promptFilePath = args.promptFile
+    ? path.resolve(args.promptFile)
+    : undefined;
+
+  const includedFilePaths = (args.include || []).map((x) => path.resolve(x));
+  const excludedFilePaths = (args.exclude || []).map((x) => path.resolve(x));
+  const declarationFilePaths = (args.declare || []).map((x) => path.resolve(x));
+
   const mustParse = args.parse ?? (args.go ? false : true);
 
   const configFile = args.config || "codespin.json";
@@ -49,8 +59,8 @@ export async function generate(args: GenerateArgs): Promise<void> {
     ? await readConfig(configFile)
     : undefined;
 
-  const promptSettings = args.promptFile
-    ? await readPromptSettings(args.promptFile)
+  const promptSettings = promptFilePath
+    ? await readPromptSettings(promptFilePath)
     : {};
 
   const api = args.api || "openai";
@@ -64,17 +74,23 @@ export async function generate(args: GenerateArgs): Promise<void> {
     debug: args.debug,
   };
 
-  const targetFilePath = await getTargetFilePath(args.promptFile, args.multi);
-  const sourceFile = await getSourceFile(targetFilePath, args.exclude);
+  const sourceFilePath = await getSourceFilePath(promptFilePath, args.multi);
+  const sourceFileContent = await getSourceFileContent(
+    sourceFilePath,
+    excludedFilePaths
+  );
 
   const includedFiles = await getIncludedFiles(
-    args.include,
-    args.exclude,
+    includedFilePaths,
+    excludedFilePaths,
+    promptFilePath,
     promptSettings
   );
+
   const declarations = await getIncludedDeclarations(
-    args.declare,
+    declarationFilePaths,
     api,
+    promptFilePath,
     promptSettings,
     completionOptions
   );
@@ -90,7 +106,7 @@ export async function generate(args: GenerateArgs): Promise<void> {
     previousPrompt,
     previousPromptWithLineNumbers,
     promptDiff,
-  } = await getPrompt(args.promptFile, args.prompt, args.baseDir);
+  } = await getPrompt(promptFilePath, args.prompt, args.baseDir);
 
   const evaluatedPrompt = await evaluateTemplate(templatePath, {
     prompt,
@@ -99,9 +115,9 @@ export async function generate(args: GenerateArgs): Promise<void> {
     previousPromptWithLineNumbers,
     promptDiff,
     files: includedFiles,
-    sourceFile,
+    sourceFile: sourceFileContent,
     multi: args.multi,
-    targetFilePath,
+    targetFilePath: sourceFilePath,
     declarations,
   });
 
@@ -193,15 +209,22 @@ function removeDuplicates(arr: string[]): string[] {
 }
 
 async function getIncludedFiles(
-  includedFiles: string[] | undefined,
-  excludedFiles: string[] | undefined,
+  includedFilePaths: string[],
+  excludedFilePaths: string[],
+  promptFilePath: string | undefined,
   promptSettings: PromptSettings | undefined
 ): Promise<FileContent[]> {
-  // Remove dupes, and
-  // then remove files which have been explicitly excluded
+  const pathsForPromptSettingsIncludes = promptFilePath
+    ? await Promise.all(
+        (promptSettings?.include || []).map(async (x) =>
+          resolveProjectFilePath(x, path.dirname(promptFilePath))
+        )
+      )
+    : [];
+
   const files = removeDuplicates(
-    (promptSettings?.include || []).concat(includedFiles || [])
-  ).filter((x) => !(excludedFiles || []).includes(x));
+    pathsForPromptSettingsIncludes.concat(includedFilePaths)
+  ).filter((x) => !excludedFilePaths.includes(x));
 
   const fileContentList = await Promise.all(files.map(getFileContent));
 
@@ -211,14 +234,24 @@ async function getIncludedFiles(
 }
 
 async function getIncludedDeclarations(
-  declarationFiles: string[] | undefined,
+  declarationFilePaths: string[],
   api: string,
+  promptFilePath: string | undefined,
   promptSettings: PromptSettings | undefined,
   completionOptions: CompletionOptions
-): Promise<{ name: string; declarations: string }[]> {
+): Promise<{ path: string; declarations: string }[]> {
+  const pathsForPromptSettingsDeclarations = promptFilePath
+    ? await Promise.all(
+        (promptSettings?.declare || []).map(async (x) =>
+          resolveProjectFilePath(x, path.dirname(promptFilePath))
+        )
+      )
+    : [];
+
   const declarations = removeDuplicates(
-    (promptSettings?.declare || []).concat(declarationFiles || [])
+    pathsForPromptSettingsDeclarations.concat(declarationFilePaths)
   );
+
   if (declarations.length) {
     return await getDeclarations(declarations, api, completionOptions);
   } else {
@@ -228,32 +261,34 @@ async function getIncludedDeclarations(
 
 // Get the source file, if it's a single file code-gen.
 // Single file prompts have a source.ext.prompt.md extension.
-async function getTargetFilePath(
-  promptFile: string | undefined,
+async function getSourceFilePath(
+  promptFilePath: string | undefined,
   multi: boolean | undefined
 ): Promise<string | undefined> {
-  return await (async () => {
+  const sourceFilePath = await (async () => {
     if (
-      promptFile !== undefined &&
-      /\.[a-zA-Z0-9]+\.prompt\.md$/.test(promptFile)
+      promptFilePath !== undefined &&
+      /\.[a-zA-Z0-9]+\.prompt\.md$/.test(promptFilePath)
     ) {
       if (!multi) {
-        const sourceFileName = promptFile.replace(/\.prompt\.md$/, "");
+        const sourceFileName = promptFilePath.replace(/\.prompt\.md$/, "");
         return sourceFileName;
       }
     }
     return undefined;
   })();
+
+  return sourceFilePath ? path.resolve(sourceFilePath) : undefined;
 }
 
-async function getSourceFile(
-  targetFilePath: string | undefined,
-  excludedFiles: string[] | undefined
+async function getSourceFileContent(
+  sourceFilePath: string | undefined,
+  excludedFilePaths: string[]
 ): Promise<FileContent | undefined> {
   // Check if this file isn't excluded explicitly
-  return targetFilePath &&
-    (await pathExists(targetFilePath)) &&
-    !(excludedFiles || []).includes(targetFilePath)
-    ? await getFileContent(targetFilePath)
+  return sourceFilePath &&
+    (await pathExists(sourceFilePath)) &&
+    !excludedFilePaths.includes(sourceFilePath)
+    ? await getFileContent(sourceFilePath)
     : undefined;
 }
