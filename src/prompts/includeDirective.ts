@@ -1,9 +1,10 @@
 import { promises as fs } from "fs";
-import { join, dirname } from "path";
+import path from "path";
+import { findGitProjectRoot } from "../git/findGitProjectRoot.js";
 
 export async function includeDirective(
   contents: string,
-  filePath: string | undefined,
+  promptFilePath: string | undefined,
   baseDir: string = ""
 ): Promise<string> {
   const includePattern = /codespin:include:([^"\s]+)/g;
@@ -13,12 +14,9 @@ export async function includeDirective(
   while ((match = includePattern.exec(contents)) !== null) {
     const includePath = match[1];
 
-    let fullPath;
-    if (includePath.startsWith("/")) {
-      fullPath = join(baseDir || process.cwd(), includePath);
-    } else {
-      fullPath = filePath ? join(dirname(filePath), includePath) : includePath;
-    }
+    const fullPath = promptFilePath
+      ? path.resolve(path.dirname(promptFilePath), includePath)
+      : includePath;
 
     let includedContent;
     try {

@@ -31,8 +31,8 @@ export async function copyFilesInDir(
           return; // Skip copying if transformFilename returns undefined
         }
 
-        const srcFilePath = path.join(srcDir, file);
-        const destFilePath = path.join(destDir, transformedFilename);
+        const srcFilePath = path.resolve(srcDir, file);
+        const destFilePath = path.resolve(destDir, transformedFilename);
 
         const fileStats = await fs.stat(srcFilePath);
 

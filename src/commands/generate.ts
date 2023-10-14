@@ -1,4 +1,3 @@
-import { resolve } from "path";
 import { getCompletionAPI } from "../api/getCompletionAPI.js";
 import { getFileContent } from "../files/getFileContent.js";
 import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
@@ -16,6 +15,7 @@ import { getTemplatePath } from "../templating/getTemplatePath.js";
 import { writeToConsole } from "../writeToConsole.js";
 import { CompletionOptions } from "../api/CompletionOptions.js";
 import { extractCode } from "../prompts/extractCode.js";
+import path from "path";
 
 export type GenerateArgs = {
   promptFile: string | undefined;
@@ -43,7 +43,7 @@ export type GenerateArgs = {
 export async function generate(args: GenerateArgs): Promise<void> {
   const mustParse = args.parse ?? (args.go ? false : true);
 
-  const configFile = resolve(args.config || "codespin.json");
+  const configFile = args.config || "codespin.json";
 
   const config = (await pathExists(configFile))
     ? await readConfig(configFile)

@@ -1,6 +1,7 @@
-import { join, resolve } from "path";
+import path from "path";
 import { pathExists } from "../fs/pathExists.js";
 import { fileURLToPath } from "url";
+import { getTemplatesDirectory } from "../fs/codespinPaths.js";
 
 export async function getTemplatePath(
   template: string | undefined,
@@ -8,17 +9,22 @@ export async function getTemplatePath(
 ): Promise<string> {
   const globalFallback = localFallback.replace(/\.mjs$/, ".js");
   // If the template is not provided, we'll use the fallbacks
+  const projectTemplateDir = await getTemplatesDirectory();
+  
   const templatePath =
     template && (await pathExists(template))
-      ? resolve(template)
-      : (await pathExists(
-          resolve("codespin/templates", template || localFallback)
+      ? template
+      : projectTemplateDir && (await pathExists(
+          path.join(projectTemplateDir, template || localFallback)
         ))
-      ? resolve("codespin/templates", template || localFallback)
+      ? path.join(projectTemplateDir, template || localFallback)
       : await (async () => {
           const __filename = fileURLToPath(import.meta.url);
-          const builtInTemplatesDir = join(__filename, "../../templates");
-          const builtInTemplatePath = resolve(
+          const builtInTemplatesDir = path.resolve(
+            __filename,
+            "../../templates"
+          );
+          const builtInTemplatePath = path.resolve(
             builtInTemplatesDir,
             globalFallback
           );

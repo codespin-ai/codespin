@@ -1,10 +1,12 @@
 import { promises as fs } from "fs";
-import { join, resolve } from "path";
+import path from "path";
 import * as url from "url";
 import { copyFilesInDir } from "../fs/copyFilesInDir.js";
 import { pathExists } from "../fs/pathExists.js";
-import { writeToConsole } from "../writeToConsole.js";
 import { writeToFile } from "../fs/writeToFile.js";
+import { writeToConsole } from "../writeToConsole.js";
+import { findGitProjectRoot } from "../git/findGitProjectRoot.js";
+import { exception } from "../exception.js";
 
 type InitArgs = {
   force?: boolean;
@@ -16,8 +18,13 @@ const DEFAULT_JSON_CONTENT = {
 };
 
 export async function init(args: InitArgs): Promise<void> {
-  const currentDir = process.cwd();
-  const configFile = resolve(currentDir, "codespin.json");
+  const gitDir = await findGitProjectRoot();
+
+  if (!gitDir) {
+    exception("codespin init must be used in a project which is under git.");
+  }
+
+  const configFile = path.resolve(gitDir, "codespin.json");
 
   try {
     // Check if codespin.json already exists
@@ -33,34 +40,34 @@ export async function init(args: InitArgs): Promise<void> {
     );
 
     // Create codespin directories.
-    await createDirectoriesIfNotExist(resolve(currentDir, "codespin"));
+    await createDirectoriesIfNotExist(path.resolve(gitDir, "codespin"));
+
     await createDirectoriesIfNotExist(
-      resolve(currentDir, "codespin/templates")
+      path.resolve(gitDir, "codespin/templates")
     );
 
     // Copy default templates into it.
 
     const __filename = url.fileURLToPath(import.meta.url);
-    const builtInTemplatesDir = join(__filename, "../../templates");
+    const builtInTemplatesDir = path.resolve(__filename, "../../templates");
 
     // Copy all templates into the codespin directory.
     // Copy only js files.
     await copyFilesInDir(
       builtInTemplatesDir,
-      resolve(currentDir, "codespin/templates"),
+      path.resolve(gitDir, "codespin/templates"),
       (filename) =>
         filename.endsWith(".js") ? filename.replace(/\.js$/, ".mjs") : undefined
     );
 
     // Create codespin/declarations
     await createDirectoriesIfNotExist(
-      resolve(currentDir, "codespin/declarations")
+      path.resolve(gitDir, "codespin/declarations")
     );
 
     // exclude codespin/declarations in .gitignore
-    if (await pathExists(".gitignore")) {
-      await writeToFile(".gitignore", "codespin/declarations", true);
-    }
+    const gitIgnorePath = path.resolve(gitDir, ".gitignore");
+    await writeToFile(gitIgnorePath, "codespin/declarations", true);
 
     writeToConsole("Initialization completed.");
   } catch (err: any) {

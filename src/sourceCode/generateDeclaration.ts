@@ -1,22 +1,32 @@
-import { readFile } from "fs/promises";
-import { CompletionOptions } from "../api/CompletionOptions.js";
-import { exception } from "../exception.js";
-import { evaluateDeclarationsTemplate } from "../prompts/evaluateDeclarationTemplate.js";
-import { getTemplatePath } from "../templating/getTemplatePath.js";
 import { promises as fs } from "fs";
+import { readFile } from "fs/promises";
 import path from "path";
+import { CompletionOptions } from "../api/CompletionOptions.js";
+import { getCompletionAPI } from "../api/getCompletionAPI.js";
+import { exception } from "../exception.js";
+import {
+  getDeclarationsDirectoryAndAssert
+} from "../fs/codespinPaths.js";
 import { computeHash } from "../fs/computeHash.js";
 import { pathExists } from "../fs/pathExists.js";
-import { getCompletionAPI } from "../api/getCompletionAPI.js";
+import { getPathRelativeToGitRoot } from "../git/getPathRelativeToGitRoot.js";
+import { evaluateDeclarationsTemplate } from "../prompts/evaluateDeclarationTemplate.js";
 import { extractCode } from "../prompts/extractCode.js";
+import { getTemplatePath } from "../templating/getTemplatePath.js";
 
 export async function generateDeclaration(
   filePath: string,
   api: string,
   completionOptions: CompletionOptions
 ): Promise<string> {
-  const declarationsPath =
-    path.join("codespin", "signatures", filePath) + ".txt";
+  const filePathRelativeToProjectRoot = await getPathRelativeToGitRoot(
+    filePath
+  );
+
+  const declarationsPath = path.join(
+    await getDeclarationsDirectoryAndAssert(),
+    `${filePathRelativeToProjectRoot}.txt`
+  );
 
   // 1. Check if the declarations file exists
   const exists = await pathExists(declarationsPath);

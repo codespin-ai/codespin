@@ -6,7 +6,7 @@ async function fileExistsInDir(
   filename: string
 ): Promise<boolean> {
   try {
-    await fs.access(path.join(dir, filename));
+    await fs.access(path.resolve(dir, filename));
     return true;
   } catch {
     return false;
