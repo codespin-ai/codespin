@@ -117,6 +117,26 @@ maxTokens: 8000
 Generate a Python CLI script named index.py that accepts arguments and prints their sum.
 ```
 
+#### Includes in Prompt Files
+
+It's quite common requirement to mention a standard set of instructions in all prompt files; such as mentioning coding convetions for a project.
+To do this, you can define the common prompt text in a file and include this file from other prompts with the `codespin:include:<path>` directive.
+
+For example, if you had a `./codegen/conventions.txt` file:
+
+```
+- Use snake_case for variables
+- Generate extensive comments
+```
+
+You can include it like this:
+
+```
+Generate a Python CLI script named index.py that accepts arguments and prints their sum.
+
+codespin:include:codegen/conventions.txt
+```
+
 #### Regenerating code
 
 To regenerate a file, modify the prompt file's contents and then use `codespin generate`, passing the relevant existing source code (such as dependencies) with the `--include` (or `-i`) option. The included files provide better context for the code generator.

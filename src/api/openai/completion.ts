@@ -1,28 +1,29 @@
 import { extractCode } from "../../prompts/extractCode.js";
 import { writeToConsole } from "../../writeToConsole.js";
+import { CompletionOptions } from "../CompletionOptions.js";
+import { CompletionResult } from "../CompletionResult.js";
 
-type CompletionResult =
-  | {
-      ok: true;
-      files: {
-        path: string;
-        contents: string;
-      }[];
-    }
-  | {
-      ok: false;
-      error: {
-        code: string;
-        message: string;
-      };
+type OpenAICompletionResponse = {
+  error?: {
+    code: string;
+    message: string;
+  };
+  choices: {
+    message: {
+      content: string;
     };
+    finish_reason: string;
+  }[];
+};
 
-async function completion(
+export async function completion(
   prompt: string,
-  model: string | undefined = "gpt-3.5-turbo",
-  maxTokens: number | undefined = 4000 - prompt.length,
-  debug: boolean | undefined = false
+  options: CompletionOptions
 ): Promise<CompletionResult> {
+  const model = options.model || "gpt-3.5-turbo";
+  const maxTokens = options.maxTokens || 4000 - prompt.length;
+  const debug = Boolean(options.debug);
+
   const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
   // This is optional.
@@ -69,7 +70,7 @@ async function completion(
     });
 
     // Parse the response as JSON
-    const data = await response.json();
+    const data = (await response.json()) as OpenAICompletionResponse;
 
     // If the debug parameter is set, stringify and print the response from OpenAI.
     if (debug) {
@@ -113,5 +114,3 @@ async function completion(
     };
   }
 }
-
-export { completion };

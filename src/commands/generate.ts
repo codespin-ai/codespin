@@ -1,27 +1,19 @@
-import { promises as fs } from "fs";
-import { join, resolve } from "path";
-import * as url from "url";
-import { completion as openaiCompletion } from "../api/openai/completion.js";
-import { exception } from "../exception.js";
+import { resolve } from "path";
+import { getCompletionAPI } from "../api/getCompletionAPI.js";
 import { getFileContent } from "../files/getFileContent.js";
 import { extractFilesToDisk } from "../fs/extractFilesToDisk.js";
 import { pathExists } from "../fs/pathExists.js";
 import { writeToFile } from "../fs/writeToFile.js";
-import { getDiff } from "../git/getDiff.js";
-import { getFileFromCommit } from "../git/getFileFromCommit.js";
-import { isCommitted } from "../git/isCommitted.js";
 import { FileContent, evaluateTemplate } from "../prompts/evaluateTemplate.js";
+import { getPrompt } from "../prompts/getPrompt.js";
 import {
   PromptSettings,
   readPromptSettings,
 } from "../prompts/readPromptSettings.js";
-import { removeFrontMatter } from "../prompts/removeFrontMatter.js";
 import { readConfig } from "../settings/readConfig.js";
 import { getDeclarations } from "../sourceCode/getDeclarations.js";
-import { addLineNumbers } from "../text/addLineNumbers.js";
-import { writeToConsole } from "../writeToConsole.js";
-import { CodeSpinConfig } from "../settings/CodeSpinConfig.js";
 import { getTemplatePath } from "../templating/getTemplatePath.js";
+import { writeToConsole } from "../writeToConsole.js";
 
 export type GenerateArgs = {
   promptFile: string | undefined;
@@ -54,15 +46,16 @@ export async function generate(args: GenerateArgs): Promise<void> {
     ? await readPromptSettings(args.promptFile)
     : {};
 
+  const api = args.api || "openai";
+  const model = args.model || promptSettings?.model || config?.model;
+  const maxTokens =
+    args.maxTokens || promptSettings?.maxTokens || config?.maxTokens;
+
   const targetFilePath = await getTargetFilePath(args);
   const sourceFile = await getSourceFile(targetFilePath, args);
 
   const includedFiles = await getIncludedFiles(args, promptSettings);
-  const declarations = await getIncludedDeclarations(
-    args,
-    promptSettings,
-    config
-  );
+  const declarations = await getIncludedDeclarations(args, api, promptSettings);
 
   const templatePath = await getTemplatePath(
     args.template,
@@ -76,7 +69,7 @@ export async function generate(args: GenerateArgs): Promise<void> {
     previousPrompt,
     previousPromptWithLineNumbers,
     promptDiff,
-  } = await getPrompt(args);
+  } = await getPrompt(args.promptFile, args.prompt);
 
   const evaluatedPrompt = await evaluateTemplate(templatePath, {
     prompt,
@@ -116,23 +109,15 @@ export async function generate(args: GenerateArgs): Promise<void> {
     return;
   }
 
-  const model = args.model || promptSettings?.model || config?.model;
+  const completion = getCompletionAPI(api);
 
-  const maxTokens =
-    args.maxTokens || promptSettings?.maxTokens || config?.maxTokens;
-
-  if (args.api !== "openai") {
-    throw new Error(
-      "Invalid API specified. Only 'openai' is supported currently."
-    );
-  }
-
-  const completionResult = await openaiCompletion(
-    evaluatedPrompt,
+  const completionArgs = {
     model,
     maxTokens,
-    args.debug
-  );
+    debug: args.debug,
+  };
+
+  const completionResult = await completion(evaluatedPrompt, completionArgs);
 
   if (completionResult.ok) {
     if (args.write) {
@@ -186,16 +171,16 @@ async function getIncludedFiles(
 ): Promise<FileContent[]> {
   // Remove dupes, and
   // then remove files which have been explicitly excluded
-  const filesToInclude = removeDuplicates(
+  const files = removeDuplicates(
     (promptSettings?.include || []).concat(args.include || [])
   ).filter((x) => !(args.exclude || []).includes(x));
 
-  const includedFilesOrNothing = await Promise.all(
-    filesToInclude.map(getFileContent)
+  const fileContentList = await Promise.all(
+    files.map(getFileContent)
   );
 
   return (
-    includedFilesOrNothing.filter(
+    fileContentList.filter(
       (x) => typeof x !== "undefined"
     ) as FileContent[]
   ).filter((x) => x.contents || x.previousContents);
@@ -203,33 +188,14 @@ async function getIncludedFiles(
 
 async function getIncludedDeclarations(
   args: GenerateArgs,
-  promptSettings: PromptSettings | undefined,
-  config: CodeSpinConfig | undefined
+  api: string,
+  promptSettings: PromptSettings | undefined
 ): Promise<{ name: string; declarations: string }[]> {
-  const declarationsToInclude = removeDuplicates(
+  const declarations = removeDuplicates(
     (promptSettings?.declare || []).concat(args.declare || [])
   );
-
-  if (declarationsToInclude.length) {
-    if (!(await pathExists("codespin/declarations"))) {
-      exception(
-        `The path codespin/declarations was not found. Have you done "codespin init"?`
-      );
-    }
-    return await Promise.all(
-      declarationsToInclude.map(async (file) => {
-        const declarations = await getDeclarations(
-          file,
-          args,
-          promptSettings,
-          config
-        );
-        return {
-          name: file,
-          declarations,
-        };
-      })
-    );
+  if (declarations.length) {
+    return await getDeclarations(declarations, api, args);
   } else {
     return [];
   }
@@ -264,65 +230,4 @@ async function getSourceFile(
     !(args.exclude || []).includes(targetFilePath)
     ? await getFileContent(targetFilePath)
     : undefined;
-}
-
-async function getPrompt(args: GenerateArgs): Promise<{
-  prompt: string;
-  promptWithLineNumbers: string;
-  previousPrompt: string | undefined;
-  previousPromptWithLineNumbers: string | undefined;
-  promptDiff: string | undefined;
-}> {
-  // Prompt file contents without frontMatter.
-  const prompt = args.promptFile
-    ? removeFrontMatter(await fs.readFile(args.promptFile, "utf-8"))
-    : args.prompt ||
-      exception(
-        "The prompt file must be specified. See 'codespin generate help'."
-      );
-
-  const promptWithLineNumbers = addLineNumbers(prompt);
-
-  const isPromptFileCommitted = args.promptFile
-    ? await isCommitted(args.promptFile)
-    : false;
-
-  const { previousPrompt, previousPromptWithLineNumbers, promptDiff } =
-    isPromptFileCommitted
-      ? await (async () => {
-          if (args.promptFile) {
-            const fileFromCommit = await getFileFromCommit(args.promptFile);
-            const previousPrompt =
-              fileFromCommit !== undefined
-                ? removeFrontMatter(fileFromCommit)
-                : undefined;
-            const previousPromptWithLineNumbers =
-              previousPrompt !== undefined
-                ? addLineNumbers(previousPrompt)
-                : undefined;
-            const promptDiff =
-              previousPrompt !== undefined
-                ? await getDiff(prompt, previousPrompt, args.promptFile)
-                : undefined;
-            return {
-              previousPrompt,
-              previousPromptWithLineNumbers,
-              promptDiff,
-            };
-          } else {
-            exception("invariant exception: missing prompt file");
-          }
-        })()
-      : {
-          previousPrompt: "",
-          previousPromptWithLineNumbers: "",
-          promptDiff: "",
-        };
-  return {
-    prompt,
-    promptWithLineNumbers,
-    previousPrompt,
-    previousPromptWithLineNumbers,
-    promptDiff,
-  };
 }
