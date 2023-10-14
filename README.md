@@ -254,7 +254,7 @@ codespin parse gptresponse.txt --write
 
 💡: When copying the response from ChatGPT, use the copy icon. Selecting text and copying doesn't retain formatting.
 
-#### One more thing: Piping into the LLM!
+## One more thing - Piping into the LLM!
 
 Well, prompts can include data that was piped into `codespin gen` as well. :)
 
