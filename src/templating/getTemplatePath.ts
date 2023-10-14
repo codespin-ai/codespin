@@ -4,9 +4,9 @@ import { fileURLToPath } from "url";
 
 export async function getTemplatePath(
   template: string | undefined,
-  localFallback: string,
-  globalFallback: string
+  localFallback: string
 ): Promise<string> {
+  const globalFallback = localFallback.replace(/\.mjs$/, ".js");
   // If the template is not provided, we'll use the fallbacks
   const templatePath =
     template && (await pathExists(template))

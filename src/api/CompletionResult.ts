@@ -1,10 +1,7 @@
 export type CompletionResult =
   | {
       ok: true;
-      files: {
-        path: string;
-        contents: string;
-      }[];
+      message: string;
     }
   | {
       ok: false;

@@ -115,6 +115,21 @@ async function main() {
             type: "string",
             describe:
               "Path to directory relative to which files are generated. Defaults to the directory of the prompt file.",
+          })
+          .option("parser", {
+            type: "string",
+            describe: "Use a custom script to parse llm response.",
+          })
+          .option("parse", {
+            type: "boolean",
+            describe:
+              "Whether the LLM response needs to be processed. Defaults to true.",
+          })
+          .option("go", {
+            type: "boolean",
+            alias: "g",
+            describe:
+              "Shorthand which sets template to plain.mjs and parse to false.",
           }),
       async (argv) => {
         await generate(argv);

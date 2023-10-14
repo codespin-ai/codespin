@@ -8,7 +8,8 @@ import { processPrompt } from "./processPrompt.js";
 
 export async function getPrompt(
   promptFile: string | undefined,
-  immediatePrompt: string | undefined,
+  textPrompt: string | undefined,
+  baseDir: string | undefined
 ): Promise<{
   prompt: string;
   promptWithLineNumbers: string;
@@ -17,8 +18,8 @@ export async function getPrompt(
   promptDiff: string | undefined;
 }> {
   if (promptFile) {
-    const rawContents = await readFile(promptFile, "utf-8");
-    const prompt = await processPrompt(rawContents);
+    const promptFileContents = await readFile(promptFile, "utf-8");
+    const prompt = await processPrompt(promptFileContents, promptFile, baseDir);
     const promptWithLineNumbers = addLineNumbers(prompt);
 
     const isPromptFileCommitted = promptFile
@@ -32,7 +33,7 @@ export async function getPrompt(
               const fileFromCommit = await getFileFromCommit(promptFile);
               const previousPrompt =
                 fileFromCommit !== undefined
-                  ? await processPrompt(fileFromCommit)
+                  ? await processPrompt(fileFromCommit, promptFile, baseDir)
                   : undefined;
               const previousPromptWithLineNumbers =
                 previousPrompt !== undefined
@@ -63,8 +64,8 @@ export async function getPrompt(
       previousPromptWithLineNumbers,
       promptDiff,
     };
-  } else if (immediatePrompt) {
-    const prompt = immediatePrompt;
+  } else if (textPrompt) {
+    const prompt = await processPrompt(textPrompt, undefined, baseDir);
     const promptWithLineNumbers = addLineNumbers(prompt);
     return {
       prompt,
@@ -75,7 +76,7 @@ export async function getPrompt(
     };
   } else {
     exception(
-      "The prompt file must be specified. See 'codespin generate help'."
+      "The prompt file must be specified, or otherwise specify a prompt inline with '-p'. See 'codespin generate help'."
     );
   }
 }

@@ -1,11 +1,11 @@
+import { SourceFile } from "../sourceCode/SourceFile.js";
+
 type FileInfo = {
   path: string;
   contents: string;
 };
 
-export function extractCode(
-  response: string
-): { path: string; contents: string }[] {
+export function extractCode(response: string): SourceFile[] {
   const result = parseFileContents(response);
   return result;
 }

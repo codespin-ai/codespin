@@ -8,6 +8,7 @@ import path from "path";
 import { computeHash } from "../fs/computeHash.js";
 import { pathExists } from "../fs/pathExists.js";
 import { getCompletionAPI } from "../api/getCompletionAPI.js";
+import { extractCode } from "../prompts/extractCode.js";
 
 export async function generateDeclaration(
   filePath: string,
@@ -61,11 +62,7 @@ async function callCompletion(
 ): Promise<string> {
   const sourceCode = await readFile(filePath, "utf-8");
 
-  const templatePath = await getTemplatePath(
-    undefined,
-    "declarations.mjs",
-    "declarations.js"
-  );
+  const templatePath = await getTemplatePath(undefined, "declarations.mjs");
 
   const evaluatedPrompt = await evaluateDeclarationsTemplate(templatePath, {
     filePath,
@@ -76,7 +73,10 @@ async function callCompletion(
 
   const completionResult = await completion(evaluatedPrompt, completionOptions);
 
-  return completionResult.ok
-    ? completionResult.files[0].contents
-    : exception(`Unable to generate declarations for ${filePath}`);
+  if (completionResult.ok) {
+    const files = extractCode(completionResult.message);
+    return files[0].contents;
+  } else {
+    exception(`Unable to generate declarations for ${filePath}`);
+  }
 }

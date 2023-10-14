@@ -100,8 +100,8 @@ export async function completion(
       };
     }
 
-    const codeCompletion = data.choices[0].message.content as string;
-    return { ok: true, files: extractCode(codeCompletion) };
+    const message = data.choices[0].message.content as string;
+    return { ok: true, message };
   } catch (error: any) {
     // If an error occurs during the fetch, return an error
     return {

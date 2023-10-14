@@ -1,5 +1,5 @@
 import { promises as fs } from "fs";
-import { extractFilesToDisk } from "../fs/extractFilesToDisk.js";
+import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
 import { extractCode } from "../prompts/extractCode.js";
 import { writeToConsole } from "../writeToConsole.js";
 
@@ -16,9 +16,9 @@ export async function parse(args: ParseArgs): Promise<void> {
   const files = extractCode(llmResponse);
 
   if (args.write) {
-    const extractResult = await extractFilesToDisk(
+    const extractResult = await writeFilesToDisk(
       args.baseDir || process.cwd(),
-      { files },
+      files,
       args.exec
     );
     const generatedFiles = extractResult.filter((x) => x.generated);
