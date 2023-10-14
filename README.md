@@ -258,11 +258,11 @@ codespin parse gptresponse.txt --write
 
 Well, prompts can include data that was piped into `codespin gen` as well. :)
 
-In your prompt, `codespin::stdin` will refer to whatever was passed to codespin.
+In your prompt, `codespin:stdin` will refer to whatever was passed to codespin.
 
 For example, let's pipe the output to codespin:
 ```sh
-ls | codespin gen -p $'Convert to uppercase each line in the following text \ncodespin::stdin' -t plain.mjs --no-parse
+ls | codespin gen -p $'Convert to uppercase each line in the following text \ncodespin:stdin' -t plain.mjs --no-parse
 ```
 
 The above example uses the included `plain.mjs` template along with the `--no-parse` option to print the LLM's response directly to the console.
@@ -270,10 +270,10 @@ This is so handy there's shorthand for this: the `-g` option (g for Go).
 
 ```sh
 # This
-ls | codespin gen -p $'Convert to uppercase each line in the following text \ncodespin::stdin' -t plain.mjs --no-parse
+ls | codespin gen -p $'Convert to uppercase each line in the following text \ncodespin:stdin' -t plain.mjs --no-parse
 
 # can be written as
-ls | codespin gen -p $'Convert to uppercase each line in the following text \ncodespin::stdin' -g
+ls | codespin gen -p $'Convert to uppercase each line in the following text \ncodespin:stdin' -g
 ```
 
 ## Using Azure OpenAI API
