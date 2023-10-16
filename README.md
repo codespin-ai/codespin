@@ -91,7 +91,7 @@ This will create a `main.py` file that prints "Hello, World!".
 
 #### Generating multiple files
 
-While generating multiple files (such as when scaffolding a project), start with a filename like `[something].prompt.md` (instead of `[filename.ext].prompt.md`).
+While generating multiple files (such as when scaffolding a project), start with a filename like `[something].prompt.md` eg: `myapp.prompt.md`.
 
 Here's an example of how you'd scaffold a new Node.JS blog app:
 
