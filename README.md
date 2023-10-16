@@ -91,9 +91,9 @@ This will create a `main.py` file that prints "Hello, World!".
 
 #### Generating multiple files
 
-While generating multiple files, it is not necessary to name the prompt file with [source.ext] prefix.
+While generating multiple files (such as when scaffolding a project), start with a filename like `[something].prompt.md` (instead of `[filename.ext].prompt.md`).
 
-Here's an example of how you'd scaffold a new Node.JS app
+Here's an example of how you'd scaffold a new Node.JS blog app:
 
 `blogapp.prompt.md`:
 
@@ -103,6 +103,8 @@ Split the code into multiple files for maintainability.
 Use ExpressJS. Use Postgres for the database.
 Place database code in a different file (a database layer).
 ```
+
+💡 It is necessary to NOT use the `[filename.ext].prompt.md` convention because that causes codespin to generate code for a single file.
 
 #### Frontmatter in Prompt Files
 
