@@ -229,7 +229,7 @@ codespin gen main.py.prompt.md --template mypythontemplate.mjs --include main.py
 
 💡: Your template should the extension `mjs` instead of `js`.
 
-Once you do `codespin init`, you should be able to see an example template under the "codespin/templates" directory.
+Once you do `codespin init`, you should be able to see example templates under the "codespin/templates" directory.
 
 ## Using with ChatGPT
 
