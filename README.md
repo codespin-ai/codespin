@@ -149,7 +149,7 @@ For example, if `main.py` depends on `dep1.py` and `dep2.py`:
 codespin gen main.py.prompt.md -i dep1.py -i dep2.py --write
 ```
 
-But in some cases, including entire files (with `--include` or `-i`) will result in larger context sizes. To reduce the size of the context, you can send just the declarations/signatures found in a file with the `--declarations` (or `-d`) option.
+But in some cases, including entire files (with `--include` or `-i`) will result in larger context sizes. To reduce the size of the context, you can send just the declarations/signatures found in a file with the `--declare` (or `-d`) option.
 
 ```sh
 codespin gen main.py.prompt.md -d dep1.py -d dep2.py --write
