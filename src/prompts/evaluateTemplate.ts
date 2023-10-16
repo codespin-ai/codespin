@@ -12,6 +12,7 @@ export type TemplateArgs = {
   sourceFile: FileContent | undefined;
   targetFilePath: string | undefined;
   multi: boolean | undefined;
+  promptSettings: unknown;
 };
 
 export type FileContent = {

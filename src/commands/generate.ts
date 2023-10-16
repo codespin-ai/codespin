@@ -119,6 +119,7 @@ export async function generate(args: GenerateArgs): Promise<void> {
     multi: args.multi,
     targetFilePath: sourceFilePath,
     declarations,
+    promptSettings,
   });
 
   if (args.debug) {
