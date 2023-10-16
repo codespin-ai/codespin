@@ -262,7 +262,7 @@ Well, prompts can include data that was piped into `codespin gen` as well. :)
 
 In your prompt, `codespin:stdin` will refer to whatever was passed to codespin.
 
-For example, let's pipe the output to codespin:
+For example, let's pipe the output of the `ls` command into codespin:
 ```sh
 ls | codespin gen -p $'Convert to uppercase each line in the following text \ncodespin:stdin' -t plain.mjs --no-parse
 ```
