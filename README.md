@@ -2,7 +2,7 @@
 
 CodeSpin.AI Code Generation Tools. Open Source and MIT-licensed.
 
-📣 CodeSpin has a [Discord Channel](https://discord.com/channels/1086638797703364618/1163696435691266129) you can join.
+📣 CodeSpin has a [Discord Channel](https://discord.gg/mGRbwE7n) you can join.
 
 ## Installation
 
@@ -30,7 +30,7 @@ For instance:
 codespin gen help # or codespin generate help
 ```
 
-Also, check the [Discord Channel](https://discord.com/channels/1086638797703364618/1163696435691266129).
+Also, check the [Discord Channel](https://discord.gg/mGRbwE7n).
 
 ## Usage
 
