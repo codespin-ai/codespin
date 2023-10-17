@@ -251,10 +251,13 @@ useJDK: true //custom arg
 
 2. CLI args can be passed with the `-a` (or `--template-args`), and they'll be available in args.templateArgs as a string array.
 
-For example, the following will set "useAWS" and "swagger" in `args.templateArgs`.
-
 ```sh
-codespin gen main.py.prompt.md --template mypythontemplate.mjs -a useAWS -a swagger --include main.py --write
+codespin gen main.py.prompt.md \
+  --template mypythontemplate.mjs \
+  -a useAWS \
+  -a swagger \
+  --include main.py \
+  --write
 ```
 
 ## Using with ChatGPT
