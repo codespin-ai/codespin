@@ -192,12 +192,16 @@ Remember to use `--write` to save the generated files.
 
 A CodeSpin Template is a JS file (an ES6 Module) exporting a default function with the following signature:
 
-```js
+```ts
 // The templating function that generates the LLM prompt.
 export default function generate(args: TemplateArgs): string {
   // Return the prompt to send to the LLM.
 }
+```
 
+where TemplateArgs is the following:
+
+```ts
 // Arguments to the templating function
 export type TemplateArgs = {
   prompt: string,
@@ -210,6 +214,7 @@ export type TemplateArgs = {
   targetFilePath: string | undefined,
   multi: boolean | undefined,
   promptSettings: any, // front matter if defined
+  templateArgs: string[] | undefined; // passed via CLI as -a <val1> -a <val2> 
 };
 
 type FileContent = {
@@ -231,6 +236,26 @@ codespin gen main.py.prompt.md --template mypythontemplate.mjs --include main.py
 💡: Your template should the extension `mjs` instead of `js`.
 
 Once you do `codespin init`, you should be able to see example templates under the "codespin/templates" directory.
+
+There are two ways to pass custom args to a custom template.
+
+1. frontMatter in a prompt file goes under args.promptSettings
+
+```markdown
+---
+model: gpt-3.5-turbo-16k
+maxTokens: 8000
+useJDK: true //custom arg
+---
+```
+
+2. CLI args can be passed with the `-a` (or `--template-args`), and they'll be available in args.templateArgs as a string array.
+
+For example, the following will set "useAWS" and "swagger" in `args.templateArgs`.
+
+```sh
+codespin gen main.py.prompt.md --template mypythontemplate.mjs -a useAWS -a swagger --include main.py --write
+```
 
 ## Using with ChatGPT
 

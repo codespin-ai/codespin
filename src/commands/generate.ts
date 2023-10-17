@@ -28,6 +28,7 @@ export type GenerateArgs = {
   printPrompt: boolean | undefined;
   writePrompt: string | undefined;
   template: string | undefined;
+  templateArgs: string[] | undefined;
   debug: boolean | undefined;
   exec: string | undefined;
   config: string | undefined;
@@ -120,6 +121,7 @@ export async function generate(args: GenerateArgs): Promise<void> {
     targetFilePath: sourceFilePath,
     declarations,
     promptSettings,
+    templateArgs: args.templateArgs
   });
 
   if (args.debug) {

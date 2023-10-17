@@ -91,6 +91,13 @@ async function main() {
             alias: "t",
             describe: "Path to the template file.",
           })
+          .option("templateArgs", {
+            type: "array",
+            alias: "a",
+            describe:
+              "An argument passed to a custom template. Can pass many by repeating '-a'.",
+            string: true,
+          })
           .option("exec", {
             type: "string",
             alias: "e",
