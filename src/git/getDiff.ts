@@ -3,6 +3,7 @@
 import { promises as fs } from "fs";
 import { execPromise } from "../process/execPromise.js";
 import { createTempFile } from "../fs/createTempFile.js";
+import path from "path";
 
 export async function getDiff(
   newContent: string,
@@ -18,8 +19,14 @@ export async function getDiff(
     );
 
     return diff
-      .replaceAll(`${tempPathCommitted}`, `/${filename}`)
-      .replaceAll(`${tempPathCurrent}`, `/${filename}`);
+      .replaceAll(
+        `${tempPathCommitted}`,
+        `/${path.relative(process.cwd(), filename)}`
+      )
+      .replaceAll(
+        `${tempPathCurrent}`,
+        `/${path.relative(process.cwd(), filename)}`
+      );
   } finally {
     await Promise.all([
       fs.unlink(tempPathCurrent),
