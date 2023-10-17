@@ -2,6 +2,8 @@
 
 CodeSpin.AI Code Generation Tools. Open Source and MIT-licensed.
 
+📣 CodeSpin has a [Discord Channel](https://discord.com/channels/1086638797703364618/1163696435691266129) you can join.
+
 ## Installation
 
 First, install Node.JS. Visit [https://nodejs.org/en](https://nodejs.org/en).
@@ -27,6 +29,8 @@ For instance:
 ```sh
 codespin gen help # or codespin generate help
 ```
+
+Also, check the [Discord Channel](https://discord.com/channels/1086638797703364618/1163696435691266129).
 
 ## Usage
 
