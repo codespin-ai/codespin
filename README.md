@@ -1,7 +1,3 @@
-Here's the revised README.md:
-
----
-
 # codespin-cli
 
 CodeSpin.AI Code Generation Tools. Open Source and MIT-licensed.
