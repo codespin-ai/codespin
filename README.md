@@ -7,6 +7,7 @@ CodeSpin.AI Code Generation Tools. Open Source and MIT-licensed.
 ## Installation
 
 First, install Node.JS. Visit [https://nodejs.org/en](https://nodejs.org/en).
+You need Node 18 or above.
 
 Then, install codespin using:
 
