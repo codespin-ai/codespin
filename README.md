@@ -177,6 +177,7 @@ But do note that creating declarations will require a call to the LLM. Declarati
 - `--base-dir <dir path>`: Set the directory path relative to where files are generated. Defaults to the prompt file's directory.
 - `--parser <path to js file>`: Use this parser to process LLM results
 - `--no-parse`: Do not parse llm results. Print it as received.
+- `--single`: Specify that the prompt is for a single source file.
 - `-h, --help`: Display help.
 
 ## Inline Prompting
@@ -213,7 +214,7 @@ export type TemplateArgs = {
   files: FileContent[],
   sourceFile: FileContent | undefined,
   targetFilePath: string | undefined,
-  multi: boolean | undefined,
+  single: boolean | undefined,
   promptSettings: any, // front matter if defined
   templateArgs: string[] | undefined; // passed via CLI as -a <val1> -a <val2> 
 };

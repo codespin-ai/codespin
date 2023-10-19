@@ -113,10 +113,10 @@ async function main() {
             alias: "c",
             describe: "Path to config file.",
           })
-          .option("multi", {
+          .option("single", {
             type: "boolean",
             describe:
-              "(Advanced) Explicitly indicate that the code generation will output multiple files. This is usually auto-inferred.",
+              "(Advanced) Explicitly indicate that the code generation will output a single file. This is usually auto-inferred from the source.ext.prompt.md convention.",
           })
           .option("baseDir", {
             type: "string",

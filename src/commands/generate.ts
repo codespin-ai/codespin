@@ -36,7 +36,7 @@ export type GenerateArgs = {
   exclude: string[] | undefined;
   declare: string[] | undefined;
   baseDir: string | undefined;
-  multi: boolean | undefined;
+  single: boolean | undefined;
   parser: string | undefined;
   parse: boolean | undefined;
   go: boolean | undefined;
@@ -75,7 +75,7 @@ export async function generate(args: GenerateArgs): Promise<void> {
     debug: args.debug,
   };
 
-  const sourceFilePath = await getSourceFilePath(promptFilePath, args.multi);
+  const sourceFilePath = await getSourceFilePath(promptFilePath, args.single);
   const sourceFileContent = await getSourceFileContent(
     sourceFilePath,
     excludedFilePaths
@@ -117,11 +117,11 @@ export async function generate(args: GenerateArgs): Promise<void> {
     promptDiff,
     files: includedFiles,
     sourceFile: sourceFileContent,
-    multi: args.multi,
+    single: args.single,
     targetFilePath: sourceFilePath,
     declarations,
     promptSettings,
-    templateArgs: args.templateArgs
+    templateArgs: args.templateArgs,
   });
 
   if (args.debug) {
@@ -266,17 +266,15 @@ async function getIncludedDeclarations(
 // Single file prompts have a source.ext.prompt.md extension.
 async function getSourceFilePath(
   promptFilePath: string | undefined,
-  multi: boolean | undefined
+  single: boolean | undefined
 ): Promise<string | undefined> {
   const sourceFilePath = await (async () => {
-    if (
-      promptFilePath !== undefined &&
-      /\.[a-zA-Z0-9]+\.prompt\.md$/.test(promptFilePath)
-    ) {
-      if (!multi) {
-        const sourceFileName = promptFilePath.replace(/\.prompt\.md$/, "");
-        return sourceFileName;
-      }
+    if (promptFilePath !== undefined) {
+      return single === false
+        ? undefined
+        : single === true || /\.[a-zA-Z0-9]+\.prompt\.md$/.test(promptFilePath)
+        ? promptFilePath.replace(/\.prompt\.md$/, "")
+        : undefined;
     }
     return undefined;
   })();

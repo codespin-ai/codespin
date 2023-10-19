@@ -11,7 +11,7 @@ export type TemplateArgs = {
   }[];
   sourceFile: FileContent | undefined;
   targetFilePath: string | undefined;
-  multi: boolean | undefined;
+  single: boolean | undefined;
   promptSettings: unknown;
   templateArgs: string[] | undefined;
 };

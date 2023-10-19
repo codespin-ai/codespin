@@ -40,9 +40,9 @@ function withPromptDiff(args: TemplateArgs) {
 
     return (
       printLine(
-        `The following prompt (with line numbers added) was used to generate source code for the file ${relativePath(
+        `The following prompt (with line numbers added) was used to generate source code for the file "${relativePath(
           args.sourceFile?.path
-        )} provided later.`,
+        )}" provided later.`,
         true
       ) +
       printPreviousPrompt(args, true) +
@@ -63,9 +63,9 @@ function withPromptDiff(args: TemplateArgs) {
     return (
       (args.targetFilePath
         ? printLine(
-            `From the following prompt (enclosed between "-----"), generate source code for the file ${relativePath(
+            `From the following prompt (enclosed between "-----"), generate source code for the file "${relativePath(
               args.targetFilePath
-            )}.`,
+            )}".`,
             true
           ) + printLine("-----", true)
         : "") +
@@ -82,9 +82,9 @@ function withoutPromptDiff(args: TemplateArgs) {
   return (
     (args.targetFilePath
       ? printLine(
-          `From the following prompt (enclosed between "-----"), generate source code for the file ${relativePath(
+          `From the following prompt (enclosed between "-----"), generate source code for the file "${relativePath(
             args.targetFilePath
-          )}.`,
+          )}".`,
           true
         ) + printLine("-----", true)
       : "") +
