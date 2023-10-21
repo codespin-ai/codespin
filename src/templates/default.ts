@@ -186,7 +186,7 @@ function printDeclarations(args: TemplateArgs) {
   } else {
     const text =
       printLine(
-        "I'm also adding relevant declarations for external dependencies so that you understand the code better.",
+        "I'm adding declarations for relevant external dependencies so that you understand the code better.",
         true
       ) +
       args.declarations
@@ -211,7 +211,7 @@ function printIncludeFiles(
     return "";
   } else {
     const text =
-      "Additionally, I've added some relevant external files to help you understand the context better.\n\n" +
+      "I've added some relevant files to help you understand the context better.\n\n" +
       args.files
         .map(
           (file) =>
