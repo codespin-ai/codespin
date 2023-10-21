@@ -67,7 +67,20 @@ export async function init(args: InitArgs): Promise<void> {
 
     // exclude codespin/declarations in .gitignore
     const gitIgnorePath = path.resolve(gitDir, ".gitignore");
-    await writeToFile(gitIgnorePath, "codespin/declarations", true);
+
+    try {
+      const content = await fs.readFile(gitIgnorePath, "utf8");
+
+      if (!content.includes("codespin/declarations")) {
+        await writeToFile(gitIgnorePath, "\ncodespin/declarations", true);
+      }
+    } catch (error: any) {
+      if (error.code === "ENOENT") {
+        await writeToFile(gitIgnorePath, "codespin/declarations", true);
+      } else {
+        console.error("An unexpected error occurred:", error);
+      }
+    }
 
     writeToConsole("Initialization completed.");
   } catch (err: any) {
