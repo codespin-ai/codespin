@@ -171,7 +171,7 @@ codespin gen main.py.prompt.md -d "*.py" --write
 - `-p, --prompt <some text>`: Specify the prompt directly in the command line.
 - `-t, --template <template path>`: Specify the template. If not provided, a default template is used.
 - `-w, --write`: Save the generated code to a file. Defaults to 'false'.
-- `--print-prompt`: Display the generated prompt without making an API call.
+- `--pp, --print-prompt`: Display the generated prompt without making an API call.
 - `--write-prompt`: Save the generated prompt to a specified path without making an API call.
 - `--api <api name>`: Specify the API service, like 'openai'. Defaults to 'openai'.
 - `--model <model name>`: Specify the desired model, e.g., 'gpt-4'.
@@ -272,7 +272,7 @@ codespin gen main.py.prompt.md \
 
 While using codespin with an API key is straightforward, if you don't have one but have access to ChatGPT, there are alternatives.
 
-Use the `--print-prompt` option to display the final LLM prompt, or `--write-prompt` to save it to a file:
+Use the `--pp` (or `--print-prompt`) option to display the final LLM prompt, or `--write-prompt` to save it to a file:
 
 ```sh
 # Display on screen

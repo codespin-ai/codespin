@@ -64,7 +64,7 @@ async function main() {
           })
           .option("printPrompt", {
             type: "boolean",
-            alias: "pr",
+            alias: "pp",
             describe:
               "Print the generated prompt to the screen. Does not call the API.",
           })
