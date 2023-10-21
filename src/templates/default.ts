@@ -67,8 +67,9 @@ function withPromptDiff(args: TemplateArgs) {
               args.targetFilePath
             )}".`,
             true
-          ) + printLine("-----", true)
+          )
         : "") +
+      printLine("-----", true) +
       printPrompt(args, false) +
       printLine("-----", true) +
       printDeclarations(args) +
@@ -86,8 +87,9 @@ function withoutPromptDiff(args: TemplateArgs) {
             args.targetFilePath
           )}".`,
           true
-        ) + printLine("-----", true)
+        )
       : "") +
+    printLine("-----", true) +
     printPrompt(args, false) +
     printLine("-----", true) +
     printDeclarations(args) +
