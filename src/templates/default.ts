@@ -70,7 +70,7 @@ function withPromptDiff(args: TemplateArgs) {
           )
         : "") +
       (args.targetFilePath ? printLine("-----", true) : "") +
-      printPrompt(args, args.targetFilePath ? false : true) +
+      printLine(printPrompt(args, false), args.targetFilePath ? false : true) +
       (args.targetFilePath ? printLine("-----", true) : "") +
       printDeclarations(args) +
       printIncludeFiles(args, false, false) +
@@ -90,7 +90,7 @@ function withoutPromptDiff(args: TemplateArgs) {
         )
       : "") +
     (args.targetFilePath ? printLine("-----", true) : "") +
-    printPrompt(args, args.targetFilePath ? false : true) +
+    printLine(printPrompt(args, false), args.targetFilePath ? false : true) +
     (args.targetFilePath ? printLine("-----", true) : "") +
     printDeclarations(args) +
     printIncludeFiles(args, false, false) +
