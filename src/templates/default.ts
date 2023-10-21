@@ -112,7 +112,7 @@ function printPrompt(args: TemplateArgs, useLineNumbers: boolean) {
 }
 
 function relativePath(filePath: string) {
-  return path.relative(process.cwd(), filePath);
+  return "./" + path.relative(process.cwd(), filePath);
 }
 
 function printPreviousPrompt(

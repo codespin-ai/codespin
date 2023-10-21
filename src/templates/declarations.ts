@@ -26,7 +26,7 @@ export default async function declarations(args: DeclarationsTemplateArgs) {
 }
 
 function relativePath(filePath: string) {
-  return path.relative(process.cwd(), filePath);
+  return "./" +  path.relative(process.cwd(), filePath);
 }
 
 function printLine(line: string, addBlankLine = false): string {
