@@ -183,14 +183,19 @@ function printDeclarations(args: TemplateArgs) {
     return "";
   } else {
     const text =
-      "I'm also adding relevant declarations for external dependencies so that you understand the code better.\n\n" +
-      args.declarations.map(
-        (file) =>
-          printLine(`Declarations for ${relativePath(file.path)}:`) +
-          printLine("```") +
-          printLine(file.declarations) +
-          printLine("```", true)
-      );
+      printLine(
+        "I'm also adding relevant declarations for external dependencies so that you understand the code better.",
+        true
+      ) +
+      args.declarations
+        .map(
+          (file) =>
+            printLine(`Declarations for ${relativePath(file.path)}:`) +
+            printLine("```") +
+            printLine(file.declarations) +
+            printLine("```", true)
+        )
+        .join("\n");
     return text;
   }
 }
@@ -205,21 +210,23 @@ function printIncludeFiles(
   } else {
     const text =
       "Additionally, I've added some relevant external files to help you understand the context better.\n\n" +
-      args.files.map(
-        (file) =>
-          printLine(`Source code for ${relativePath(file.path)}:`) +
-          printLine("```") +
-          printLine(
-            usePrevious
-              ? useLineNumbers
-                ? file.previousContentsWithLineNumbers
-                : file.previousContents
-              : useLineNumbers
-              ? file.contentsWithLineNumbers
-              : file.contents
-          ) +
-          printLine("```", true)
-      );
+      args.files
+        .map(
+          (file) =>
+            printLine(`Contents of the file ${relativePath(file.path)}:`) +
+            printLine("```") +
+            printLine(
+              usePrevious
+                ? useLineNumbers
+                  ? file.previousContentsWithLineNumbers
+                  : file.previousContents
+                : useLineNumbers
+                ? file.contentsWithLineNumbers
+                : file.contents
+            ) +
+            printLine("```", true)
+        )
+        .join("\n");
     return text;
   }
 }

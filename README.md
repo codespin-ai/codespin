@@ -158,6 +158,12 @@ codespin gen main.py.prompt.md -d dep1.py -d dep2.py --write
 
 But do note that creating declarations will require a call to the LLM. Declarations are then cached until the file changes.
 
+In both `--include` and `--declare`, you can specify wildcards. The following will include all ".py" files:
+
+```sh
+codespin gen main.py.prompt.md -d "*.py" --write
+```
+
 💡 For effective regeneration, use a git repository and commit both the prompt and generated code files after each successful code generation. This lets the code generator inspect the differences between prompts and apply changes accurately.
 
 #### Options for codespin gen

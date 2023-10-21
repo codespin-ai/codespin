@@ -17,6 +17,7 @@ import { readConfig } from "../settings/readConfig.js";
 import { getDeclarations } from "../sourceCode/getDeclarations.js";
 import { getTemplatePath } from "../templating/getTemplatePath.js";
 import { writeToConsole } from "../writeToConsole.js";
+import { resolveWildcardPaths } from "../fs/resolveWildcards.js";
 
 export type GenerateArgs = {
   promptFile: string | undefined;
@@ -84,6 +85,7 @@ export async function generate(args: GenerateArgs): Promise<void> {
   const includedFiles = await getIncludedFiles(
     includedFilePaths,
     excludedFilePaths,
+    sourceFilePath,
     promptFilePath,
     promptSettings
   );
@@ -91,6 +93,7 @@ export async function generate(args: GenerateArgs): Promise<void> {
   const declarations = await getIncludedDeclarations(
     declarationFilePaths,
     api,
+    sourceFilePath,
     promptFilePath,
     promptSettings,
     completionOptions
@@ -214,6 +217,7 @@ function removeDuplicates(arr: string[]): string[] {
 async function getIncludedFiles(
   includedFilePaths: string[],
   excludedFilePaths: string[],
+  sourceFilePath: string | undefined,
   promptFilePath: string | undefined,
   promptSettings: PromptSettings | undefined
 ): Promise<FileContent[]> {
@@ -225,9 +229,19 @@ async function getIncludedFiles(
       )
     : [];
 
+  const validFiles = pathsForPromptSettingsIncludes
+    .concat(includedFilePaths)
+    .filter((x) => x !== sourceFilePath && !excludedFilePaths.includes(x));
+
   const files = removeDuplicates(
-    pathsForPromptSettingsIncludes.concat(includedFilePaths)
-  ).filter((x) => !excludedFilePaths.includes(x));
+    (
+      await Promise.all(
+        validFiles.map(async (x) =>
+          x.includes("*") ? await resolveWildcardPaths(x) : x
+        )
+      )
+    ).flat()
+  );
 
   const fileContentList = await Promise.all(files.map(getFileContent));
 
@@ -239,6 +253,7 @@ async function getIncludedFiles(
 async function getIncludedDeclarations(
   declarationFilePaths: string[],
   api: string,
+  sourceFilePath: string | undefined,
   promptFilePath: string | undefined,
   promptSettings: PromptSettings | undefined,
   completionOptions: CompletionOptions
@@ -251,8 +266,18 @@ async function getIncludedDeclarations(
       )
     : [];
 
+  const allFiles = pathsForPromptSettingsDeclarations
+    .concat(declarationFilePaths)
+    .filter((x) => x !== sourceFilePath);
+
   const declarations = removeDuplicates(
-    pathsForPromptSettingsDeclarations.concat(declarationFilePaths)
+    (
+      await Promise.all(
+        allFiles.map(async (x) =>
+          x.includes("*") ? await resolveWildcardPaths(x) : x
+        )
+      )
+    ).flat()
   );
 
   if (declarations.length) {
