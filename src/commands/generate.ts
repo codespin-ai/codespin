@@ -231,7 +231,7 @@ async function getIncludedFiles(
 
   const validFiles = pathsForPromptSettingsIncludes
     .concat(includedFilePaths)
-    .filter((x) => x !== sourceFilePath && !excludedFilePaths.includes(x));
+    .filter((x) => !excludedFilePaths.includes(x));
 
   const files = removeDuplicates(
     (
@@ -241,7 +241,7 @@ async function getIncludedFiles(
         )
       )
     ).flat()
-  );
+  ).filter((x) => x !== sourceFilePath);
 
   const fileContentList = await Promise.all(files.map(getFileContent));
 
@@ -266,9 +266,8 @@ async function getIncludedDeclarations(
       )
     : [];
 
-  const allFiles = pathsForPromptSettingsDeclarations
-    .concat(declarationFilePaths)
-    .filter((x) => x !== sourceFilePath);
+  const allFiles =
+    pathsForPromptSettingsDeclarations.concat(declarationFilePaths);
 
   const declarations = removeDuplicates(
     (
@@ -278,7 +277,7 @@ async function getIncludedDeclarations(
         )
       )
     ).flat()
-  );
+  ).filter((x) => x !== sourceFilePath);
 
   if (declarations.length) {
     return await getDeclarations(declarations, api, completionOptions);
