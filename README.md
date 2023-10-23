@@ -140,6 +140,17 @@ Generate a Python CLI script named index.py that accepts arguments and prints th
 codespin:include:codegen/conventions.txt
 ```
 
+#### Executing code in Prompt Files
+
+The exec directive executes a command and replaces the line with the output of the command.
+This powerful techique can be used to make your templates smarter.
+
+For example, if you want to include the diff of a file in your prompt, you could do this:
+
+```
+codespin:exec:git diff HEAD~1 HEAD -- main.py
+```
+
 #### Regenerating code
 
 To regenerate a file, modify the prompt file's contents and then use `codespin gen`, passing the relevant existing source code (such as dependencies) with the `--include` (or `-i`) option. The included files provide better context for the code generator.
@@ -212,26 +223,26 @@ where TemplateArgs is the following:
 ```ts
 // Arguments to the templating function
 export type TemplateArgs = {
-  prompt: string,
-  promptWithLineNumbers: string,
-  previousPrompt: string | undefined,
-  previousPromptWithLineNumbers: string | undefined,
-  promptDiff: string | undefined,
-  files: FileContent[],
-  sourceFile: FileContent | undefined,
-  targetFilePath: string | undefined,
-  single: boolean | undefined,
-  promptSettings: any, // front matter if defined
-  templateArgs: string[] | undefined; // passed via CLI as -a <val1> -a <val2> 
+  prompt: string;
+  promptWithLineNumbers: string;
+  previousPrompt: string | undefined;
+  previousPromptWithLineNumbers: string | undefined;
+  promptDiff: string | undefined;
+  files: FileContent[];
+  sourceFile: FileContent | undefined;
+  targetFilePath: string | undefined;
+  single: boolean | undefined;
+  promptSettings: any; // front matter if defined
+  templateArgs: string[] | undefined; // passed via CLI as -a <val1> -a <val2>
 };
 
 type FileContent = {
-  path: string,
-  contents: string,
-  contentsWithLineNumbers: string,
-  previousContents: string | undefined,
-  previousContentsWithLineNumbers: string | undefined,
-  hasDifferences: boolean,
+  path: string;
+  contents: string;
+  contentsWithLineNumbers: string;
+  previousContents: string | undefined;
+  previousContentsWithLineNumbers: string | undefined;
+  hasDifferences: boolean;
 };
 ```
 
