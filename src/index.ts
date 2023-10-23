@@ -133,6 +133,11 @@ async function main() {
             describe:
               "Whether the LLM response needs to be processed. Defaults to true.",
           })
+          .option("maxFiles", {
+            type: "number",
+            describe:
+              "The maximum number of declaration files allowed. Defaults to 10.",
+          })
           .option("go", {
             type: "boolean",
             alias: "g",

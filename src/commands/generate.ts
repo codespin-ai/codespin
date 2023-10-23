@@ -1,7 +1,7 @@
 import path from "path";
 import { CompletionOptions } from "../api/CompletionOptions.js";
 import { getCompletionAPI } from "../api/getCompletionAPI.js";
-import { getFileContent } from "../files/getFileContent.js";
+import { getFileContent } from "../fs/getFileContent.js";
 import { resolveProjectFilePath } from "../fs/resolveProjectFilePath.js";
 import { pathExists } from "../fs/pathExists.js";
 import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
@@ -18,6 +18,7 @@ import { getDeclarations } from "../sourceCode/getDeclarations.js";
 import { getTemplatePath } from "../templating/getTemplatePath.js";
 import { writeToConsole } from "../writeToConsole.js";
 import { resolveWildcardPaths } from "../fs/resolveWildcards.js";
+import { exception } from "../exception.js";
 
 export type GenerateArgs = {
   promptFile: string | undefined;
@@ -41,6 +42,7 @@ export type GenerateArgs = {
   parser: string | undefined;
   parse: boolean | undefined;
   go: boolean | undefined;
+  maxFiles: number | undefined;
 };
 
 export async function generate(args: GenerateArgs): Promise<void> {
@@ -68,7 +70,10 @@ export async function generate(args: GenerateArgs): Promise<void> {
   const api = args.api || "openai";
   const model = args.model || promptSettings?.model || config?.model;
   const maxTokens =
-    args.maxTokens || promptSettings?.maxTokens || config?.maxTokens;
+    args.maxTokens ?? promptSettings?.maxTokens ?? config?.maxTokens;
+
+  const maxFiles =
+    args.maxFiles ?? promptSettings?.maxFiles ?? config?.maxFiles ?? 10;
 
   const completionOptions = {
     model,
@@ -96,7 +101,8 @@ export async function generate(args: GenerateArgs): Promise<void> {
     sourceFilePath,
     promptFilePath,
     promptSettings,
-    completionOptions
+    completionOptions,
+    maxFiles
   );
 
   const templatePath = await getTemplatePath(
@@ -256,7 +262,8 @@ async function getIncludedDeclarations(
   sourceFilePath: string | undefined,
   promptFilePath: string | undefined,
   promptSettings: PromptSettings | undefined,
-  completionOptions: CompletionOptions
+  completionOptions: CompletionOptions,
+  maxFiles: number
 ): Promise<{ path: string; declarations: string }[]> {
   const pathsForPromptSettingsDeclarations = promptFilePath
     ? await Promise.all(
@@ -278,6 +285,12 @@ async function getIncludedDeclarations(
       )
     ).flat()
   ).filter((x) => x !== sourceFilePath);
+
+  if (declarations.length > maxFiles) {
+    exception(
+      `The number of declaration files exceeded ${maxFiles}. Set the --max-files parameter.`
+    );
+  }
 
   if (declarations.length) {
     return await getDeclarations(declarations, api, completionOptions);
