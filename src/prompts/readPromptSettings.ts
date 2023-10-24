@@ -4,7 +4,7 @@ import * as yaml from "js-yaml";
 export type PromptSettings = {
   model?: string;
   maxTokens?: number;
-  maxFiles?: number;
+  maxDeclare?: number;
   template?: string;
   include?: string[];
   declare?: string[];

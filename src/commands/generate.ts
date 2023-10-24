@@ -42,7 +42,7 @@ export type GenerateArgs = {
   parser: string | undefined;
   parse: boolean | undefined;
   go: boolean | undefined;
-  maxFiles: number | undefined;
+  maxDeclare: number | undefined;
 };
 
 export async function generate(args: GenerateArgs): Promise<void> {
@@ -72,8 +72,8 @@ export async function generate(args: GenerateArgs): Promise<void> {
   const maxTokens =
     args.maxTokens ?? promptSettings?.maxTokens ?? config?.maxTokens;
 
-  const maxFiles =
-    args.maxFiles ?? promptSettings?.maxFiles ?? config?.maxFiles ?? 10;
+  const maxDeclare =
+    args.maxDeclare ?? promptSettings?.maxDeclare ?? config?.maxDeclare ?? 30;
 
   const completionOptions = {
     model,
@@ -102,7 +102,7 @@ export async function generate(args: GenerateArgs): Promise<void> {
     promptFilePath,
     promptSettings,
     completionOptions,
-    maxFiles
+    maxDeclare
   );
 
   const templatePath = await getTemplatePath(
@@ -263,7 +263,7 @@ async function getIncludedDeclarations(
   promptFilePath: string | undefined,
   promptSettings: PromptSettings | undefined,
   completionOptions: CompletionOptions,
-  maxFiles: number
+  maxDeclare: number
 ): Promise<{ path: string; declarations: string }[]> {
   const pathsForPromptSettingsDeclarations = promptFilePath
     ? await Promise.all(
@@ -286,9 +286,9 @@ async function getIncludedDeclarations(
     ).flat()
   ).filter((x) => x !== sourceFilePath);
 
-  if (declarations.length > maxFiles) {
+  if (declarations.length > maxDeclare) {
     exception(
-      `The number of declaration files exceeded ${maxFiles}. Set the --max-files parameter.`
+      `The number of declaration files exceeded ${maxDeclare}. Set the --max-declare parameter.`
     );
   }
 

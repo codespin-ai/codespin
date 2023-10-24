@@ -3,5 +3,5 @@ export type CodeSpinConfig = {
   api?: string;
   model?: string;
   maxTokens?: number;
-  maxFiles?: number;
+  maxDeclare?: number;
 };
