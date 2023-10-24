@@ -1,12 +1,12 @@
 import path from "path";
 import { CompletionOptions } from "../api/CompletionOptions.js";
 import { getCompletionAPI } from "../api/getCompletionAPI.js";
-import { getFileContent } from "../fs/getFileContent.js";
+import { getVersionedFileInfo } from "../fs/getFileContent.js";
 import { resolveProjectFilePath } from "../fs/resolveProjectFilePath.js";
 import { pathExists } from "../fs/pathExists.js";
 import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
 import { writeToFile } from "../fs/writeToFile.js";
-import { FileContent, evaluateTemplate } from "../prompts/evaluateTemplate.js";
+import { evaluateTemplate } from "../prompts/evaluateTemplate.js";
 import { extractCode } from "../prompts/extractCode.js";
 import { getPrompt } from "../prompts/getPrompt.js";
 import {
@@ -19,6 +19,8 @@ import { getTemplatePath } from "../templating/getTemplatePath.js";
 import { writeToConsole } from "../writeToConsole.js";
 import { resolveWildcardPaths } from "../fs/resolveWildcards.js";
 import { exception } from "../exception.js";
+import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
+import { BasicFileInfo } from "../fs/BasicFileInfo.js";
 
 export type GenerateArgs = {
   promptFile: string | undefined;
@@ -87,7 +89,7 @@ export async function generate(args: GenerateArgs): Promise<void> {
     excludedFilePaths
   );
 
-  const includedFiles = await getIncludedFiles(
+  const includes = await getIncludedFiles(
     includedFilePaths,
     excludedFilePaths,
     sourceFilePath,
@@ -124,11 +126,11 @@ export async function generate(args: GenerateArgs): Promise<void> {
     previousPrompt,
     previousPromptWithLineNumbers,
     promptDiff,
-    files: includedFiles,
+    include: includes,
     sourceFile: sourceFileContent,
     single: args.single,
     targetFilePath: sourceFilePath,
-    declarations,
+    declare: declarations,
     promptSettings,
     templateArgs: args.templateArgs,
   });
@@ -226,7 +228,7 @@ async function getIncludedFiles(
   sourceFilePath: string | undefined,
   promptFilePath: string | undefined,
   promptSettings: PromptSettings | undefined
-): Promise<FileContent[]> {
+): Promise<VersionedFileInfo[]> {
   const pathsForPromptSettingsIncludes = promptFilePath
     ? await Promise.all(
         (promptSettings?.include || []).map(async (x) =>
@@ -249,10 +251,12 @@ async function getIncludedFiles(
     ).flat()
   ).filter((x) => x !== sourceFilePath);
 
-  const fileContentList = await Promise.all(files.map(getFileContent));
+  const fileContentList = await Promise.all(files.map(getVersionedFileInfo));
 
   return (
-    fileContentList.filter((x) => typeof x !== "undefined") as FileContent[]
+    fileContentList.filter(
+      (x) => typeof x !== "undefined"
+    ) as VersionedFileInfo[]
   ).filter((x) => x.contents || x.previousContents);
 }
 
@@ -264,7 +268,7 @@ async function getIncludedDeclarations(
   promptSettings: PromptSettings | undefined,
   completionOptions: CompletionOptions,
   maxDeclare: number
-): Promise<{ path: string; declarations: string }[]> {
+): Promise<BasicFileInfo[]> {
   const pathsForPromptSettingsDeclarations = promptFilePath
     ? await Promise.all(
         (promptSettings?.declare || []).map(async (x) =>
@@ -322,11 +326,11 @@ async function getSourceFilePath(
 async function getSourceFileContent(
   sourceFilePath: string | undefined,
   excludedFilePaths: string[]
-): Promise<FileContent | undefined> {
+): Promise<VersionedFileInfo | undefined> {
   // Check if this file isn't excluded explicitly
   return sourceFilePath &&
     (await pathExists(sourceFilePath)) &&
     !excludedFilePaths.includes(sourceFilePath)
-    ? await getFileContent(sourceFilePath)
+    ? await getVersionedFileInfo(sourceFilePath)
     : undefined;
 }

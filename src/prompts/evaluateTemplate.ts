@@ -1,28 +1,19 @@
+import { BasicFileInfo } from "../fs/BasicFileInfo.js";
+import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
+
 export type TemplateArgs = {
   prompt: string;
   promptWithLineNumbers: string;
   previousPrompt: string | undefined;
   previousPromptWithLineNumbers: string | undefined;
   promptDiff: string | undefined;
-  files: FileContent[];
-  declarations: {
-    path: string;
-    declarations: string;
-  }[];
-  sourceFile: FileContent | undefined;
+  include: VersionedFileInfo[];
+  declare: BasicFileInfo[];
+  sourceFile: VersionedFileInfo | undefined;
   targetFilePath: string | undefined;
   single: boolean | undefined;
   promptSettings: unknown;
   templateArgs: string[] | undefined;
-};
-
-export type FileContent = {
-  path: string;
-  contents: string;
-  contentsWithLineNumbers: string;
-  previousContents: string | undefined;
-  previousContentsWithLineNumbers: string | undefined;
-  hasDifferences: boolean;
 };
 
 export async function evaluateTemplate(

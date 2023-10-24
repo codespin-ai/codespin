@@ -181,7 +181,7 @@ function printSourceFile(
 }
 
 function printDeclarations(args: TemplateArgs) {
-  if (args.declarations.length === 0) {
+  if (args.declare.length === 0) {
     return "";
   } else {
     const text =
@@ -189,12 +189,12 @@ function printDeclarations(args: TemplateArgs) {
         "Here are some relevant declarations/signatures for external dependencies:",
         true
       ) +
-      args.declarations
+      args.declare
         .map(
           (file) =>
             printLine(`Declarations for ${relativePath(file.path)}:`) +
             printLine("```") +
-            printLine(file.declarations) +
+            printLine(file.contents) +
             printLine("```", true)
         )
         .join("\n");
@@ -207,7 +207,7 @@ function printIncludeFiles(
   useLineNumbers: boolean,
   usePrevious: boolean
 ) {
-  if (args.files.length === 0) {
+  if (args.include.length === 0) {
     return "";
   } else {
     const text =
@@ -215,7 +215,7 @@ function printIncludeFiles(
         "Including some relevant files to help you understand the context better:",
         true
       ) +
-      args.files
+      args.include
         .map(
           (file) =>
             printLine(`Contents of the file ${relativePath(file.path)}:`) +

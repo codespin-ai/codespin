@@ -228,15 +228,21 @@ export type TemplateArgs = {
   previousPrompt: string | undefined;
   previousPromptWithLineNumbers: string | undefined;
   promptDiff: string | undefined;
-  files: FileContent[];
-  sourceFile: FileContent | undefined;
+  include: VersionedFileInfo[];
+  declare: BasicFileInfo[];
+  sourceFile: VersionedFileInfo | undefined;
   targetFilePath: string | undefined;
   single: boolean | undefined;
-  promptSettings: any; // front matter if defined
-  templateArgs: string[] | undefined; // passed via CLI as -a <val1> -a <val2>
+  promptSettings: unknown;
+  templateArgs: string[] | undefined;
 };
 
-type FileContent = {
+export type BasicFileInfo = {
+  path: string;
+  contents: string;
+};
+
+export type VersionedFileInfo = {
   path: string;
   contents: string;
   contentsWithLineNumbers: string;

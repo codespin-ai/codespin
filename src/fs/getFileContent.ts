@@ -2,12 +2,12 @@ import { readFile } from "fs/promises";
 import { pathExists } from "./pathExists.js";
 import { getFileFromCommit } from "../git/getFileFromCommit.js";
 import { isGitRepo } from "../git/isGitRepo.js";
-import { FileContent } from "../prompts/evaluateTemplate.js";
 import { addLineNumbers } from "../text/addLineNumbers.js";
+import { VersionedFileInfo } from "./VersionedFileInfo.js";
 
-export async function getFileContent(
+export async function getVersionedFileInfo(
   filePath: string
-): Promise<FileContent | undefined> {
+): Promise<VersionedFileInfo | undefined> {
   if (await pathExists(filePath)) {
     const contents = await readFile(filePath, "utf-8");
     const previousContents = isGitRepo()
