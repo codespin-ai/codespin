@@ -4,6 +4,7 @@ import { getFileFromCommit } from "../git/getFileFromCommit.js";
 import { isGitRepo } from "../git/isGitRepo.js";
 import { addLineNumbers } from "../text/addLineNumbers.js";
 import { VersionedFileInfo } from "./VersionedFileInfo.js";
+import { exception } from "../exception.js";
 
 export async function getVersionedFileInfo(
   filePath: string
@@ -25,6 +26,6 @@ export async function getVersionedFileInfo(
       hasDifferences: contents === previousContents,
     };
   } else {
-    return undefined;
+    exception(`File ${filePath} was not found.`);
   }
 }
