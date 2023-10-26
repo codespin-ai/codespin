@@ -60,7 +60,7 @@ function withPromptDiff(args: TemplateArgs) {
       printFileTemplate(args)
     );
   } else {
-    return withPromptDiff(args);
+    return withoutPromptDiff(args);
   }
 }
 
@@ -77,6 +77,7 @@ function withoutPromptDiff(args: TemplateArgs) {
     (args.targetFilePath ? printLine("-----", true) : "") +
     printLine(printPrompt(args, false), args.targetFilePath ? false : true) +
     (args.targetFilePath ? printLine("-----", true) : "") +
+    (argsHasSourceFile(args) ? printSourceFile(args, false, false) : "") +
     printDeclarations(args) +
     printIncludeFiles(args, false, false) +
     printFileTemplate(args)
