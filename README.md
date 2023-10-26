@@ -107,6 +107,30 @@ Place database code in a different file (a database layer).
 
 💡 It is necessary to NOT use the `[filename.ext].prompt.md` convention because that causes codespin to generate code for a single file.
 
+#### Include External Files and Declarations
+
+For the code generator to better understand the context, you can pass the relevant external files (such as dependencies) with the `--include` (or `-i`) option.
+
+For example, if `main.py` depends on `dep1.py` and `dep2.py`:
+
+```sh
+codespin gen main.py.prompt.md -i dep1.py -i dep2.py --write
+```
+
+But in some cases, including entire files (with `--include` or `-i`) will result in larger context sizes. To reduce the size of the context, you can send just the declarations/signatures found in a file with the `--declare` (or `-d`) option.
+
+```sh
+codespin gen main.py.prompt.md -d dep1.py -d dep2.py --write
+```
+
+But do note that creating declarations will require a call to the LLM. Declarations are then cached until the file changes.
+
+With both `--include` and `--declare`, you can specify wildcards. The following will include all ".py" files:
+
+```sh
+codespin gen main.py.prompt.md -d "*.py" --write
+```
+
 #### Frontmatter in Prompt Files
 
 You can also include front-matter to define the `--include`, `--declare`, `--template`, `--parser`, `--api`, `--model`, and `--max-tokens` parameters:
@@ -120,10 +144,9 @@ maxTokens: 8000
 Generate a Python CLI script named index.py that accepts arguments and prints their sum.
 ```
 
-#### Includes in Prompt Files
+#### In-place Includes in Prompt Files
 
-It's quite a common requirement to mention a standard set of rules in all prompt files; such as mentioning coding convetions for a project.
-The include directive (`codespin:include:<path>`) let's you write common rules in a file, and include them in prompts as needed.
+It's quite a common requirement to mention a standard set of rules in all prompt files; such as mentioning coding convetions for a project. The include directive (`codespin:include:<path>`) let's you write common rules in a file, and include them in prompts as needed.
 
 For example, if you had a `./codegen/conventions.txt` file:
 
@@ -153,26 +176,46 @@ codespin:exec:git diff HEAD~1 HEAD -- main.py
 
 #### Regenerating code
 
-To regenerate a file, modify the prompt file's contents and then use `codespin gen`, passing the relevant existing source code (such as dependencies) with the `--include` (or `-i`) option. The included files provide better context for the code generator.
+The easiest way to regenerate code (for a single file) is by changing the original prompt to mention just the required modifications.
 
-For example, if `main.py` depends on `dep1.py` and `dep2.py`:
+For example, if you originally had this in `calculate_area.py.prompt.md`:
 
-```sh
-codespin gen main.py.prompt.md -i dep1.py -i dep2.py --write
+```
+Write a function named calculate_area(l, b) which returns l*b.
 ```
 
-But in some cases, including entire files (with `--include` or `-i`) will result in larger context sizes. To reduce the size of the context, you can send just the declarations/signatures found in a file with the `--declare` (or `-d`) option.
+You could rewrite it as:
 
-```sh
-codespin gen main.py.prompt.md -d dep1.py -d dep2.py --write
+```
+Change the function calculate_area to take an additional parameter shape_type (as the first param), and return the correct caculations. The subsequent parameters are dimensions of the shape, and there could be one (for a circle) or more dimensions (for a multi-sided shape).
 ```
 
-But do note that creating declarations will require a call to the LLM. Declarations are then cached until the file changes.
-
-In both `--include` and `--declare`, you can specify wildcards. The following will include all ".py" files:
+And then run the gen command:
 
 ```sh
-codespin gen main.py.prompt.md -d "*.py" --write
+codespin gen calculate_area.py.prompt.md -w
+```
+
+But there's an advanced technique you could use which uses prompt diffs. If you supply the `--diff` argument, the prompt will include the diff of the original prompt and the new prompt which can help the LLM make better decisions. When using the `--diff` argument, you must retain the original prompt text and structure but make changes to the spec where needed.
+
+For example, if this was the original prompt:
+
+```
+Write a function named sum() which takes two arguments.
+- The arguments should be named a and b
+```
+
+You can edit it like this:
+
+```
+Write a function named sum() which takes three arguments.
+- The arguments should be named x, y and z
+```
+
+Save the file, and run the gen command with the `--diff` option:
+
+```sh
+codespin gen sum.py.prompt.md --diff -w
 ```
 
 💡 For effective regeneration, use a git repository and commit both the prompt and generated code files after each successful code generation. This lets the code generator inspect the differences between prompts and apply changes accurately.

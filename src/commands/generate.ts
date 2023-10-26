@@ -29,6 +29,7 @@ export type GenerateArgs = {
   model: string | undefined;
   maxTokens: number | undefined;
   write: boolean | undefined;
+  diff: boolean | undefined;
   printPrompt: boolean | undefined;
   writePrompt: string | undefined;
   template: string | undefined;
@@ -131,6 +132,7 @@ export async function generate(args: GenerateArgs): Promise<void> {
     single: args.single,
     targetFilePath: sourceFilePath,
     declare: declarations,
+    diff: args.diff ?? promptSettings?.diff ?? false,
     promptSettings,
     templateArgs: args.templateArgs,
   });

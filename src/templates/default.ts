@@ -8,7 +8,7 @@ type WithRequired<T, K extends keyof T> = Omit<T, K> & {
 };
 
 export default async function generate(args: TemplateArgs): Promise<string> {
-  if (args.promptDiff) {
+  if (args.diff && args.promptDiff) {
     return withPromptDiff(args);
   } else {
     return withoutPromptDiff(args);

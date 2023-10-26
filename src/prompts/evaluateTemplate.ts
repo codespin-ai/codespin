@@ -9,6 +9,7 @@ export type TemplateArgs = {
   promptDiff: string | undefined;
   include: VersionedFileInfo[];
   declare: BasicFileInfo[];
+  diff: boolean | undefined;
   sourceFile: VersionedFileInfo | undefined;
   targetFilePath: string | undefined;
   single: boolean | undefined;

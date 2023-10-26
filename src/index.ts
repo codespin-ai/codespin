@@ -56,6 +56,11 @@ async function main() {
               "List of files containing declarations (class definitions, method signatures etc) to include. This provides additional context during code generation.",
             string: true,
           })
+          .option("diff", {
+            type: "boolean",
+            default: false,
+            describe: "Include the diff of the prompt.",
+          })
           .option("exclude", {
             type: "array",
             describe:

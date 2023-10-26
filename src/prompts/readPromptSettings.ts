@@ -8,6 +8,7 @@ export type PromptSettings = {
   template?: string;
   include?: string[];
   declare?: string[];
+  diff?: boolean | undefined;
   parser?: string;
 };
 
