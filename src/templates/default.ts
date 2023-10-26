@@ -68,9 +68,9 @@ function withoutPromptDiff(args: TemplateArgs) {
   return (
     (args.targetFilePath
       ? printLine(
-          `From the following prompt (enclosed between "-----"), generate source code for the file "${relativePath(
+          `Generate source code for the file "${relativePath(
             args.targetFilePath
-          )}".`,
+          )}" based on the following instructions (enclosed between "-----").`,
           true
         )
       : "") +
