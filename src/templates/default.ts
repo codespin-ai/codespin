@@ -60,22 +60,7 @@ function withPromptDiff(args: TemplateArgs) {
       printFileTemplate(args)
     );
   } else {
-    return (
-      (args.targetFilePath
-        ? printLine(
-            `From the following prompt (enclosed between "-----"), generate source code for the file "${relativePath(
-              args.targetFilePath
-            )}".`,
-            true
-          )
-        : "") +
-      (args.targetFilePath ? printLine("-----", true) : "") +
-      printLine(printPrompt(args, false), args.targetFilePath ? false : true) +
-      (args.targetFilePath ? printLine("-----", true) : "") +
-      printDeclarations(args) +
-      printIncludeFiles(args, false, false) +
-      printFileTemplate(args)
-    );
+    return withPromptDiff(args);
   }
 }
 
