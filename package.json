@@ -1,11 +1,11 @@
 {
   "name": "codespin",
-  "version": "0.0.85",
+  "version": "0.0.86",
   "description": "Source code generation with LLM prompts",
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npx tsc"
+    "build": "rm -rf dist && npx tsc"
   },
   "bin": {
     "codespin": "dist/index.js"
