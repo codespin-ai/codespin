@@ -19,7 +19,12 @@ export async function getPrompt(
 }> {
   if (promptFile) {
     const promptFileContents = await readFile(promptFile, "utf-8");
-    const prompt = await processPrompt(promptFileContents, promptFile, baseDir);
+    const prompt = await processPrompt(
+      promptFileContents,
+      promptFile,
+      baseDir,
+      true
+    );
     const promptWithLineNumbers = addLineNumbers(prompt);
 
     const isPromptFileCommitted = promptFile
@@ -33,7 +38,12 @@ export async function getPrompt(
               const fileFromCommit = await getFileFromCommit(promptFile);
               const previousPrompt =
                 fileFromCommit !== undefined
-                  ? await processPrompt(fileFromCommit, promptFile, baseDir)
+                  ? await processPrompt(
+                      fileFromCommit,
+                      promptFile,
+                      baseDir,
+                      false
+                    )
                   : undefined;
               const previousPromptWithLineNumbers =
                 previousPrompt !== undefined
@@ -65,7 +75,7 @@ export async function getPrompt(
       promptDiff,
     };
   } else if (textPrompt) {
-    const prompt = await processPrompt(textPrompt, undefined, baseDir);
+    const prompt = await processPrompt(textPrompt, undefined, baseDir, true);
     const promptWithLineNumbers = addLineNumbers(prompt);
     return {
       prompt,

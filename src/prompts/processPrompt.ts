@@ -6,11 +6,17 @@ import { stdinDirective } from "./stdinDirective.js";
 export async function processPrompt(
   contents: string,
   filePath: string | undefined,
-  baseDir: string | undefined
+  baseDir: string | undefined,
+  promptFileIsCurrent: boolean
 ): Promise<string> {
   return await stdinDirective(
     await execDirective(
-      await includeDirective(removeFrontMatter(contents), filePath, baseDir),
+      await includeDirective(
+        removeFrontMatter(contents),
+        filePath,
+        baseDir ?? "",
+        promptFileIsCurrent
+      ),
       filePath,
       baseDir
     )
