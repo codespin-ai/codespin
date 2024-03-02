@@ -234,7 +234,7 @@ codespin gen sum.py.prompt.md --diff -w
 - `-e, --exec <script path>`: Execute a command for each generated file, e.g., to run a formatting tool.
 - `--debug`: Enable debug mode, showing debug messages for each step.
 - `-c, --config <file path>`: Specify the path to a config file.
-- `--base-dir <dir path>`: Set the directory path relative to where files are generated. Defaults to the prompt file's directory.
+- `--base-dir <dir path>`: Set the directory path relative to where files are generated. Defaults to the current directory.
 - `--parser <path to js file>`: Use this parser to process LLM results
 - `--no-parse`: Do not parse llm results. Print it as received.
 - `--single`: Specify that the prompt is for a single source file.
