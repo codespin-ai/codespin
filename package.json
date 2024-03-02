@@ -26,14 +26,14 @@
   },
   "homepage": "https://github.com/codespin-ai/codespin-cli#readme",
   "dependencies": {
-    "@types/js-yaml": "^4.0.6",
-    "@types/node": "^20.8.6",
-    "@types/yargs": "^17.0.25",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^20.11.24",
+    "@types/yargs": "^17.0.32",
     "glob": "^10.3.10",
     "js-yaml": "^4.1.0",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
-    "typescript": "^5.2.2"
+    "typescript": "^5.3.3"
   }
 }
