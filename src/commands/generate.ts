@@ -42,7 +42,6 @@ export type GenerateArgs = {
   exclude: string[] | undefined;
   declare: string[] | undefined;
   baseDir: string | undefined;
-  single: boolean | undefined;
   parser: string | undefined;
   parse: boolean | undefined;
   go: boolean | undefined;
@@ -85,7 +84,12 @@ export async function generate(args: GenerateArgs): Promise<void> {
     debug: args.debug,
   };
 
-  const sourceFilePath = await getSourceFilePath(promptFilePath, args.single);
+  const sourceFilePath = await getSourceFilePath(
+    promptFilePath,
+    promptSettings,
+    args
+  );
+
   const sourceFileContent = await getSourceFileContent(
     sourceFilePath,
     excludedFilePaths
@@ -125,7 +129,6 @@ export async function generate(args: GenerateArgs): Promise<void> {
     promptWithLineNumbers,
     include: includes,
     sourceFile: sourceFileContent,
-    single: args.single,
     targetFilePath: sourceFilePath,
     declare: declarations,
     promptSettings,
@@ -301,24 +304,22 @@ async function getIncludedDeclarations(
   }
 }
 
-// Get the source file, if it's a single file code-gen.
-// Single file prompts have a source.ext.prompt.md extension.
-async function getSourceFilePath(
+// If the source is mentioned in the CLI it's relative to the working dir.
+// If it's mentioned in prompt front-matter, it is relative to the prompt file's directory.
+function getSourceFilePath(
   promptFilePath: string | undefined,
-  single: boolean | undefined
-): Promise<string | undefined> {
-  const sourceFilePath = await (async () => {
-    if (promptFilePath !== undefined) {
-      return single === false
-        ? undefined
-        : single === true || /\.[a-zA-Z0-9]+\.prompt\.md$/.test(promptFilePath)
-        ? promptFilePath.replace(/\.prompt\.md$/, "")
-        : undefined;
-    }
-    return undefined;
-  })();
-
-  return sourceFilePath ? path.resolve(sourceFilePath) : undefined;
+  promptSettings: PromptSettings | undefined,
+  args: GenerateArgs
+): string | undefined {
+  return args.source
+    ? path.resolve(args.source)
+    : promptFilePath && promptSettings && promptSettings.source
+    ? (() => {
+        const dirOfPromptFile = path.dirname(promptFilePath);
+        const sourcePath = path.join(dirOfPromptFile, promptSettings.source);
+        return path.resolve(sourcePath);
+      })()
+    : undefined;
 }
 
 async function getSourceFileContent(

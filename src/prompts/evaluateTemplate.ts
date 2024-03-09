@@ -9,7 +9,6 @@ export type TemplateArgs = {
   declare: BasicFileInfo[];
   sourceFile: VersionedFileInfo | undefined;
   targetFilePath: string | undefined;
-  single: boolean | undefined;
   promptSettings: unknown;
   templateArgs: string[] | undefined;
 };

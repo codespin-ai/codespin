@@ -237,7 +237,6 @@ This command above will ignore the latest edits to main.py and use content from 
 - `--base-dir <dir path>`: Set the directory path relative to where files are generated. Defaults to the current directory.
 - `--parser <path to js file>`: Use this parser to process LLM results
 - `--no-parse`: Do not parse llm results. Print it as received.
-- `--single`: Specify that the prompt is for a single source file.
 - `--committed`: Use content from the previous commit rather than the working copy
 - `-h, --help`: Display help.
 
@@ -273,7 +272,6 @@ export type TemplateArgs = {
   declare: BasicFileInfo[];
   sourceFile: VersionedFileInfo | undefined;
   targetFilePath: string | undefined;
-  single: boolean | undefined;
   promptSettings: unknown;
   templateArgs: string[] | undefined;
 };
