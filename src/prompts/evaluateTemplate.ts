@@ -4,12 +4,9 @@ import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
 export type TemplateArgs = {
   prompt: string;
   promptWithLineNumbers: string;
-  previousPrompt: string | undefined;
-  previousPromptWithLineNumbers: string | undefined;
-  promptDiff: string | undefined;
+  version: "current" | "committed";
   include: VersionedFileInfo[];
   declare: BasicFileInfo[];
-  diff: boolean | undefined;
   sourceFile: VersionedFileInfo | undefined;
   targetFilePath: string | undefined;
   single: boolean | undefined;

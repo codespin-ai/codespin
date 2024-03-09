@@ -36,6 +36,17 @@ async function main() {
             alias: "p",
             describe: "Specify the prompt directly on the command line.",
           })
+          .option("source", {
+            type: "string",
+            alias: "s",
+            describe: "Specify the source code file name to generate.",
+          })
+          .option("committed", {
+            type: "boolean",
+            default: false,
+            describe:
+              "When including source code, use the committed version instead of the working copy.",
+          })
           .option("write", {
             type: "boolean",
             default: false,
@@ -55,11 +66,6 @@ async function main() {
             describe:
               "List of files containing declarations (class definitions, method signatures etc) to include. This provides additional context during code generation.",
             string: true,
-          })
-          .option("diff", {
-            type: "boolean",
-            default: false,
-            describe: "Include the diff of the prompt.",
           })
           .option("exclude", {
             type: "array",
@@ -150,7 +156,10 @@ async function main() {
               "Shorthand which sets template to plain.mjs and parse to false.",
           }),
       async (argv) => {
-        await generate(argv);
+        await generate({
+          ...argv,
+          version: argv.committed ? "committed" : "current",
+        });
       }
     )
     .command(

@@ -24,12 +24,13 @@ import { BasicFileInfo } from "../fs/BasicFileInfo.js";
 
 export type GenerateArgs = {
   promptFile: string | undefined;
+  source: string | undefined;
+  version: "current" | "committed" | undefined;
   prompt: string | undefined;
   api: string | undefined;
   model: string | undefined;
   maxTokens: number | undefined;
   write: boolean | undefined;
-  diff: boolean | undefined;
   printPrompt: boolean | undefined;
   writePrompt: string | undefined;
   template: string | undefined;
@@ -113,28 +114,23 @@ export async function generate(args: GenerateArgs): Promise<void> {
     args.go ? "plain.mjs" : "default.mjs"
   );
 
-  const {
-    prompt,
-    promptWithLineNumbers,
-    previousPrompt,
-    previousPromptWithLineNumbers,
-    promptDiff,
-  } = await getPrompt(promptFilePath, args.prompt, args.baseDir);
+  const { prompt, promptWithLineNumbers } = await getPrompt(
+    promptFilePath,
+    args.prompt,
+    args.baseDir
+  );
 
   const evaluatedPrompt = await evaluateTemplate(templatePath, {
     prompt,
     promptWithLineNumbers,
-    previousPrompt,
-    previousPromptWithLineNumbers,
-    promptDiff,
     include: includes,
     sourceFile: sourceFileContent,
     single: args.single,
     targetFilePath: sourceFilePath,
     declare: declarations,
-    diff: args.diff ?? promptSettings?.diff ?? false,
     promptSettings,
     templateArgs: args.templateArgs,
+    version: args.version ?? "current",
   });
 
   if (args.debug) {
@@ -259,7 +255,7 @@ async function getIncludedFiles(
     fileContentList.filter(
       (x) => typeof x !== "undefined"
     ) as VersionedFileInfo[]
-  ).filter((x) => x.contents || x.previousContents);
+  ).filter((x) => x.contents);
 }
 
 async function getIncludedDeclarations(

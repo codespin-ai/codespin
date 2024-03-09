@@ -1,5 +1,6 @@
 import path from "path";
 import { TemplateArgs } from "../prompts/evaluateTemplate.js";
+import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
 
 type UndefinedToNever<T> = T extends undefined ? never : T;
 
@@ -8,63 +9,6 @@ type WithRequired<T, K extends keyof T> = Omit<T, K> & {
 };
 
 export default async function generate(args: TemplateArgs): Promise<string> {
-  if (args.diff && args.promptDiff) {
-    return withPromptDiff(args);
-  } else {
-    return withoutPromptDiff(args);
-  }
-}
-
-function argsHasPreviousPrompt(
-  args: TemplateArgs
-): args is WithRequired<
-  TemplateArgs,
-  "previousPrompt" | "previousPromptWithLineNumbers"
-> {
-  return args.previousPrompt !== undefined;
-}
-
-function argsHasSourceFile(
-  args: TemplateArgs
-): args is WithRequired<TemplateArgs, "sourceFile"> {
-  return args.sourceFile !== undefined;
-}
-
-function withPromptDiff(args: TemplateArgs) {
-  if (
-    argsHasSourceFile(args) &&
-    argsHasPreviousPrompt(args) &&
-    args.sourceFile.previousContents
-  ) {
-    const argsWithSource: WithRequired<TemplateArgs, "sourceFile"> = args;
-
-    return (
-      printLine(
-        `The following prompt (with line numbers added) was used to generate source code for the file "${relativePath(
-          args.sourceFile?.path
-        )}" provided later.`,
-        true
-      ) +
-      printPreviousPrompt(args, true) +
-      printSourceFile(argsWithSource, false, true) +
-      printDeclarations(args) +
-      printIncludeFiles(args, false, false) +
-      printLine(
-        `But now I'm making the following changes to the original prompt. The diff of the prompt is given below.`,
-        true
-      ) +
-      printPromptDiff(args) +
-      printLine(
-        "Based on the changes to the prompt, regenerate the source code. Retain the original code and structure wherever possible."
-      ) +
-      printFileTemplate(args)
-    );
-  } else {
-    return withoutPromptDiff(args);
-  }
-}
-
-function withoutPromptDiff(args: TemplateArgs) {
   return (
     (args.targetFilePath
       ? printLine(
@@ -77,11 +21,17 @@ function withoutPromptDiff(args: TemplateArgs) {
     (args.targetFilePath ? printLine("-----", true) : "") +
     printLine(printPrompt(args, false), args.targetFilePath ? false : true) +
     (args.targetFilePath ? printLine("-----", true) : "") +
-    (argsHasSourceFile(args) ? printSourceFile(args, false, false) : "") +
+    (argsHasSourceFile(args) ? printSourceFile(args, false) : "") +
     printDeclarations(args) +
-    printIncludeFiles(args, false, false) +
+    printIncludeFiles(args, false) +
     printFileTemplate(args)
   );
+}
+
+function argsHasSourceFile(
+  args: TemplateArgs
+): args is WithRequired<TemplateArgs, "sourceFile"> {
+  return args.sourceFile !== undefined;
 }
 
 function printLine(line: string | undefined, addBlankLine = false): string {
@@ -99,23 +49,6 @@ function printPrompt(args: TemplateArgs, useLineNumbers: boolean) {
 
 function relativePath(filePath: string) {
   return "./" + path.relative(process.cwd(), filePath);
-}
-
-function printPreviousPrompt(
-  args: WithRequired<
-    TemplateArgs,
-    "previousPrompt" | "previousPromptWithLineNumbers"
-  >,
-  useLineNumbers: boolean
-) {
-  return printLine(
-    useLineNumbers ? args.previousPromptWithLineNumbers : args.previousPrompt,
-    true
-  );
-}
-
-function printPromptDiff(args: TemplateArgs): string {
-  return printLine(args.promptDiff as string, true);
 }
 
 function printFileTemplate(args: TemplateArgs) {
@@ -138,32 +71,28 @@ function printFileTemplate(args: TemplateArgs) {
 
 function printSourceFile(
   args: WithRequired<TemplateArgs, "sourceFile">,
-  useLineNumbers: boolean,
-  usePrevious: boolean
+  useLineNumbers: boolean
 ) {
-  const text =
-    printLine(
-      usePrevious
-        ? `Here is the previous code for ${relativePath(args.sourceFile.path)}${
-            useLineNumbers ? " with line numbers" : ""
-          }`
-        : `Here is the code for ${relativePath(args.sourceFile.path)}${
-            useLineNumbers ? " with line numbers" : ""
-          }`
-    ) +
-    printLine("```") +
-    printLine(
-      usePrevious
-        ? useLineNumbers
-          ? args.sourceFile.previousContentsWithLineNumbers
-          : args.sourceFile.previousContents
-        : useLineNumbers
-        ? args.sourceFile.contentsWithLineNumbers
-        : args.sourceFile.contents
-    ) +
-    printLine("") +
-    printLine("```", true);
-  return text;
+  const fileContent = getContentFromVersionedFile(
+    args.sourceFile,
+    args.version,
+    useLineNumbers
+  );
+  if (fileContent && fileContent.trim().length > 0) {
+    const text =
+      printLine(
+        `Here is the current code for ${relativePath(args.sourceFile.path)}${
+          useLineNumbers ? " with line numbers" : ""
+        }`
+      ) +
+      printLine("```") +
+      printLine(fileContent) +
+      printLine("") +
+      printLine("```", true);
+    return text;
+  } else {
+    return "";
+  }
 }
 
 function printDeclarations(args: TemplateArgs) {
@@ -188,11 +117,7 @@ function printDeclarations(args: TemplateArgs) {
   }
 }
 
-function printIncludeFiles(
-  args: TemplateArgs,
-  useLineNumbers: boolean,
-  usePrevious: boolean
-) {
+function printIncludeFiles(args: TemplateArgs, useLineNumbers: boolean) {
   if (args.include.length === 0) {
     return "";
   } else {
@@ -202,21 +127,24 @@ function printIncludeFiles(
         true
       ) +
       args.include
-        .map(
-          (file) =>
-            printLine(`Contents of the file ${relativePath(file.path)}:`) +
-            printLine("```") +
-            printLine(
-              usePrevious
-                ? useLineNumbers
-                  ? file.previousContentsWithLineNumbers
-                  : file.previousContents
-                : useLineNumbers
-                ? file.contentsWithLineNumbers
-                : file.contents
-            ) +
-            printLine("```", true)
-        )
+        .map((file) => {
+          const fileContent = getContentFromVersionedFile(
+            file,
+            args.version,
+            useLineNumbers
+          );
+          if (fileContent && fileContent.trim().length > 0) {
+            const text =
+              printLine(`Contents of the file ${relativePath(file.path)}:`) +
+              printLine("```") +
+              printLine(fileContent) +
+              printLine("```", true);
+
+            return text;
+          } else {
+            return "";
+          }
+        })
         .join("\n");
     return text;
   }
@@ -246,4 +174,18 @@ export function fixTemplateWhitespace(input: string) {
   });
 
   return transformedLines.join("\n");
+}
+
+function getContentFromVersionedFile(
+  sourceFile: VersionedFileInfo,
+  version: "current" | "committed",
+  useLineNumbers: boolean
+): string | undefined {
+  return version === "committed"
+    ? useLineNumbers
+      ? sourceFile.previousContentsWithLineNumbers
+      : sourceFile.previousContents
+    : useLineNumbers
+    ? sourceFile.contentsWithLineNumbers
+    : sourceFile.contents;
 }

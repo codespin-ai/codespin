@@ -23,7 +23,6 @@ export async function getVersionedFileInfo(
       previousContentsWithLineNumbers: previousContents
         ? addLineNumbers(previousContents)
         : undefined,
-      hasDifferences: contents === previousContents,
     };
   } else {
     exception(`File ${filePath} was not found.`);

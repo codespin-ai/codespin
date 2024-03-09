@@ -2,13 +2,13 @@ import { promises as fs } from "fs";
 import * as yaml from "js-yaml";
 
 export type PromptSettings = {
+  source?: string;
   model?: string;
   maxTokens?: number;
   maxDeclare?: number;
   template?: string;
   include?: string[];
   declare?: string[];
-  diff?: boolean | undefined;
   parser?: string;
 };
 

@@ -4,5 +4,4 @@ export type VersionedFileInfo = {
   contentsWithLineNumbers: string;
   previousContents: string | undefined;
   previousContentsWithLineNumbers: string | undefined;
-  hasDifferences: boolean;
 };

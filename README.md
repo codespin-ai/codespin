@@ -73,30 +73,38 @@ You may also use the short alias `codespin gen`. The following examples will use
 
 #### Generating a single code file
 
-First, create a "prompt file" to describe the source code. If you're defining code for a single file, name the prompt file as "sourcefile.ext.prompt.md". Each source code file you wish to generate should have its prompt file.
+First, create a "prompt file" to describe the source code. A prompt file is simply a markdown file containing instructions on how to generate the code.
 
-For instance, here's an example `main.py.prompt.md` used to generate `main.py`:
+Let's start with something simple.
 
-```
-Make a python program (in main.py) that prints Hello, World!
+Create a file called `main.py.md` as follows:
+
+```markdown
+---
+source: main.py
+---
+
+Print Hello, World!
 Include a shebang to make it directly executable.
 ```
 
-Then, generate the code:
+Then generate the code by calling codespin:
 
 ```sh
-codespin gen main.py.prompt.md --write
+codespin gen main.py.md --write
 ```
 
-This will create a `main.py` file that prints "Hello, World!".
+Alternatively, you could specify the source file path with the `--source` (or `-s` shorthand) CLI parameter instead of using front-matter.
+
+```sh
+codespin gen main.py.md --source main.py --write
+```
 
 #### Generating multiple files
 
-While generating multiple files (such as when scaffolding a project), start with a filename like `[something].prompt.md` eg: `myapp.prompt.md`.
+This is just as simple. Here's an example of how you'd scaffold a new Node.JS blog app:
 
-Here's an example of how you'd scaffold a new Node.JS blog app:
-
-`blogapp.prompt.md`:
+`blogapp.md`:
 
 ```
 Create a Node.JS application for a blog.
@@ -105,8 +113,6 @@ Use ExpressJS. Use Postgres for the database.
 Place database code in a different file (a database layer).
 ```
 
-💡 It is necessary to NOT use the `[filename.ext].prompt.md` convention because that causes codespin to generate code for a single file.
-
 #### Include External Files and Declarations
 
 For the code generator to better understand the context, you can pass the relevant external files (such as dependencies) with the `--include` (or `-i`) option.
@@ -114,26 +120,24 @@ For the code generator to better understand the context, you can pass the releva
 For example, if `main.py` depends on `dep1.py` and `dep2.py`:
 
 ```sh
-codespin gen main.py.prompt.md -i dep1.py -i dep2.py --write
+codespin gen main.py.md -i dep1.py -i dep2.py --write
 ```
 
 But in some cases, including entire files (with `--include` or `-i`) will result in larger context sizes. To reduce the size of the context, you can send just the declarations/signatures found in a file with the `--declare` (or `-d`) option.
 
 ```sh
-codespin gen main.py.prompt.md -d dep1.py -d dep2.py --write
+codespin gen main.py.md -d dep1.py -d dep2.py --write
 ```
 
-But do note that creating declarations will require a call to the LLM. Declarations are then cached until the file changes.
+Do note that creating declarations will require a call to the LLM. Declarations are then cached until the file changes.
 
 With both `--include` and `--declare`, you can specify wildcards. The following will include all ".py" files:
 
 ```sh
-codespin gen main.py.prompt.md -d "*.py" --write
+codespin gen main.py.md -d "*.py" --write
 ```
 
-#### Frontmatter in Prompt Files
-
-You can also include front-matter to define the `--include`, `--declare`, `--template`, `--parser`, `--api`, `--model`, and `--max-tokens` parameters:
+You can also define the `--include`, `--declare`, `--template`, `--parser`, `--api`, `--model`, and `--max-tokens` parameters in front-matter like this:
 
 ```markdown
 ---
@@ -178,50 +182,46 @@ codespin:exec:git diff HEAD~1 HEAD -- main.py
 
 The easiest way to regenerate code (for a single file) is by changing the original prompt to mention just the required modifications.
 
-For example, if you originally had this in `calculate_area.py.prompt.md`:
+For example, if you originally had this in `calculate_area.py.md`:
 
-```
-Write a function named calculate_area(l, b) which returns l*b.
+```markdown
+---
+source: calculate_area.py
+---
+
+Write a function named calculate_area(l, b) which returns l\*b.
 ```
 
 You could rewrite it as:
 
-```
+```markdown
+---
+source: calculate_area.py
+---
+
 Change the function calculate_area to take an additional parameter shape_type (as the first param), and return the correct caculations. The subsequent parameters are dimensions of the shape, and there could be one (for a circle) or more dimensions (for a multi-sided shape).
 ```
 
-And then run the gen command:
+And run the gen command as usual:
 
 ```sh
-codespin gen calculate_area.py.prompt.md -w
+codespin gen calculate_area.py.md -w
 ```
 
-But there's an advanced technique you could use which uses prompt diffs. If you supply the `--diff` argument, the prompt will include the diff of the original prompt and the new prompt which can help the LLM make better decisions. When using the `--diff` argument, you must retain the original prompt text and structure but make changes to the spec where needed.
+Sometimes you want to ignore the latest modifications while generating code, and use previously committed file contents.
 
-For example, if this was the original prompt:
-
-```
-Write a function named sum() which takes two arguments.
-- The arguments should be named a and b
-```
-
-You can edit it like this:
-
-```
-Write a function named sum() which takes three arguments.
-- The arguments should be named x, y and z
-```
-
-Save the file, and run the gen command with the `--diff` option:
+You can do that with the `--committed` flag:
 
 ```sh
-codespin gen sum.py.prompt.md --diff -w
+codespin gen main.py.md --committed -w
 ```
 
-💡 For effective regeneration, use a git repository and commit both the prompt and generated code files after each successful code generation. This lets the code generator inspect the differences between prompts and apply changes accurately.
+This command above will ignore the latest edits to main.py and use content from the committed version in git.
+
 
 #### Options for codespin gen
 
+- `-s, --source <source file path>`: Name of the source code file to generate
 - `-p, --prompt <some text>`: Specify the prompt directly in the command line.
 - `-t, --template <template path>`: Specify the template. If not provided, a default template is used.
 - `-w, --write`: Save the generated code to a file. Defaults to 'false'.
@@ -238,6 +238,7 @@ codespin gen sum.py.prompt.md --diff -w
 - `--parser <path to js file>`: Use this parser to process LLM results
 - `--no-parse`: Do not parse llm results. Print it as received.
 - `--single`: Specify that the prompt is for a single source file.
+- `--committed`: Use content from the previous commit rather than the working copy
 - `-h, --help`: Display help.
 
 ## Inline Prompting
@@ -268,9 +269,6 @@ where TemplateArgs is the following:
 export type TemplateArgs = {
   prompt: string;
   promptWithLineNumbers: string;
-  previousPrompt: string | undefined;
-  previousPromptWithLineNumbers: string | undefined;
-  promptDiff: string | undefined;
   include: VersionedFileInfo[];
   declare: BasicFileInfo[];
   sourceFile: VersionedFileInfo | undefined;
@@ -289,16 +287,13 @@ export type VersionedFileInfo = {
   path: string;
   contents: string;
   contentsWithLineNumbers: string;
-  previousContents: string | undefined;
-  previousContentsWithLineNumbers: string | undefined;
-  hasDifferences: boolean;
 };
 ```
 
 When generating code, specify custom templates with the `--template` (or `-t`) option:
 
 ```sh
-codespin gen main.py.prompt.md --template mypythontemplate.mjs --include main.py --write
+codespin gen main.py.md --template mypythontemplate.mjs --include main.py --write
 ```
 
 💡: Your template should the extension `mjs` instead of `js`.
@@ -320,7 +315,7 @@ useJDK: true //custom arg
 2. CLI args can be passed with the `-a` (or `--template-args`), and they'll be available in args.templateArgs as a string array.
 
 ```sh
-codespin gen main.py.prompt.md \
+codespin gen main.py.md \
   --template mypythontemplate.mjs \
   -a useAWS \
   -a swagger \
@@ -336,10 +331,10 @@ Use the `--pp` (or `--print-prompt`) option to display the final LLM prompt, or 
 
 ```sh
 # Display on screen
-codespin gen something.py.prompt.md --print-prompt
+codespin gen something.py.md --print-prompt
 
 # Or save to a file
-codespin gen something.py.prompt.md --write-prompt /path/to/file.txt
+codespin gen something.py.md --write-prompt /path/to/file.txt
 ```
 
 Copy and paste the prompt into ChatGPT. Save ChatGPT's response in a file, e.g., `gptresponse.txt`.
@@ -379,6 +374,7 @@ ls | codespin gen -p $'Convert to uppercase each line in the following text \nco
 ## Using Azure OpenAI API
 
 You may use Azure's OpenAI endpoint by setting the following environment variables:
+
 - OPENAI_COMPLETIONS_ENDPOINT: Set this to your completions endpoint
 - OPENAI_AUTH_TYPE: Set this to "API_KEY"
 
