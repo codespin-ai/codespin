@@ -178,10 +178,10 @@ export function fixTemplateWhitespace(input: string) {
 
 function getContentFromVersionedFile(
   sourceFile: VersionedFileInfo,
-  version: "current" | "committed",
+  version: "current" | "HEAD",
   useLineNumbers: boolean
 ): string | undefined {
-  return version === "committed"
+  return version === "HEAD"
     ? useLineNumbers
       ? sourceFile.previousContentsWithLineNumbers
       : sourceFile.previousContents

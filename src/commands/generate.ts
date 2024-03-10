@@ -26,7 +26,7 @@ import { CODESPIN_CONFIG } from "../fs/codespinPaths.js";
 export type GenerateArgs = {
   promptFile: string | undefined;
   source: string | undefined;
-  version: "current" | "committed" | undefined;
+  version: "current" | "HEAD" | undefined;
   prompt: string | undefined;
   api: string | undefined;
   model: string | undefined;

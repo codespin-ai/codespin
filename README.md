@@ -210,13 +210,13 @@ codespin gen calculate_area.py.md -w
 
 Sometimes you want to ignore the latest modifications while generating code, and use previously committed file contents.
 
-You can do that with the `--committed` flag:
+You can do that with the `--head` flag:
 
 ```sh
-codespin gen main.py.md --committed -w
+codespin gen main.py.md --head -w
 ```
 
-This command above will ignore the latest edits to main.py and use content from the committed version in git.
+This command above will ignore the latest edits to main.py and use content from git's HEAD.
 
 
 #### Options for codespin gen
@@ -237,7 +237,7 @@ This command above will ignore the latest edits to main.py and use content from 
 - `--base-dir <dir path>`: Set the directory path relative to where files are generated. Defaults to the current directory.
 - `--parser <path to js file>`: Use this parser to process LLM results
 - `--no-parse`: Do not parse llm results. Print it as received.
-- `--committed`: Use content from the previous commit rather than the working copy
+- `--head`: Use content from git's HEAD rather than the working copy
 - `-h, --help`: Display help.
 
 ## Inline Prompting

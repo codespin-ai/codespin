@@ -4,7 +4,7 @@ import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
 export type TemplateArgs = {
   prompt: string;
   promptWithLineNumbers: string;
-  version: "current" | "committed";
+  version: "current" | "HEAD";
   include: VersionedFileInfo[];
   declare: BasicFileInfo[];
   sourceFile: VersionedFileInfo | undefined;

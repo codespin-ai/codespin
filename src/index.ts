@@ -41,11 +41,11 @@ async function main() {
             alias: "s",
             describe: "Specify the source code file name to generate.",
           })
-          .option("committed", {
+          .option("head", {
             type: "boolean",
             default: false,
             describe:
-              "When including source code, use the committed version instead of the working copy.",
+              "When including source code, use the committed version (HEAD) instead of the working copy.",
           })
           .option("write", {
             type: "boolean",
@@ -153,7 +153,7 @@ async function main() {
       async (argv) => {
         await generate({
           ...argv,
-          version: argv.committed ? "committed" : "current",
+          version: argv.head ? "HEAD" : "current",
         });
       }
     )
