@@ -2,6 +2,11 @@ import path from "path";
 import { exception } from "../exception.js";
 import { findGitProjectRoot } from "../git/findGitProjectRoot.js";
 
+export const CODESPIN_CONFIG = "codespin.json";
+export const CODESPIN_DIRNAME = ".codespin";
+export const TEMPLATES_DIRNAME = ".codespin/templates";
+export const DECLARATIONS_DIRNAME = ".codespin/declarations";
+
 let cachedGitDir: string | undefined = undefined;
 
 async function getGitDir(): Promise<string | undefined> {
@@ -18,12 +23,12 @@ export async function getCodespinDirAndAssert(): Promise<string> {
     exception(`The project must be under git.`);
   }
 
-  return path.resolve(gitDir, "codespin");
+  return path.resolve(gitDir, CODESPIN_DIRNAME);
 }
 
 export async function getDeclarationsDirectory(): Promise<string | undefined> {
   const gitDir = await getGitDir();
-  return gitDir ? path.resolve(gitDir, "codespin/declarations") : undefined;
+  return gitDir ? path.resolve(gitDir, DECLARATIONS_DIRNAME) : undefined;
 }
 
 export async function getDeclarationsDirectoryAndAssert(): Promise<string> {
@@ -38,5 +43,5 @@ export async function getDeclarationsDirectoryAndAssert(): Promise<string> {
 
 export async function getTemplatesDirectory(): Promise<string | undefined> {
   const gitDir = await getGitDir();
-  return gitDir ? path.resolve(gitDir, "codespin/templates") : undefined;
+  return gitDir ? path.resolve(gitDir, TEMPLATES_DIRNAME) : undefined;
 }

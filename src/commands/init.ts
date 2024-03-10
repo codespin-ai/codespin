@@ -7,6 +7,12 @@ import { writeToFile } from "../fs/writeToFile.js";
 import { writeToConsole } from "../writeToConsole.js";
 import { findGitProjectRoot } from "../git/findGitProjectRoot.js";
 import { exception } from "../exception.js";
+import {
+  CODESPIN_CONFIG,
+  CODESPIN_DIRNAME,
+  DECLARATIONS_DIRNAME,
+  TEMPLATES_DIRNAME,
+} from "../fs/codespinPaths.js";
 
 type InitArgs = {
   force?: boolean;
@@ -24,13 +30,13 @@ export async function init(args: InitArgs): Promise<void> {
     exception("codespin init must be used in a project which is under git.");
   }
 
-  const configFile = path.resolve(gitDir, "codespin.json");
+  const configFile = path.resolve(gitDir, CODESPIN_CONFIG);
 
   try {
     // Check if codespin.json already exists
     if (!args.force && (await pathExists(configFile))) {
       throw new Error(
-        "codespin.json already exists. Use the --force option to overwrite."
+        `${CODESPIN_CONFIG} already exists. Use the --force option to overwrite.`
       );
     }
 
@@ -40,11 +46,8 @@ export async function init(args: InitArgs): Promise<void> {
     );
 
     // Create codespin directories.
-    await createDirectoriesIfNotExist(path.resolve(gitDir, "codespin"));
-
-    await createDirectoriesIfNotExist(
-      path.resolve(gitDir, "codespin/templates")
-    );
+    await createDirectoriesIfNotExist(path.resolve(gitDir, CODESPIN_DIRNAME));
+    await createDirectoriesIfNotExist(path.resolve(gitDir, TEMPLATES_DIRNAME));
 
     // Copy default templates into it.
 
@@ -55,14 +58,14 @@ export async function init(args: InitArgs): Promise<void> {
     // Copy only js files.
     await copyFilesInDir(
       builtInTemplatesDir,
-      path.resolve(gitDir, "codespin/templates"),
+      path.resolve(gitDir, TEMPLATES_DIRNAME),
       (filename) =>
         filename.endsWith(".js") ? filename.replace(/\.js$/, ".mjs") : undefined
     );
 
     // Create codespin/declarations
     await createDirectoriesIfNotExist(
-      path.resolve(gitDir, "codespin/declarations")
+      path.resolve(gitDir, DECLARATIONS_DIRNAME)
     );
 
     // exclude codespin/declarations in .gitignore
@@ -71,12 +74,12 @@ export async function init(args: InitArgs): Promise<void> {
     try {
       const content = await fs.readFile(gitIgnorePath, "utf8");
 
-      if (!content.includes("codespin/declarations")) {
-        await writeToFile(gitIgnorePath, "\ncodespin/declarations", true);
+      if (!content.includes(DECLARATIONS_DIRNAME)) {
+        await writeToFile(gitIgnorePath, `\n${DECLARATIONS_DIRNAME}`, true);
       }
     } catch (error: any) {
       if (error.code === "ENOENT") {
-        await writeToFile(gitIgnorePath, "codespin/declarations", true);
+        await writeToFile(gitIgnorePath, DECLARATIONS_DIRNAME, true);
       } else {
         console.error("An unexpected error occurred:", error);
       }

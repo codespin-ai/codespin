@@ -21,6 +21,7 @@ import { resolveWildcardPaths } from "../fs/resolveWildcards.js";
 import { exception } from "../exception.js";
 import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
 import { BasicFileInfo } from "../fs/BasicFileInfo.js";
+import { CODESPIN_CONFIG } from "../fs/codespinPaths.js";
 
 export type GenerateArgs = {
   promptFile: string | undefined;
@@ -60,7 +61,7 @@ export async function generate(args: GenerateArgs): Promise<void> {
 
   const mustParse = args.parse ?? (args.go ? false : true);
 
-  const configFile = args.config || "codespin.json";
+  const configFile = args.config || CODESPIN_CONFIG;
 
   const config = (await pathExists(configFile))
     ? await readConfig(configFile)
