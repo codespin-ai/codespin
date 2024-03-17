@@ -50,9 +50,9 @@ export async function init(args: InitArgs): Promise<void> {
     await createDirectoriesIfNotExist(path.resolve(gitDir, TEMPLATES_DIRNAME));
 
     // Copy default templates into it.
-
     const __filename = url.fileURLToPath(import.meta.url);
-    const builtInTemplatesDir = path.resolve(__filename, "../../templates");
+    const __dirname = path.dirname(__filename);
+    const builtInTemplatesDir = path.join(__dirname, "../templates");
 
     // Copy all templates into the codespin directory.
     // Copy only js files.
@@ -60,7 +60,9 @@ export async function init(args: InitArgs): Promise<void> {
       builtInTemplatesDir,
       path.resolve(gitDir, TEMPLATES_DIRNAME),
       (filename) =>
-        filename.endsWith(".js") ? filename.replace(/\.js$/, ".example.mjs") : undefined
+        filename.endsWith(".js")
+          ? filename.replace(/\.js$/, ".example.mjs")
+          : undefined
     );
 
     // Create codespin/declarations
