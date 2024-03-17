@@ -22,6 +22,7 @@ import { exception } from "../exception.js";
 import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
 import { BasicFileInfo } from "../fs/BasicFileInfo.js";
 import { CODESPIN_CONFIG } from "../fs/codespinPaths.js";
+import { getWorkingDir } from "../fs/workingDir.js";
 
 export type GenerateArgs = {
   promptFile: string | undefined;
@@ -178,7 +179,7 @@ export async function generate(args: GenerateArgs): Promise<void> {
 
       if (args.write) {
         const extractResult = await writeFilesToDisk(
-          args.baseDir || process.cwd(),
+          args.baseDir || getWorkingDir(),
           files,
           args.exec
         );

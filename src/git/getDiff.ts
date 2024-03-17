@@ -4,6 +4,7 @@ import { promises as fs } from "fs";
 import { execPromise } from "../process/execPromise.js";
 import { createTempFile } from "../fs/createTempFile.js";
 import path from "path";
+import { getWorkingDir } from "../fs/workingDir.js";
 
 export async function getDiff(
   newContent: string,
@@ -21,11 +22,11 @@ export async function getDiff(
     return diff
       .replaceAll(
         `${tempPathCommitted}`,
-        `/${path.relative(process.cwd(), filename)}`
+        `/${path.relative(getWorkingDir(), filename)}`
       )
       .replaceAll(
         `${tempPathCurrent}`,
-        `/${path.relative(process.cwd(), filename)}`
+        `/${path.relative(getWorkingDir(), filename)}`
       );
   } finally {
     await Promise.all([

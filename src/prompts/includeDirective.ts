@@ -1,6 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { resolveProjectFilePath } from "../fs/resolveProjectFilePath.js";
+import { getWorkingDir } from "../fs/workingDir.js";
 
 export async function includeDirective(
   contents: string,
@@ -17,7 +18,7 @@ export async function includeDirective(
 
     const fullPath = await resolveProjectFilePath(
       includedPath,
-      promptFilePath ? path.dirname(promptFilePath) : process.cwd(),
+      promptFilePath ? path.dirname(promptFilePath) : getWorkingDir(),
       {
         missingGit:
           "The codespin:include directive referred to path relative to the project root (starting with a '/'). This is supported only in projects under git.",

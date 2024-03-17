@@ -2,6 +2,7 @@ import { promises as fs } from "fs";
 import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
 import { extractCode } from "../prompts/extractCode.js";
 import { writeToConsole } from "../writeToConsole.js";
+import { getWorkingDir } from "../fs/workingDir.js";
 
 type ParseArgs = {
   filename: string;
@@ -17,7 +18,7 @@ export async function parse(args: ParseArgs): Promise<void> {
 
   if (args.write) {
     const extractResult = await writeFilesToDisk(
-      args.baseDir || process.cwd(),
+      args.baseDir || getWorkingDir(),
       files,
       args.exec
     );

@@ -6,8 +6,11 @@ import { init } from "./commands/init.js";
 import { parse } from "./commands/parse.js";
 import { getPackageVersion } from "./getPackageVersion.js";
 import { writeToConsole } from "./writeToConsole.js";
+import { setWorkingDir } from "./fs/workingDir.js";
 
 async function main() {
+  setWorkingDir(process.cwd());
+
   yargs(process.argv.slice(2))
     .command(
       "init",

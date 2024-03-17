@@ -1,6 +1,7 @@
 import path from "path";
 import { TemplateArgs } from "../prompts/evaluateTemplate.js";
 import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
+import { getWorkingDir } from "../fs/workingDir.js";
 
 type UndefinedToNever<T> = T extends undefined ? never : T;
 
@@ -48,7 +49,7 @@ function printPrompt(args: TemplateArgs, useLineNumbers: boolean) {
 }
 
 function relativePath(filePath: string) {
-  return "./" + path.relative(process.cwd(), filePath);
+  return "./" + path.relative(getWorkingDir(), filePath);
 }
 
 function printFileTemplate(args: TemplateArgs) {

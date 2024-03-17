@@ -1,5 +1,6 @@
 import { exec } from "child_process";
 import path from "path";
+import { getWorkingDir } from "../fs/workingDir.js";
 
 export async function execDirective(
   contents: string,
@@ -29,7 +30,7 @@ export async function execDirective(
     const command = match[1];
     const commandWorkingDirectory = promptFilePath
       ? path.dirname(promptFilePath)
-      : process.cwd();
+      : getWorkingDir();
 
     let commandOutput;
     try {

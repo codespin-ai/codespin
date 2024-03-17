@@ -1,5 +1,6 @@
 import path from "path";
 import { DeclarationsTemplateArgs } from "../prompts/evaluateDeclarationTemplate.js";
+import { getWorkingDir } from "../fs/workingDir.js";
 
 export default async function declarations(args: DeclarationsTemplateArgs) {
   return (
@@ -26,7 +27,7 @@ export default async function declarations(args: DeclarationsTemplateArgs) {
 }
 
 function relativePath(filePath: string) {
-  return "./" +  path.relative(process.cwd(), filePath);
+  return "./" +  path.relative(getWorkingDir(), filePath);
 }
 
 function printLine(line: string, addBlankLine = false): string {
