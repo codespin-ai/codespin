@@ -268,12 +268,14 @@ where TemplateArgs is the following:
 export type TemplateArgs = {
   prompt: string;
   promptWithLineNumbers: string;
+  version: "current" | "HEAD";
   include: VersionedFileInfo[];
   declare: BasicFileInfo[];
   sourceFile: VersionedFileInfo | undefined;
   targetFilePath: string | undefined;
   promptSettings: unknown;
   templateArgs: string[] | undefined;
+  workingDir: string;
 };
 
 export type BasicFileInfo = {

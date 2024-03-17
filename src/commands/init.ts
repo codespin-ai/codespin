@@ -60,7 +60,7 @@ export async function init(args: InitArgs): Promise<void> {
       builtInTemplatesDir,
       path.resolve(gitDir, TEMPLATES_DIRNAME),
       (filename) =>
-        filename.endsWith(".js") ? filename.replace(/\.js$/, ".mjs") : undefined
+        filename.endsWith(".js") ? filename.replace(/\.js$/, ".example.mjs") : undefined
     );
 
     // Create codespin/declarations
