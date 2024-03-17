@@ -1,7 +1,6 @@
 import path from "path";
 import { TemplateArgs } from "../prompts/evaluateTemplate.js";
 import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
-import { getWorkingDir } from "../fs/workingDir.js";
 
 type UndefinedToNever<T> = T extends undefined ? never : T;
 
@@ -14,7 +13,8 @@ export default async function generate(args: TemplateArgs): Promise<string> {
     (args.targetFilePath
       ? printLine(
           `Generate source code for the file "${relativePath(
-            args.targetFilePath
+            args.targetFilePath,
+            args.workingDir
           )}" based on the following instructions (enclosed between "-----").`,
           true
         )
@@ -48,13 +48,13 @@ function printPrompt(args: TemplateArgs, useLineNumbers: boolean) {
   );
 }
 
-function relativePath(filePath: string) {
-  return "./" + path.relative(getWorkingDir(), filePath);
+function relativePath(filePath: string, workingDir: string) {
+  return "./" + path.relative(workingDir, filePath);
 }
 
 function printFileTemplate(args: TemplateArgs) {
   const filePath = args.targetFilePath
-    ? relativePath(args.targetFilePath)
+    ? relativePath(args.targetFilePath, args.workingDir)
     : "./some/path/filename.ext";
   const tmpl = `
   Respond with just the code (but exclude invocation examples etc) in the following format:
@@ -82,9 +82,10 @@ function printSourceFile(
   if (fileContent && fileContent.trim().length > 0) {
     const text =
       printLine(
-        `Here is the current code for ${relativePath(args.sourceFile.path)}${
-          useLineNumbers ? " with line numbers" : ""
-        }`
+        `Here is the current code for ${relativePath(
+          args.sourceFile.path,
+          args.workingDir
+        )}${useLineNumbers ? " with line numbers" : ""}`
       ) +
       printLine("```") +
       printLine(fileContent) +
@@ -108,7 +109,9 @@ function printDeclarations(args: TemplateArgs) {
       args.declare
         .map(
           (file) =>
-            printLine(`Declarations for ${relativePath(file.path)}:`) +
+            printLine(
+              `Declarations for ${relativePath(file.path, args.workingDir)}:`
+            ) +
             printLine("```") +
             printLine(file.contents) +
             printLine("```", true)
@@ -136,7 +139,12 @@ function printIncludeFiles(args: TemplateArgs, useLineNumbers: boolean) {
           );
           if (fileContent && fileContent.trim().length > 0) {
             const text =
-              printLine(`Contents of the file ${relativePath(file.path)}:`) +
+              printLine(
+                `Contents of the file ${relativePath(
+                  file.path,
+                  args.workingDir
+                )}:`
+              ) +
               printLine("```") +
               printLine(fileContent) +
               printLine("```", true);

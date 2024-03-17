@@ -11,6 +11,7 @@ export type TemplateArgs = {
   targetFilePath: string | undefined;
   promptSettings: unknown;
   templateArgs: string[] | undefined;
+  workingDir: string;
 };
 
 export async function evaluateTemplate(

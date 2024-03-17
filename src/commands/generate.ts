@@ -136,6 +136,7 @@ export async function generate(args: GenerateArgs): Promise<void> {
     promptSettings,
     templateArgs: args.templateArgs,
     version: args.version ?? "current",
+    workingDir: getWorkingDir(),
   });
 
   if (args.debug) {
