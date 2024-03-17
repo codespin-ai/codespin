@@ -16,6 +16,7 @@ import {
 
 type InitArgs = {
   force?: boolean;
+  templatesDir: string;
 };
 
 const DEFAULT_JSON_CONTENT = {
@@ -49,15 +50,10 @@ export async function init(args: InitArgs): Promise<void> {
     await createDirectoriesIfNotExist(path.resolve(gitDir, CODESPIN_DIRNAME));
     await createDirectoriesIfNotExist(path.resolve(gitDir, TEMPLATES_DIRNAME));
 
-    // Copy default templates into it.
-    const __filename = url.fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
-    const builtInTemplatesDir = path.join(__dirname, "../templates");
-
     // Copy all templates into the codespin directory.
     // Copy only js files.
     await copyFilesInDir(
-      builtInTemplatesDir,
+      args.templatesDir,
       path.resolve(gitDir, TEMPLATES_DIRNAME),
       (filename) =>
         filename.endsWith(".js")

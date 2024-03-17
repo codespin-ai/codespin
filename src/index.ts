@@ -7,6 +7,8 @@ import { parse } from "./commands/parse.js";
 import { getPackageVersion } from "./getPackageVersion.js";
 import { writeToConsole } from "./writeToConsole.js";
 import { setWorkingDir } from "./fs/workingDir.js";
+import * as url from "url";
+import * as path from "path";
 
 async function main() {
   setWorkingDir(process.cwd());
@@ -22,7 +24,10 @@ async function main() {
           describe: "Force overwrite the codespin.json config file",
         }),
       async (argv) => {
-        await init(argv);
+        const __filename = url.fileURLToPath(import.meta.url);
+        const __dirname = path.dirname(__filename);
+        const builtInTemplatesDir = path.join(__dirname, "templates");
+        await init({ ...argv, templatesDir: builtInTemplatesDir });
       }
     )
     .command(
