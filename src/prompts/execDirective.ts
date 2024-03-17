@@ -1,40 +1,27 @@
-import { exec } from "child_process";
 import path from "path";
 import { getWorkingDir } from "../fs/workingDir.js";
+import { execString } from "../process/execString.js";
 
 export async function execDirective(
   contents: string,
   promptFilePath: string | undefined,
-  baseDir: string = ""
+  baseDir: string | undefined
 ): Promise<string> {
   const execPattern = /codespin:exec:(.+)/g;
   let match;
 
-  const execPromise = (
-    command: string,
-    workingDirectory: string
-  ): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      exec(command, { cwd: workingDirectory }, (error, stdout, stderr) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-        resolve(stdout.trim());
-      });
-    });
-  };
-
   // Using a while loop to iterate through all matches
   while ((match = execPattern.exec(contents)) !== null) {
     const command = match[1];
-    const commandWorkingDirectory = promptFilePath
+
+    const commandDir = promptFilePath
       ? path.dirname(promptFilePath)
-      : getWorkingDir();
+      : baseDir ?? getWorkingDir();
 
     let commandOutput;
+
     try {
-      commandOutput = await execPromise(command, commandWorkingDirectory);
+      commandOutput = await execString(command, commandDir);
     } catch (err: any) {
       throw new Error(
         `Failed to execute command: ${command}. Error: ${err.message}`

@@ -1,5 +1,5 @@
 import path from "path";
-import { TemplateArgs } from "../prompts/evaluateTemplate.js";
+import { TemplateArgs } from "../prompts/evalTemplate.js";
 import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
 
 type UndefinedToNever<T> = T extends undefined ? never : T;

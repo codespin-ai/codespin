@@ -1,5 +1,5 @@
 import path from "path";
-import { DeclarationsTemplateArgs } from "../prompts/evaluateDeclarationTemplate.js";
+import { DeclarationsTemplateArgs } from "../prompts/evalDeclarationTemplate.js";
 
 export default async function declarations(args: DeclarationsTemplateArgs) {
   return (

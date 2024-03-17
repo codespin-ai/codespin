@@ -1,10 +1,7 @@
 // projectRoot.ts
 
-import { exec } from "child_process";
-import { promisify } from "util";
-
-// Use promisify to convert the callback-based exec function into a promise-based one.
-const execPromise = promisify(exec);
+import { getWorkingDir } from "../fs/workingDir.js";
+import { execString } from "../process/execString.js";
 
 /**
  * Async function that retrieves the project root for a git project.
@@ -17,10 +14,13 @@ const execPromise = promisify(exec);
  */
 export async function findGitProjectRoot(): Promise<string | undefined> {
   try {
-    const { stdout } = await execPromise("git rev-parse --show-toplevel");
+    const result = await execString(
+      "git rev-parse --show-toplevel",
+      getWorkingDir()
+    );
 
     // trim is used to remove the trailing newline character from the output
-    return stdout.trim();
+    return result.trim();
   } catch (error: any) {
     // Handle the error. For now, just throwing it further.
     return undefined;

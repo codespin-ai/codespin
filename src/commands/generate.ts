@@ -6,9 +6,9 @@ import { resolveProjectFilePath } from "../fs/resolveProjectFilePath.js";
 import { pathExists } from "../fs/pathExists.js";
 import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
 import { writeToFile } from "../fs/writeToFile.js";
-import { evaluateTemplate } from "../prompts/evaluateTemplate.js";
+import { evalTemplate } from "../prompts/evalTemplate.js";
 import { extractCode } from "../prompts/extractCode.js";
-import { getPrompt } from "../prompts/getPrompt.js";
+import { readPrompt } from "../prompts/readPrompt.js";
 import {
   PromptSettings,
   readPromptSettings,
@@ -120,13 +120,13 @@ export async function generate(args: GenerateArgs): Promise<void> {
     args.go ? "plain.mjs" : "default.mjs"
   );
 
-  const { prompt, promptWithLineNumbers } = await getPrompt(
+  const { prompt, promptWithLineNumbers } = await readPrompt(
     promptFilePath,
     args.prompt,
     args.baseDir
   );
 
-  const evaluatedPrompt = await evaluateTemplate(templatePath, {
+  const evaluatedPrompt = await evalTemplate(templatePath, {
     prompt,
     promptWithLineNumbers,
     include: includes,

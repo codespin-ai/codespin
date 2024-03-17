@@ -4,7 +4,7 @@ export type DeclarationsTemplateArgs = {
   workingDir: string;
 };
 
-export async function evaluateDeclarationsTemplate(
+export async function evalDeclarationTemplate(
   templatePath: string,
   args: DeclarationsTemplateArgs
 ): Promise<string> {

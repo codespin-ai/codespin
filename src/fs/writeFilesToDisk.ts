@@ -1,8 +1,9 @@
 import { writeFile } from "fs/promises";
-import { execCommand } from "../process/execCommand.js";
 import { ensureDirectoryExists } from "./ensureDirectoryExists.js";
 import { SourceFile } from "../sourceCode/SourceFile.js";
 import path from "path";
+import { getWorkingDir } from "./workingDir.js";
+import { execString } from "../process/execString.js";
 
 export async function writeFilesToDisk(
   baseDir: string,
@@ -16,7 +17,7 @@ export async function writeFilesToDisk(
       await writeFile(generatedFilePath, file.contents);
 
       if (exec) {
-        await execCommand(exec, [generatedFilePath]);
+        await execString(`exec ${generatedFilePath}`, getWorkingDir());
       }
       return { generated: true, file: file.path };
     })

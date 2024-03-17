@@ -1,7 +1,7 @@
 // getDiff.ts
 
 import { promises as fs } from "fs";
-import { execPromise } from "../process/execPromise.js";
+import { execString } from "../process/execString.js";
 import { createTempFile } from "../fs/createTempFile.js";
 import path from "path";
 import { getWorkingDir } from "../fs/workingDir.js";
@@ -15,8 +15,9 @@ export async function getDiff(
   const tempPathCommitted = await createTempFile(oldContent);
 
   try {
-    const diff = await execPromise(
-      `git diff --no-index ${tempPathCommitted} ${tempPathCurrent}`
+    const diff = await execString(
+      `git diff --no-index ${tempPathCommitted} ${tempPathCurrent}`,
+      getWorkingDir()
     );
 
     return diff

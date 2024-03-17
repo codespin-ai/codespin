@@ -8,7 +8,7 @@ import { getDeclarationsDirectoryAndAssert } from "../fs/codespinPaths.js";
 import { computeHash } from "../fs/computeHash.js";
 import { pathExists } from "../fs/pathExists.js";
 import { getPathRelativeToGitRoot } from "../git/getPathRelativeToGitRoot.js";
-import { evaluateDeclarationsTemplate } from "../prompts/evaluateDeclarationTemplate.js";
+import { evalDeclarationTemplate } from "../prompts/evalDeclarationTemplate.js";
 import { extractCode } from "../prompts/extractCode.js";
 import { getTemplatePath } from "../templating/getTemplatePath.js";
 import { getWorkingDir } from "../fs/workingDir.js";
@@ -73,7 +73,7 @@ async function callCompletion(
 
   const templatePath = await getTemplatePath(undefined, "declarations.mjs");
 
-  const evaluatedPrompt = await evaluateDeclarationsTemplate(templatePath, {
+  const evaluatedPrompt = await evalDeclarationTemplate(templatePath, {
     filePath,
     sourceCode,
     workingDir: getWorkingDir(),

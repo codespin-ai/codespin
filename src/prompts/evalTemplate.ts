@@ -14,7 +14,7 @@ export type TemplateArgs = {
   workingDir: string;
 };
 
-export async function evaluateTemplate(
+export async function evalTemplate(
   templatePath: string,
   args: TemplateArgs
 ): Promise<string> {

@@ -3,7 +3,7 @@ import { exception } from "../exception.js";
 import { addLineNumbers } from "../text/addLineNumbers.js";
 import { processPrompt } from "./processPrompt.js";
 
-export async function getPrompt(
+export async function readPrompt(
   promptFile: string | undefined,
   textPrompt: string | undefined,
   baseDir: string | undefined
@@ -14,12 +14,7 @@ export async function getPrompt(
   if (promptFile) {
     const promptFileContents = await readFile(promptFile, "utf-8");
 
-    const prompt = await processPrompt(
-      promptFileContents,
-      promptFile,
-      baseDir,
-      true
-    );
+    const prompt = await processPrompt(promptFileContents, promptFile, baseDir);
     const promptWithLineNumbers = addLineNumbers(prompt);
 
     return {
@@ -27,7 +22,7 @@ export async function getPrompt(
       promptWithLineNumbers,
     };
   } else if (textPrompt) {
-    const prompt = await processPrompt(textPrompt, undefined, baseDir, true);
+    const prompt = await processPrompt(textPrompt, undefined, baseDir);
     const promptWithLineNumbers = addLineNumbers(prompt);
     return {
       prompt,

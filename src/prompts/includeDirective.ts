@@ -6,8 +6,7 @@ import { getWorkingDir } from "../fs/workingDir.js";
 export async function includeDirective(
   contents: string,
   promptFilePath: string | undefined,
-  baseDir: string,
-  promptFileIsCurrent: boolean
+  baseDir: string | undefined
 ): Promise<string> {
   const includePattern = /codespin:include:([^"\s]+)/g;
   let match;
@@ -25,27 +24,13 @@ export async function includeDirective(
       }
     );
 
-    let includedContent;
-    try {
-      includedContent = await fs.readFile(fullPath, "utf-8");
-    } catch (err: any) {
-      // We throw only if promptFileIsCurrent, because include in old commits may not reflect the new dir structure.
-      // When promptFileIsCurrent === true however, we must fail to let the user know that the included file doesn't exist.
-      if (promptFileIsCurrent) {
-        throw new Error(
-          `Failed to include file from path: ${fullPath}. Error: ${err.message}`
-        );
-      } else {
-        includedContent = "";
-      }
-    }
+    let includedContent = await fs.readFile(fullPath, "utf-8");
 
     // Recursively process includes within the included content
     includedContent = await includeDirective(
       includedContent,
       fullPath,
-      baseDir,
-      promptFileIsCurrent
+      baseDir
     );
 
     // Replace the matched pattern with the included content

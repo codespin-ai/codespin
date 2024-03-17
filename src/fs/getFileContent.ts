@@ -11,7 +11,7 @@ export async function getVersionedFileInfo(
 ): Promise<VersionedFileInfo | undefined> {
   if (await pathExists(filePath)) {
     const contents = await readFile(filePath, "utf-8");
-    const previousContents = isGitRepo()
+    const previousContents = (await isGitRepo())
       ? await getFileFromCommit(filePath)
       : undefined;
 

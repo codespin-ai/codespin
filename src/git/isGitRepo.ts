@@ -1,9 +1,9 @@
-// isGitRepo.ts
-import { execSync } from "child_process";
+import { getWorkingDir } from "../fs/workingDir.js";
+import { execString } from "../process/execString.js";
 
-export function isGitRepo(): boolean {
+export async function isGitRepo(): Promise<boolean> {
   try {
-    execSync("git rev-parse --is-inside-work-tree", { stdio: "pipe" });
+    await execString("git rev-parse --is-inside-work-tree", getWorkingDir());
     return true;
   } catch (error) {
     return false;
