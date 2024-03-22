@@ -1,3 +1,6 @@
+import * as fs from "fs/promises";
+import * as path from "path";
+import * as os from "os";
 import { writeToConsole } from "../../writeToConsole.js";
 import { CompletionOptions } from "../CompletionOptions.js";
 import { CompletionResult } from "../CompletionResult.js";
@@ -15,6 +18,36 @@ type OpenAICompletionResponse = {
   }[];
 };
 
+let OPENAI_API_KEY: string | undefined;
+let OPENAI_AUTH_TYPE: string | undefined;
+let OPENAI_COMPLETIONS_ENDPOINT: string | undefined;
+let configLoaded = false; // Track if the config has already been loaded
+
+async function loadConfigIfRequired() {
+  if (!configLoaded) {
+    // Environment variables have higher priority
+    OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+    OPENAI_AUTH_TYPE = process.env.OPENAI_AUTH_TYPE;
+    OPENAI_COMPLETIONS_ENDPOINT = process.env.OPENAI_COMPLETIONS_ENDPOINT;
+
+    if (!OPENAI_API_KEY) {
+      try {
+        const configPath = path.join(os.homedir(), ".codespin", "openai.json");
+        const configFile = await fs.readFile(configPath, "utf8");
+        const config = JSON.parse(configFile);
+
+        OPENAI_API_KEY = OPENAI_API_KEY || config.apiKey;
+        OPENAI_AUTH_TYPE = OPENAI_AUTH_TYPE || config.authType;
+        OPENAI_COMPLETIONS_ENDPOINT =
+          OPENAI_COMPLETIONS_ENDPOINT || config.completionsEndpoint;
+      } catch (error: any) {
+        console.error("Error reading the configuration file: ", error.message);
+      }
+    }
+    configLoaded = true;
+  }
+}
+
 export async function completion(
   prompt: string,
   options: CompletionOptions
@@ -23,11 +56,7 @@ export async function completion(
   const maxTokens = options.maxTokens || 4000 - prompt.length;
   const debug = Boolean(options.debug);
 
-  const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-  const OPENAI_AUTH_TYPE = process.env.OPENAI_AUTH_TYPE;
-
-  // This is optional.
-  const OPENAI_COMPLETIONS_ENDPOINT = process.env.OPENAI_COMPLETIONS_ENDPOINT;
+  await loadConfigIfRequired();
 
   if (debug) {
     writeToConsole(`OPENAI: model=${model}`);
