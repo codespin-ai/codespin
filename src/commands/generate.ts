@@ -47,6 +47,7 @@ export type GenerateArgs = {
   parse: boolean | undefined;
   go: boolean | undefined;
   maxDeclare: number | undefined;
+  dataCallback?: (data: string) => void;
 };
 
 export async function generate(args: GenerateArgs): Promise<void> {
@@ -79,6 +80,7 @@ export async function generate(args: GenerateArgs): Promise<void> {
     model,
     maxTokens,
     debug: args.debug,
+    dataCallback: args.dataCallback,
   };
 
   const sourceFilePath = await getSourceFilePath(

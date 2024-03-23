@@ -1,11 +1,10 @@
 import * as fs from "fs/promises";
 import * as path from "path";
-import * as os from "os";
 import { writeToConsole } from "../../console.js";
+import { pathExists } from "../../fs/pathExists.js";
+import { getCodespinConfigDir } from "../../settings/getCodespinConfigDir.js";
 import { CompletionOptions } from "../CompletionOptions.js";
 import { CompletionResult } from "../CompletionResult.js";
-import { getCodespinConfigDir } from "../../settings/getCodespinConfigDir.js";
-import { pathExists } from "../../fs/pathExists.js";
 
 type OpenAICompletionResponse = {
   error?: {
@@ -114,6 +113,17 @@ export async function completion(
           temperature: 0,
         }),
       });
+
+      if (response.body && options.dataCallback) {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, { stream: true });
+          options.dataCallback(chunk);
+        }
+      }
 
       // Parse the response as JSON
       const data = (await response.json()) as OpenAICompletionResponse;
