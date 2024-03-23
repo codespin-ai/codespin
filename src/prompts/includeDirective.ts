@@ -17,11 +17,7 @@ export async function includeDirective(
 
     const fullPath = await resolveProjectFilePath(
       includedPath,
-      promptFilePath ? path.dirname(promptFilePath) : getWorkingDir(),
-      {
-        missingGit:
-          "The codespin:include directive referred to path relative to the project root (starting with a '/'). This is supported only in projects under git.",
-      }
+      promptFilePath ? path.dirname(promptFilePath) : getWorkingDir()
     );
 
     let includedContent = await fs.readFile(fullPath, "utf-8");

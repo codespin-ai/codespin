@@ -55,15 +55,13 @@ Simple, right? But that's just the beginning.
 
 ### codespin init
 
-For advanced use, treat prompts as integral parts of your project. Save prompts in files and commit them to git, just like source code.
-
-Initialize your project directory with:
+Most features of codespin are available only once you initialize your project like this:
 
 ```sh
 codespin init
 ```
 
-This command creates a `codespin.json` file with some defaults, and creates a codespin directory containing some default templates.
+This command creates a .codespin directory containing some default templates and configuration files.
 You may edit these templates are required, but the default template is fairly good.
 
 ### codespin generate
@@ -217,7 +215,6 @@ codespin gen main.py.md --head -w
 ```
 
 This command above will ignore the latest edits to main.py and use content from git's HEAD.
-
 
 #### Options for codespin gen
 

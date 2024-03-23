@@ -1,22 +1,19 @@
 import path from "path";
-import { getGitRoot } from "../git/getGitRoot.js";
+import { getProjectRoot } from "./getProjectRoot.js";
 import { exception } from "../exception.js";
 
 export async function resolveProjectFilePath(
   pathFragment: string,
-  relativeTo: string,
-  errors?: {
-    missingGit?: string;
-  }
-) {
+  relativeTo: string
+): Promise<string> {
   if (pathFragment.startsWith("/")) {
-    const projectRoot = await getGitRoot();
+    const projectRoot = await getProjectRoot();
 
-    if (!projectRoot) {
-      exception(errors?.missingGit || "The project must be under git.");
-    }
-
-    return path.join(projectRoot, pathFragment);
+    return projectRoot
+      ? path.join(projectRoot, pathFragment)
+      : exception(
+          `Unable to find project root. Have you done a "codespin init"?`
+        );
   } else {
     return path.resolve(relativeTo, pathFragment);
   }

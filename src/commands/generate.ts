@@ -237,11 +237,15 @@ async function getIncludedFiles(
   promptSettings: PromptSettings | undefined
 ): Promise<VersionedFileInfo[]> {
   const pathsForPromptSettingsIncludes = promptFilePath
-    ? await Promise.all(
-        (promptSettings?.include || []).map(async (x) =>
-          resolveProjectFilePath(x, path.dirname(promptFilePath))
+    ? (
+        await Promise.all(
+          (promptSettings?.include || [])
+            .map(async (x) =>
+              resolveProjectFilePath(x, path.dirname(promptFilePath))
+            )
+            .filter((x) => x !== undefined)
         )
-      )
+      ).filter((x) => x !== undefined)
     : [];
 
   const validFiles = pathsForPromptSettingsIncludes
