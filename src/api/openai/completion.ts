@@ -61,7 +61,7 @@ export async function completion(
   options: CompletionOptions
 ): Promise<CompletionResult> {
   const model = options.model || "gpt-3.5-turbo";
-  const maxTokens = options.maxTokens || 4000 - prompt.length;
+  const maxTokens = options.maxTokens;
   const debug = Boolean(options.debug);
 
   await loadConfigIfRequired(configDirFromArgs);
@@ -98,20 +98,26 @@ export async function completion(
             };
 
       // Make a POST request to the OpenAI API
+      const body = {
+        model,
+        messages: [
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+        max_tokens: maxTokens,
+        temperature: 0,
+      };
+
+      if (maxTokens) {
+        body.max_tokens = maxTokens;
+      }
+
       const response = await fetch(openaiCompletionsEndpoint, {
         method: "POST",
         headers,
-        body: JSON.stringify({
-          model,
-          messages: [
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
-          max_tokens: maxTokens,
-          temperature: 0,
-        }),
+        body: JSON.stringify(body),
       });
 
       if (response.body && options.dataCallback) {
