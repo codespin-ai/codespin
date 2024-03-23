@@ -6,7 +6,7 @@ import path from "path";
 export async function createTempFile(content: string): Promise<string> {
   const tempPath = path.resolve(
     tmpdir(),
-    `${Date.now()}-${generateRandomString()}.tmp`
+    `${Date.now()}-${generateRandomString()}.md`
   );
   await writeFile(tempPath, content, "utf8");
   return tempPath;

@@ -7,7 +7,7 @@ import { BasicFileInfo } from "../fs/BasicFileInfo.js";
 import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
 import { getVersionedFileInfo } from "../fs/getFileContent.js";
 import { pathExists } from "../fs/pathExists.js";
-import { resolvePath } from "../fs/resolvePath.js";
+import { resolveProjectPath } from "../fs/resolveProjectPath.js";
 import { resolveWildcardPaths } from "../fs/resolveWildcards.js";
 import { getWorkingDir } from "../fs/workingDir.js";
 import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
@@ -22,6 +22,7 @@ import {
 import { readConfig } from "../settings/readConfig.js";
 import { getDeclarations } from "../sourceCode/getDeclarations.js";
 import { getTemplatePath } from "../templating/getTemplatePath.js";
+import { resolvePath } from "../fs/resolvePath.js";
 
 export type GenerateArgs = {
   promptFile: string | undefined;
@@ -53,21 +54,21 @@ export type GenerateArgs = {
 export async function generate(args: GenerateArgs): Promise<void> {
   // Convert everything to absolute paths
   const promptFilePath = args.promptFile
-    ? await resolvePath(getWorkingDir(), args.promptFile)
+    ? await resolvePath(args.promptFile)
     : undefined;
 
   const includesFromCLI = await Promise.all(
-    (args.include || []).map((x) => resolvePath(getWorkingDir(), x))
+    (args.include || []).map((x) => resolvePath(x))
   );
   const excludesFromCLI = await Promise.all(
-    (args.exclude || []).map((x) => resolvePath(getWorkingDir(), x))
+    (args.exclude || []).map((x) => resolvePath(x))
   );
   const declarationsFromCLI = await Promise.all(
-    (args.declare || []).map((x) => resolvePath(getWorkingDir(), x))
+    (args.declare || []).map((x) => resolvePath(x))
   );
 
   const sourceFromCLI = args.source
-    ? await resolvePath(getWorkingDir(), args.source)
+    ? await resolvePath(args.source)
     : undefined;
 
   const mustParse = args.parse ?? (args.go ? false : true);
@@ -267,17 +268,19 @@ async function getIncludedFiles(
   promptFilePath: string | undefined,
   promptSettings: PromptSettings | undefined
 ): Promise<VersionedFileInfo[]> {
-  const includesFromPrompt = promptFilePath
+  const pathsFromPrompt = promptFilePath
     ? (
         await Promise.all(
           (promptSettings?.include || [])
-            .map(async (x) => resolvePath(path.dirname(promptFilePath), x))
+            .map(async (x) =>
+              resolveProjectPath(path.dirname(promptFilePath), x)
+            )
             .filter((x) => x !== undefined)
         )
       ).filter((x) => x !== undefined)
     : [];
 
-  const validFiles = includesFromPrompt
+  const validFiles = pathsFromPrompt
     .concat(includesFromCLI)
     .filter((x) => !excludesFromCLI.includes(x));
 
@@ -312,16 +315,15 @@ async function getIncludedDeclarations(
   maxDeclare: number,
   configDirFromArgs: string | undefined
 ): Promise<BasicFileInfo[]> {
-  const pathsForPromptSettingsDeclarations = promptFilePath
+  const pathsFromPrompt = promptFilePath
     ? await Promise.all(
         (promptSettings?.declare || []).map(async (x) =>
-          resolvePath(path.dirname(promptFilePath), x)
+          resolveProjectPath(path.dirname(promptFilePath), x)
         )
       )
     : [];
 
-  const allFiles =
-    pathsForPromptSettingsDeclarations.concat(declarationsFromCLI);
+  const allFiles = pathsFromPrompt.concat(declarationsFromCLI);
 
   const filePaths = removeDuplicates(
     (
