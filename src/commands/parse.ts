@@ -9,7 +9,7 @@ type ParseArgs = {
   write: boolean | undefined;
   exec: string | undefined;
   config: string | undefined;
-  baseDir: string | undefined;
+  outDir: string | undefined;
 };
 
 export async function parse(args: ParseArgs): Promise<void> {
@@ -18,7 +18,7 @@ export async function parse(args: ParseArgs): Promise<void> {
 
   if (args.write) {
     const extractResult = await writeFilesToDisk(
-      args.baseDir || getWorkingDir(),
+      args.outDir || getWorkingDir(),
       files,
       args.exec
     );

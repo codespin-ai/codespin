@@ -133,7 +133,7 @@ async function main() {
             alias: "c",
             describe: "Path to the config directory (.codespin).",
           })
-          .option("baseDir", {
+          .option("outDir", {
             type: "string",
             describe:
               "Path to directory relative to which files are generated. Defaults to the directory of the prompt file.",
@@ -191,7 +191,7 @@ async function main() {
             alias: "c",
             describe: "Path to the config directory (.codespin).",
           })
-          .option("baseDir", {
+          .option("outDir", {
             type: "string",
             describe:
               "Path to directory relative to which files are generated. Defaults to the directory of the prompt file.",

@@ -4,7 +4,7 @@ import path from "path";
 import { CompletionOptions } from "../api/CompletionOptions.js";
 import { getCompletionAPI } from "../api/getCompletionAPI.js";
 import { exception } from "../exception.js";
-import { getDeclarationsDirectoryAndAssert } from "../fs/codespinPaths.js";
+import { getDeclarationsDir } from "../fs/codespinPaths.js";
 import { computeHash } from "../fs/computeHash.js";
 import { pathExists } from "../fs/pathExists.js";
 import { evalDeclarationTemplate } from "../prompts/evalDeclarationTemplate.js";
@@ -24,7 +24,7 @@ export async function generateDeclaration(
   );
 
   const declarationsPath = path.join(
-    await getDeclarationsDirectoryAndAssert(configDirFromArgs),
+    await getDeclarationsDir(),
     `${filePathRelativeToProjectRoot}.txt`
   );
 

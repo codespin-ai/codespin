@@ -1,7 +1,7 @@
 import { exception } from "../exception.js";
 import { getGitRoot } from "./getGitRoot.js";
 
-export async function assertGitRoot(): Promise<string> {
+export async function getGitRootAndAssert(): Promise<string> {
   const gitRoot = await getGitRoot();
   return (
     gitRoot ||

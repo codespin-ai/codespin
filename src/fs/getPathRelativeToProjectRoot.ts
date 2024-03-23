@@ -1,10 +1,9 @@
 import path from "path";
-import { exception } from "../exception.js";
-import { assertProjectRoot } from "./assertProjectRoot.js";
+import { getProjectRootAndAssert } from "./getProjectRootAndAssert.js";
 
 export async function getPathRelativeToProjectRoot(
   filePath: string
 ): Promise<string> {
-  const projectRoot = await assertProjectRoot();
-  return path.relative(projectRoot, path.resolve(filePath));
+  const projectRoot = await getProjectRootAndAssert();
+  return path.relative(projectRoot, filePath);
 }

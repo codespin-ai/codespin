@@ -8,7 +8,6 @@ export async function getTemplatePath(
   localFallback: string,
   configDirFromArgs: string | undefined
 ): Promise<string> {
-  // If the template is not provided, we'll use the fallbacks
   const projectTemplateDir = await getTemplatesDir(configDirFromArgs);
 
   const templatePath =
@@ -26,7 +25,7 @@ export async function getTemplatePath(
             "../../templates"
           );
           const globalFallback = localFallback.replace(/\.mjs$/, ".js");
-          
+
           const builtInTemplatePath = path.resolve(
             builtInTemplatesDir,
             globalFallback

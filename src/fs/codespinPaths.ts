@@ -1,39 +1,22 @@
 import path from "path";
 import { exception } from "../exception.js";
-import { getProjectRoot } from "./getProjectRoot.js";
 import { pathExists } from "./pathExists.js";
 import { getCodespinConfigDir } from "../settings/getCodespinConfigDir.js";
-import { CODESPIN_DECLARATIONS_DIRNAME, CODESPIN_TEMPLATES_DIRNAME } from "./pathNames.js";
+import {
+  CODESPIN_DECLARATIONS_DIRNAME,
+  CODESPIN_TEMPLATES_DIRNAME,
+} from "./pathNames.js";
+import { getProjectRootAndAssert } from "./getProjectRootAndAssert.js";
 
-export async function getDeclarationsDir(
-  configDirFromArgs: string | undefined
-): Promise<string | undefined> {
-  const codespinLocalDir = await getCodespinConfigDir(configDirFromArgs, false);
-
-  const projectDir = await getProjectRoot();
-  if (!projectDir) {
-    return undefined;
-  }
-
+export async function getDeclarationsDir(): Promise<string> {
+  const projectDir = await getProjectRootAndAssert();
   const declarationsDir = path.join(projectDir, CODESPIN_DECLARATIONS_DIRNAME);
 
-  if (await pathExists(declarationsDir)) {
-    return declarationsDir;
-  }
-
-  return undefined;
-}
-
-export async function getDeclarationsDirectoryAndAssert(
-  configDirFromArgs: string | undefined
-): Promise<string> {
-  const declarationsDir = await getDeclarationsDir(configDirFromArgs);
-  return (
-    declarationsDir ||
-    exception(
-      `You need to do "codespin init" (or "codespin init --force") from the root of the project.`
-    )
-  );
+  return (await pathExists(declarationsDir))
+    ? declarationsDir
+    : exception(
+        `.codespin/declarations is missing. Have you done "codespin init"?`
+      );
 }
 
 export async function getTemplatesDir(

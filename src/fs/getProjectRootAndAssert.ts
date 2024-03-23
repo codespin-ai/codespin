@@ -1,7 +1,7 @@
 import { exception } from "../exception.js";
 import { getProjectRoot } from "./getProjectRoot.js";
 
-export async function assertProjectRoot(): Promise<string> {
+export async function getProjectRootAndAssert(): Promise<string> {
   const projectRoot = await getProjectRoot();
 
   return (

@@ -30,9 +30,9 @@ export async function init(args: InitArgs): Promise<void> {
   let rootDir = gitDir ?? getWorkingDir();
 
   const configDir = path.resolve(rootDir, CODESPIN_CONFIG_DIRNAME);
-  const configFile = path.join(configDir, CODESPIN_CONFIG_FILENAME);
-  const templateDir = path.join(configDir, CODESPIN_TEMPLATES_DIRNAME);
-  const declarationsDir = path.join(configDir, CODESPIN_DECLARATIONS_DIRNAME);
+  const configFile = path.resolve(configDir, CODESPIN_CONFIG_FILENAME);
+  const templateDir = path.resolve(configDir, CODESPIN_TEMPLATES_DIRNAME);
+  const declarationsDir = path.resolve(configDir, CODESPIN_DECLARATIONS_DIRNAME);
 
   try {
     // Check if .codespin already exists

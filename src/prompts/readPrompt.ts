@@ -5,8 +5,7 @@ import { processPrompt } from "./processPrompt.js";
 
 export async function readPrompt(
   promptFile: string | undefined,
-  textPrompt: string | undefined,
-  baseDir: string | undefined
+  textPrompt: string | undefined
 ): Promise<{
   prompt: string;
   promptWithLineNumbers: string;
@@ -14,7 +13,7 @@ export async function readPrompt(
   if (promptFile) {
     const promptFileContents = await readFile(promptFile, "utf-8");
 
-    const prompt = await processPrompt(promptFileContents, promptFile, baseDir);
+    const prompt = await processPrompt(promptFileContents, promptFile);
     const promptWithLineNumbers = addLineNumbers(prompt);
 
     return {
@@ -22,7 +21,7 @@ export async function readPrompt(
       promptWithLineNumbers,
     };
   } else if (textPrompt) {
-    const prompt = await processPrompt(textPrompt, undefined, baseDir);
+    const prompt = await processPrompt(textPrompt, undefined);
     const promptWithLineNumbers = addLineNumbers(prompt);
     return {
       prompt,
