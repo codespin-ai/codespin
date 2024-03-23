@@ -1,4 +1,4 @@
-export type CodeSpinConfig = {
+export type CodespinConfig = {
   template?: string;
   api?: string;
   model?: string;

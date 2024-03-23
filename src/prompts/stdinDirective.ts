@@ -1,3 +1,5 @@
+import { errorToConsole } from "../console.js";
+
 export async function stdinDirective(contents: string): Promise<string> {
   let stdinContent = "";
 
@@ -15,7 +17,7 @@ export async function stdinDirective(contents: string): Promise<string> {
         process.stdin.on("error", reject);
       });
     } catch (error) {
-      console.error("Error reading from stdin:", error);
+      errorToConsole(`Error reading from stdin: ${error}`);
     }
   }
 

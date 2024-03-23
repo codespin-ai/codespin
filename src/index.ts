@@ -5,7 +5,7 @@ import { generate } from "./commands/generate.js";
 import { init } from "./commands/init.js";
 import { parse } from "./commands/parse.js";
 import { getPackageVersion } from "./getPackageVersion.js";
-import { writeToConsole } from "./writeToConsole.js";
+import { writeToConsole } from "./console.js";
 import { setWorkingDir } from "./fs/workingDir.js";
 import * as url from "url";
 import * as path from "path";
@@ -131,7 +131,7 @@ async function main() {
           .option("config", {
             type: "string",
             alias: "c",
-            describe: "Path to config file.",
+            describe: "Path to the config directory (.codespin).",
           })
           .option("baseDir", {
             type: "string",
@@ -189,7 +189,7 @@ async function main() {
           .option("config", {
             type: "string",
             alias: "c",
-            describe: "Path to config file.",
+            describe: "Path to the config directory (.codespin).",
           })
           .option("baseDir", {
             type: "string",

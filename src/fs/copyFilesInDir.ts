@@ -1,5 +1,6 @@
 import { promises as fs } from "fs";
 import path from "path";
+import { errorToConsole } from "../console.js";
 
 export async function copyFilesInDir(
   srcDir: string,
@@ -42,6 +43,6 @@ export async function copyFilesInDir(
       })
     );
   } catch (err: any) {
-    console.error(`Failed to copy files: ${err.message}`);
+    errorToConsole(`Failed to copy files: ${err.message}`);
   }
 }

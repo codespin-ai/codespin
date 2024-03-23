@@ -7,23 +7,24 @@ import { exception } from "../exception.js";
 import { getDeclarationsDirectoryAndAssert } from "../fs/codespinPaths.js";
 import { computeHash } from "../fs/computeHash.js";
 import { pathExists } from "../fs/pathExists.js";
-import { getPathRelativeToGitRoot } from "../git/getPathRelativeToGitRoot.js";
 import { evalDeclarationTemplate } from "../prompts/evalDeclarationTemplate.js";
 import { extractCode } from "../prompts/extractCode.js";
 import { getTemplatePath } from "../templating/getTemplatePath.js";
 import { getWorkingDir } from "../fs/workingDir.js";
+import { getPathRelativeToProjectRoot } from "../fs/getPathRelativeToProjectRoot.js";
 
 export async function generateDeclaration(
   filePath: string,
   api: string,
+  configDirFromArgs: string | undefined,
   completionOptions: CompletionOptions
 ): Promise<string> {
-  const filePathRelativeToProjectRoot = await getPathRelativeToGitRoot(
+  const filePathRelativeToProjectRoot = await getPathRelativeToProjectRoot(
     filePath
   );
 
   const declarationsPath = path.join(
-    await getDeclarationsDirectoryAndAssert(),
+    await getDeclarationsDirectoryAndAssert(configDirFromArgs),
     `${filePathRelativeToProjectRoot}.txt`
   );
 
@@ -51,6 +52,7 @@ export async function generateDeclaration(
   const latestDeclarations = await callCompletion(
     filePath,
     api,
+    configDirFromArgs,
     completionOptions
   );
 
@@ -67,11 +69,16 @@ export async function generateDeclaration(
 async function callCompletion(
   filePath: string,
   api: string,
+  configDirFromArgs: string | undefined,
   completionOptions: CompletionOptions
 ): Promise<string> {
   const sourceCode = await readFile(filePath, "utf-8");
 
-  const templatePath = await getTemplatePath(undefined, "declarations.mjs");
+  const templatePath = await getTemplatePath(
+    undefined,
+    "declarations.mjs",
+    configDirFromArgs
+  );
 
   const evaluatedPrompt = await evalDeclarationTemplate(templatePath, {
     filePath,
@@ -81,7 +88,11 @@ async function callCompletion(
 
   const completion = getCompletionAPI(api);
 
-  const completionResult = await completion(evaluatedPrompt, completionOptions);
+  const completionResult = await completion(
+    evaluatedPrompt,
+    configDirFromArgs,
+    completionOptions
+  );
 
   if (completionResult.ok) {
     const files = extractCode(completionResult.message);

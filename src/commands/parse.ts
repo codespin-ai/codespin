@@ -1,7 +1,7 @@
 import { promises as fs } from "fs";
 import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
 import { extractCode } from "../prompts/extractCode.js";
-import { writeToConsole } from "../writeToConsole.js";
+import { writeToConsole } from "../console.js";
 import { getWorkingDir } from "../fs/workingDir.js";
 
 type ParseArgs = {

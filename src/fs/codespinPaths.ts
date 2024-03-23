@@ -1,47 +1,55 @@
 import path from "path";
 import { exception } from "../exception.js";
-import { findGitProjectRoot } from "../git/findGitProjectRoot.js";
+import { getProjectRoot } from "./getProjectRoot.js";
+import { pathExists } from "./pathExists.js";
+import { getCodespinConfigDir } from "../settings/getCodespinConfigDir.js";
+import { CODESPIN_DECLARATIONS_DIRNAME, CODESPIN_TEMPLATES_DIRNAME } from "./pathNames.js";
 
-export const CODESPIN_CONFIG = "codespin.json";
-export const CODESPIN_DIRNAME = ".codespin";
-export const TEMPLATES_DIRNAME = ".codespin/templates";
-export const DECLARATIONS_DIRNAME = ".codespin/declarations";
+export async function getDeclarationsDir(
+  configDirFromArgs: string | undefined
+): Promise<string | undefined> {
+  const codespinLocalDir = await getCodespinConfigDir(configDirFromArgs, false);
 
-let cachedGitDir: string | undefined = undefined;
-
-async function getGitDir(): Promise<string | undefined> {
-  if (!cachedGitDir) {
-    cachedGitDir = await findGitProjectRoot();
-  }
-  return cachedGitDir;
-}
-
-export async function getCodespinDirAndAssert(): Promise<string> {
-  const gitDir = await getGitDir();
-
-  if (!gitDir) {
-    exception(`The project must be under git.`);
+  const projectDir = await getProjectRoot();
+  if (!projectDir) {
+    return undefined;
   }
 
-  return path.resolve(gitDir, CODESPIN_DIRNAME);
-}
+  const declarationsDir = path.join(projectDir, CODESPIN_DECLARATIONS_DIRNAME);
 
-export async function getDeclarationsDirectory(): Promise<string | undefined> {
-  const gitDir = await getGitDir();
-  return gitDir ? path.resolve(gitDir, DECLARATIONS_DIRNAME) : undefined;
-}
-
-export async function getDeclarationsDirectoryAndAssert(): Promise<string> {
-  const gitDir = await getDeclarationsDirectory();
-
-  if (!gitDir) {
-    exception(`Declarations can be used only when the project is under git.`);
+  if (await pathExists(declarationsDir)) {
+    return declarationsDir;
   }
 
-  return gitDir;
+  return undefined;
 }
 
-export async function getTemplatesDirectory(): Promise<string | undefined> {
-  const gitDir = await getGitDir();
-  return gitDir ? path.resolve(gitDir, TEMPLATES_DIRNAME) : undefined;
+export async function getDeclarationsDirectoryAndAssert(
+  configDirFromArgs: string | undefined
+): Promise<string> {
+  const declarationsDir = await getDeclarationsDir(configDirFromArgs);
+  return (
+    declarationsDir ||
+    exception(
+      `You need to do "codespin init" (or "codespin init --force") from the root of the project.`
+    )
+  );
+}
+
+export async function getTemplatesDir(
+  configDirFromArgs: string | undefined
+): Promise<string | undefined> {
+  const configDir = await getCodespinConfigDir(configDirFromArgs, true);
+
+  if (!configDir) {
+    return undefined;
+  }
+
+  const templatesDir = path.join(configDir, CODESPIN_TEMPLATES_DIRNAME);
+
+  if (await pathExists(templatesDir)) {
+    return templatesDir;
+  }
+
+  return undefined;
 }

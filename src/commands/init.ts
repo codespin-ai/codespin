@@ -1,18 +1,17 @@
 import { promises as fs } from "fs";
 import path from "path";
-import * as url from "url";
 import { copyFilesInDir } from "../fs/copyFilesInDir.js";
 import { pathExists } from "../fs/pathExists.js";
 import { writeToFile } from "../fs/writeToFile.js";
-import { writeToConsole } from "../writeToConsole.js";
-import { findGitProjectRoot } from "../git/findGitProjectRoot.js";
-import { exception } from "../exception.js";
+import { errorToConsole, writeToConsole } from "../console.js";
+import { getGitRoot } from "../git/getGitRoot.js";
+import { getWorkingDir } from "../fs/workingDir.js";
 import {
-  CODESPIN_CONFIG,
-  CODESPIN_DIRNAME,
-  DECLARATIONS_DIRNAME,
-  TEMPLATES_DIRNAME,
-} from "../fs/codespinPaths.js";
+  CODESPIN_CONFIG_DIRNAME,
+  CODESPIN_CONFIG_FILENAME,
+  CODESPIN_DECLARATIONS_DIRNAME,
+  CODESPIN_TEMPLATES_DIRNAME,
+} from "../fs/pathNames.js";
 
 type InitArgs = {
   force?: boolean;
@@ -25,61 +24,71 @@ const DEFAULT_JSON_CONTENT = {
 };
 
 export async function init(args: InitArgs): Promise<void> {
-  const gitDir = await findGitProjectRoot();
+  // If we are under a git directory, we'll make .codespin under the git dir root.
+  // Otherwise, we'll make .codespin under the current dir.
+  let gitDir = await getGitRoot();
+  let rootDir = gitDir ?? getWorkingDir();
 
-  if (!gitDir) {
-    exception("codespin init must be used in a project which is under git.");
-  }
-
-  const configFile = path.resolve(gitDir, CODESPIN_CONFIG);
+  const configDir = path.resolve(rootDir, CODESPIN_CONFIG_DIRNAME);
+  const configFile = path.join(configDir, CODESPIN_CONFIG_FILENAME);
+  const templateDir = path.join(configDir, CODESPIN_TEMPLATES_DIRNAME);
+  const declarationsDir = path.join(configDir, CODESPIN_DECLARATIONS_DIRNAME);
 
   try {
-    // Check if codespin.json already exists
-    if (!args.force && (await pathExists(configFile))) {
+    // Check if .codespin already exists
+    if (!args.force && (await pathExists(configDir))) {
       throw new Error(
-        `${CODESPIN_CONFIG} already exists. Use the --force option to overwrite.`
+        `${configDir} already exists. Use the --force option to overwrite.`
       );
     }
 
+    // Create the config dir at root
+    await createDirectoriesIfNotExist(configDir);
+
+    // Create template dir
+    await createDirectoriesIfNotExist(templateDir);
+
+    // Create codespin/declarations
+    await createDirectoriesIfNotExist(declarationsDir);
+
+    // Write the config file.
     await fs.writeFile(
       configFile,
       JSON.stringify(DEFAULT_JSON_CONTENT, null, 2)
     );
 
-    // Create codespin directories.
-    await createDirectoriesIfNotExist(path.resolve(gitDir, CODESPIN_DIRNAME));
-    await createDirectoriesIfNotExist(path.resolve(gitDir, TEMPLATES_DIRNAME));
-
     // Copy all templates into the codespin directory.
     // Copy only js files.
-    await copyFilesInDir(
-      args.templatesDir,
-      path.resolve(gitDir, TEMPLATES_DIRNAME),
-      (filename) =>
-        filename.endsWith(".js")
-          ? filename.replace(/\.js$/, ".example.mjs")
-          : undefined
+    await copyFilesInDir(args.templatesDir, templateDir, (filename) =>
+      filename.endsWith(".js")
+        ? filename.replace(/\.js$/, ".example.mjs")
+        : undefined
     );
 
-    // Create codespin/declarations
-    await createDirectoriesIfNotExist(
-      path.resolve(gitDir, DECLARATIONS_DIRNAME)
-    );
+    // if the project is under git, exclude codespin/declarations in .gitignore
+    if (gitDir) {
+      const gitIgnorePath = path.resolve(gitDir, ".gitignore");
 
-    // exclude codespin/declarations in .gitignore
-    const gitIgnorePath = path.resolve(gitDir, ".gitignore");
+      if (await pathExists(gitIgnorePath)) {
+        const content = await fs.readFile(gitIgnorePath, "utf8");
 
-    try {
-      const content = await fs.readFile(gitIgnorePath, "utf8");
-
-      if (!content.includes(DECLARATIONS_DIRNAME)) {
-        await writeToFile(gitIgnorePath, `\n${DECLARATIONS_DIRNAME}`, true);
-      }
-    } catch (error: any) {
-      if (error.code === "ENOENT") {
-        await writeToFile(gitIgnorePath, DECLARATIONS_DIRNAME, true);
+        if (
+          !content.includes(
+            `${CODESPIN_CONFIG_DIRNAME}/${CODESPIN_DECLARATIONS_DIRNAME}`
+          )
+        ) {
+          await writeToFile(
+            gitIgnorePath,
+            `\n${CODESPIN_CONFIG_DIRNAME}/${CODESPIN_DECLARATIONS_DIRNAME}`,
+            true
+          );
+        }
       } else {
-        console.error("An unexpected error occurred:", error);
+        await writeToFile(
+          gitIgnorePath,
+          `${CODESPIN_CONFIG_DIRNAME}/${CODESPIN_DECLARATIONS_DIRNAME}`,
+          true
+        );
       }
     }
 
@@ -99,3 +108,4 @@ async function createDirectoriesIfNotExist(
     }
   }
 }
+

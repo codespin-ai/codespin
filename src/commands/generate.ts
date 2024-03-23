@@ -1,9 +1,15 @@
 import path from "path";
 import { CompletionOptions } from "../api/CompletionOptions.js";
 import { getCompletionAPI } from "../api/getCompletionAPI.js";
+import { writeToConsole } from "../console.js";
+import { exception } from "../exception.js";
+import { BasicFileInfo } from "../fs/BasicFileInfo.js";
+import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
 import { getVersionedFileInfo } from "../fs/getFileContent.js";
-import { resolveProjectFilePath } from "../fs/resolveProjectFilePath.js";
 import { pathExists } from "../fs/pathExists.js";
+import { resolveProjectFilePath } from "../fs/resolveProjectFilePath.js";
+import { resolveWildcardPaths } from "../fs/resolveWildcards.js";
+import { getWorkingDir } from "../fs/workingDir.js";
 import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
 import { writeToFile } from "../fs/writeToFile.js";
 import { evalTemplate } from "../prompts/evalTemplate.js";
@@ -16,13 +22,6 @@ import {
 import { readConfig } from "../settings/readConfig.js";
 import { getDeclarations } from "../sourceCode/getDeclarations.js";
 import { getTemplatePath } from "../templating/getTemplatePath.js";
-import { writeToConsole } from "../writeToConsole.js";
-import { resolveWildcardPaths } from "../fs/resolveWildcards.js";
-import { exception } from "../exception.js";
-import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
-import { BasicFileInfo } from "../fs/BasicFileInfo.js";
-import { CODESPIN_CONFIG } from "../fs/codespinPaths.js";
-import { getWorkingDir } from "../fs/workingDir.js";
 
 export type GenerateArgs = {
   promptFile: string | undefined;
@@ -62,11 +61,7 @@ export async function generate(args: GenerateArgs): Promise<void> {
 
   const mustParse = args.parse ?? (args.go ? false : true);
 
-  const configFile = args.config || CODESPIN_CONFIG;
-
-  const config = (await pathExists(configFile))
-    ? await readConfig(configFile)
-    : undefined;
+  const config = await readConfig(args.config);
 
   const promptSettings = promptFilePath
     ? await readPromptSettings(promptFilePath)
@@ -112,12 +107,14 @@ export async function generate(args: GenerateArgs): Promise<void> {
     promptFilePath,
     promptSettings,
     completionOptions,
-    maxDeclare
+    maxDeclare,
+    args.config
   );
 
   const templatePath = await getTemplatePath(
     args.template,
-    args.go ? "plain.mjs" : "default.mjs"
+    args.go ? "plain.mjs" : "default.mjs",
+    args.config
   );
 
   const { prompt, promptWithLineNumbers } = await readPrompt(
@@ -166,7 +163,11 @@ export async function generate(args: GenerateArgs): Promise<void> {
 
   const completion = getCompletionAPI(api);
 
-  const completionResult = await completion(evaluatedPrompt, completionOptions);
+  const completionResult = await completion(
+    evaluatedPrompt,
+    args.config,
+    completionOptions
+  );
 
   if (completionResult.ok) {
     if (mustParse) {
@@ -271,7 +272,8 @@ async function getIncludedDeclarations(
   promptFilePath: string | undefined,
   promptSettings: PromptSettings | undefined,
   completionOptions: CompletionOptions,
-  maxDeclare: number
+  maxDeclare: number,
+  configDirFromArgs: string | undefined
 ): Promise<BasicFileInfo[]> {
   const pathsForPromptSettingsDeclarations = promptFilePath
     ? await Promise.all(
@@ -301,7 +303,12 @@ async function getIncludedDeclarations(
   }
 
   if (declarations.length) {
-    return await getDeclarations(declarations, api, completionOptions);
+    return await getDeclarations(
+      declarations,
+      api,
+      configDirFromArgs,
+      completionOptions
+    );
   } else {
     return [];
   }

@@ -1,19 +1,14 @@
-import { exception } from "../exception.js";
-import { findGitProjectRoot } from "./findGitProjectRoot.js"; // Assuming the previous function is in this file.
 import path from "path";
+import { exception } from "../exception.js";
+import { assertGitRoot } from "./assertGitRoot.js";
 
 export async function getPathRelativeToGitRoot(
   filePath: string
 ): Promise<string> {
   try {
-    const gitRoot = await findGitProjectRoot();
-    if (gitRoot) {
-      return path.relative(gitRoot, path.resolve(filePath));
-    } else {
-      exception(`${filePath} is not in a project under git.`);
-    }
+    const gitRoot = await assertGitRoot();
+    return path.relative(gitRoot, path.resolve(filePath));
   } catch (error: any) {
-    // Handle the error. For now, just throwing it further.
     exception("Failed to get path relative to git root: " + error.message);
   }
 }

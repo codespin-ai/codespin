@@ -1,5 +1,5 @@
 import path from "path";
-import { findGitProjectRoot } from "../git/findGitProjectRoot.js";
+import { getGitRoot } from "../git/getGitRoot.js";
 import { exception } from "../exception.js";
 
 export async function resolveProjectFilePath(
@@ -10,7 +10,7 @@ export async function resolveProjectFilePath(
   }
 ) {
   if (pathFragment.startsWith("/")) {
-    const projectRoot = await findGitProjectRoot();
+    const projectRoot = await getGitRoot();
 
     if (!projectRoot) {
       exception(errors?.missingGit || "The project must be under git.");

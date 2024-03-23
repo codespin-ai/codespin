@@ -1,20 +1,21 @@
 import path from "path";
 import { pathExists } from "../fs/pathExists.js";
 import { fileURLToPath } from "url";
-import { getTemplatesDirectory } from "../fs/codespinPaths.js";
+import { getTemplatesDir } from "../fs/codespinPaths.js";
 
 export async function getTemplatePath(
   template: string | undefined,
-  localFallback: string
+  localFallback: string,
+  configDirFromArgs: string | undefined
 ): Promise<string> {
-  const globalFallback = localFallback.replace(/\.mjs$/, ".js");
   // If the template is not provided, we'll use the fallbacks
-  const projectTemplateDir = await getTemplatesDirectory();
-  
+  const projectTemplateDir = await getTemplatesDir(configDirFromArgs);
+
   const templatePath =
     template && (await pathExists(template))
       ? template
-      : projectTemplateDir && (await pathExists(
+      : projectTemplateDir &&
+        (await pathExists(
           path.join(projectTemplateDir, template || localFallback)
         ))
       ? path.join(projectTemplateDir, template || localFallback)
@@ -24,6 +25,8 @@ export async function getTemplatePath(
             __filename,
             "../../templates"
           );
+          const globalFallback = localFallback.replace(/\.mjs$/, ".js");
+          
           const builtInTemplatePath = path.resolve(
             builtInTemplatesDir,
             globalFallback

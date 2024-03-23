@@ -1,16 +1,23 @@
 import fs from "fs/promises";
-import { CodeSpinConfig } from "./CodeSpinConfig.js";
+import { CodespinConfig } from "./CodespinConfig.js";
 import { pathExists } from "../fs/pathExists.js";
+import { getCodespinConfigDir } from "./getCodespinConfigDir.js";
 
 export async function readConfig(
-  filePath: string
-): Promise<CodeSpinConfig> {
+  directory: string | undefined
+): Promise<CodespinConfig | undefined> {
   try {
-    if (await pathExists(filePath)) {
-      const data = await fs.readFile(filePath, "utf-8");
-      return JSON.parse(data);
+    const configDir = await getCodespinConfigDir(directory, true);
+    if (configDir) {
+      const configPath = `${configDir}/codespin.json`;
+      if (await pathExists(configPath)) {
+        const data = await fs.readFile(configPath, "utf-8");
+        return JSON.parse(data);
+      } else {
+        return undefined;
+      }
     } else {
-      return {};
+      return undefined;
     }
   } catch (error: any) {
     throw new Error(`Error reading JSON file: ${error.message}`);

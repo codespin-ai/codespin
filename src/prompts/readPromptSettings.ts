@@ -1,5 +1,6 @@
 import { promises as fs } from "fs";
 import * as yaml from "js-yaml";
+import { errorToConsole } from "../console.js";
 
 export type PromptSettings = {
   source?: string;
@@ -37,7 +38,7 @@ export async function readPromptSettings(
       throw new Error(`Invalid front-matter format. YAML could not be parsed.`);
     }
   } catch (error) {
-    console.error(`Error reading front matter from ${filePath}:`, error);
+    errorToConsole(`Error reading front matter from ${filePath}: ${error}`);
     throw error;
   }
 }
