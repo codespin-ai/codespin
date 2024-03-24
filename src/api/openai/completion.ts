@@ -1,10 +1,13 @@
-import * as fs from "fs/promises";
-import * as path from "path";
 import { writeToConsole } from "../../console.js";
-import { pathExists } from "../../fs/pathExists.js";
-import { getConfigFilePath } from "../../settings/getConfigFilePath.js";
+import { readConfig } from "../../settings/readConfig.js";
 import { CompletionOptions } from "../CompletionOptions.js";
 import { CompletionResult } from "../CompletionResult.js";
+
+type OpenAIConfig = {
+  apiKey: string;
+  authType: string;
+  completionsEndpoint: string;
+};
 
 type CompletionRequest = {
   model: string;
@@ -45,31 +48,22 @@ type OpenAICompletionResponse = {
 let OPENAI_API_KEY: string | undefined;
 let OPENAI_AUTH_TYPE: string | undefined;
 let OPENAI_COMPLETIONS_ENDPOINT: string | undefined;
+
 let configLoaded = false;
 
 async function loadConfigIfRequired(codespinDir: string | undefined) {
   if (!configLoaded) {
+    const openaiConfig = await readConfig<OpenAIConfig>(
+      "openai.json",
+      codespinDir
+    );
+
     // Environment variables have higher priority
-    OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-    OPENAI_AUTH_TYPE = process.env.OPENAI_AUTH_TYPE;
-    OPENAI_COMPLETIONS_ENDPOINT = process.env.OPENAI_COMPLETIONS_ENDPOINT;
-
-    if (!OPENAI_API_KEY) {
-      const configFilePath = await getConfigFilePath(
-        "openai.json",
-        codespinDir
-      );
-
-      if (configFilePath) {
-        const openaiConfigFile = await fs.readFile(configFilePath, "utf8");
-        const openaiConfig = JSON.parse(openaiConfigFile);
-
-        OPENAI_API_KEY = OPENAI_API_KEY || openaiConfig.apiKey;
-        OPENAI_AUTH_TYPE = OPENAI_AUTH_TYPE || openaiConfig.authType;
-        OPENAI_COMPLETIONS_ENDPOINT =
-          OPENAI_COMPLETIONS_ENDPOINT || openaiConfig.completionsEndpoint;
-      }
-    }
+    OPENAI_API_KEY = process.env.OPENAI_API_KEY ?? openaiConfig?.apiKey;
+    OPENAI_AUTH_TYPE = process.env.OPENAI_AUTH_TYPE ?? openaiConfig?.authType;
+    OPENAI_COMPLETIONS_ENDPOINT =
+      process.env.OPENAI_COMPLETIONS_ENDPOINT ??
+      openaiConfig?.completionsEndpoint;
   }
   configLoaded = true;
 }

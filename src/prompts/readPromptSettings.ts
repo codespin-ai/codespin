@@ -5,7 +5,6 @@ import { errorToConsole } from "../console.js";
 export type PromptSettings = {
   source?: string;
   model?: string;
-  apiVersion?: string;
   maxTokens?: number;
   maxDeclare?: number;
   template?: string;

@@ -19,7 +19,7 @@ import {
   PromptSettings,
   readPromptSettings,
 } from "../prompts/readPromptSettings.js";
-import { readConfig } from "../settings/readConfig.js";
+import { readCodespinConfig } from "../settings/readCodespinConfig.js";
 import { getDeclarations } from "../sourceCode/getDeclarations.js";
 import { getTemplate } from "../templating/getTemplate.js";
 
@@ -73,7 +73,7 @@ export async function generate(args: GenerateArgs): Promise<void> {
 
   const mustParse = args.parse ?? (args.go ? false : true);
 
-  const config = await readConfig(args.config);
+  const config = await readCodespinConfig(args.config);
 
   const promptSettings = promptFilePath
     ? await readPromptSettings(promptFilePath)
@@ -87,8 +87,7 @@ export async function generate(args: GenerateArgs): Promise<void> {
 
   const api = args.api || "openai";
   const model = args.model || promptSettings?.model || config?.model;
-  const apiVersion =
-    args.apiVersion ?? promptSettings?.apiVersion ?? config.apiVersion;
+  const apiVersion = args.apiVersion;
   const maxTokens =
     args.maxTokens ?? promptSettings?.maxTokens ?? config?.maxTokens;
   const maxDeclare =

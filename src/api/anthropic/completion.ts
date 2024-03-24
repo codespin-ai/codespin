@@ -1,10 +1,12 @@
-import * as fs from "fs/promises";
-import * as path from "path";
 import { writeToConsole } from "../../console.js";
-import { pathExists } from "../../fs/pathExists.js";
-import { getConfigFilePath } from "../../settings/getConfigFilePath.js";
+import { readConfig } from "../../settings/readConfig.js";
 import { CompletionOptions } from "../CompletionOptions.js";
 import { CompletionResult } from "../CompletionResult.js";
+
+type AnthropicConfig = {
+  apiKey: string;
+  apiVersion: string;
+};
 
 type CompletionRequest = {
   model: string;
@@ -43,25 +45,21 @@ type ErrorResponse = {
 type CompletionResponse = ValidResponse | ErrorResponse;
 
 let ANTHROPIC_API_KEY: string | undefined;
+let ANTHROPIC_API_VERSION: string | undefined;
 let configLoaded = false; // Track if the config has already been loaded
 
 async function loadConfigIfRequired(codespinDir: string | undefined) {
   if (!configLoaded) {
+    const anthropicConfig = await readConfig<AnthropicConfig>(
+      "anthropic.json",
+      codespinDir
+    );
     // Environment variables have higher priority
-    ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+    ANTHROPIC_API_KEY =
+      process.env.ANTHROPIC_API_KEY ?? anthropicConfig?.apiKey;
 
-    if (!ANTHROPIC_API_KEY) {
-      const configFilePath = await getConfigFilePath(
-        "anthropic.json",
-        codespinDir
-      );
-
-      if (configFilePath) {
-        const anthropicConfigFile = await fs.readFile(configFilePath, "utf8");
-        const anthropicConfig = JSON.parse(anthropicConfigFile);
-        ANTHROPIC_API_KEY = ANTHROPIC_API_KEY || anthropicConfig.apiKey;
-      }
-    }
+    ANTHROPIC_API_VERSION =
+      process.env.ANTHROPIC_API_VERSION ?? anthropicConfig?.apiVersion;
   }
   configLoaded = true;
 }
@@ -99,7 +97,8 @@ export async function completion(
       const headers: { [key: string]: string } = {
         "Content-Type": "application/json",
         "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": options.apiVersion ?? "2023-06-01",
+        "anthropic-version":
+          options.apiVersion ?? ANTHROPIC_API_VERSION ?? "2023-06-01",
       };
 
       const body: CompletionRequest = {
