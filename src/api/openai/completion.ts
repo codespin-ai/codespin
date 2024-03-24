@@ -6,17 +6,40 @@ import { getCodespinConfigDir } from "../../settings/getCodespinConfigDir.js";
 import { CompletionOptions } from "../CompletionOptions.js";
 import { CompletionResult } from "../CompletionResult.js";
 
+type CompletionRequest = {
+  model: string;
+  messages: {
+    role: "user" | "system" | "assistant";
+    content: string;
+  }[];
+  temperature: number;
+  max_tokens?: number;
+};
+
 type OpenAICompletionResponse = {
+  id: string;
+  object: string;
+  created: number;
+  model: string;
+  system_fingerprint: string;
+  choices: {
+    index: number;
+    message: {
+      role: string;
+      content: string;
+    };
+    logprobs: null; // Assuming logprobs is always null based on provided example. Adjust if it can have other types.
+    finish_reason: string;
+  }[];
+  usage: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
   error?: {
     code: string;
     message: string;
   };
-  choices: {
-    message: {
-      content: string;
-    };
-    finish_reason: string;
-  }[];
 };
 
 let OPENAI_API_KEY: string | undefined;
@@ -98,7 +121,7 @@ export async function completion(
             };
 
       // Make a POST request to the OpenAI API
-      const body: any = {
+      const body: CompletionRequest = {
         model,
         messages: [
           {

@@ -6,18 +6,41 @@ import { getCodespinConfigDir } from "../../settings/getCodespinConfigDir.js";
 import { CompletionOptions } from "../CompletionOptions.js";
 import { CompletionResult } from "../CompletionResult.js";
 
-type AnthropicCompletionResponse = {
-  error?: {
-    code: string;
+type CompletionRequest = {
+  model: string;
+  messages: {
+    role: "user" | "system" | "assistant"; 
+    content: string;
+  }[];
+  temperature: number;
+  max_tokens?: number; 
+};
+
+type ValidResponse = {
+  type: "message";
+  content: {
+    text: string;
+    type: string;
+  }[];
+  id: string;
+  model: string;
+  role: string;
+  stop_reason: string;
+  stop_sequence: null | string;
+  usage: {
+    input_tokens: number;
+    output_tokens: number;
+  };
+};
+type ErrorResponse = {
+  type: "error";
+  error: {
+    type: string;
     message: string;
   };
-  choices: {
-    message: {
-      content: string;
-    };
-    finish_reason: string;
-  }[];
 };
+
+type CompletionResponse = ValidResponse | ErrorResponse;
 
 let ANTHROPIC_API_KEY: string | undefined;
 let configLoaded = false; // Track if the config has already been loaded
@@ -34,10 +57,16 @@ async function loadConfigIfRequired(configDirFromArgs: string | undefined) {
       );
 
       if (codespinConfigDir) {
-        const anthropicConfigPath = path.join(codespinConfigDir, "anthropic.json");
+        const anthropicConfigPath = path.join(
+          codespinConfigDir,
+          "anthropic.json"
+        );
 
         if (await pathExists(anthropicConfigPath)) {
-          const anthropicConfigFile = await fs.readFile(anthropicConfigPath, "utf8");
+          const anthropicConfigFile = await fs.readFile(
+            anthropicConfigPath,
+            "utf8"
+          );
           const anthropicConfig = JSON.parse(anthropicConfigFile);
 
           ANTHROPIC_API_KEY = ANTHROPIC_API_KEY || anthropicConfig.apiKey;
@@ -79,12 +108,11 @@ export async function completion(
 
     try {
       const headers: { [key: string]: string } = {
-              "Content-Type": "application/json",
-              "x-api-key": ANTHROPIC_API_KEY,
-            }
+        "Content-Type": "application/json",
+        "x-api-key": ANTHROPIC_API_KEY,
+      };
 
-      // Make a POST request to the Anthropic API
-      const body: any = {
+      const body: CompletionRequest = {
         model,
         messages: [
           {
@@ -117,7 +145,7 @@ export async function completion(
       }
 
       // Parse the response as JSON
-      const data = (await response.json()) as AnthropicCompletionResponse;
+      const data = (await response.json()) as CompletionResponse;
 
       // If the debug parameter is set, stringify and print the response from Anthropic.
       if (debug) {
@@ -126,28 +154,28 @@ export async function completion(
       }
 
       // Check if the response has an error
-      if (data.error) {
+      if (data.type === "error") {
         return {
           ok: false,
           error: {
-            code: data.error.code,
+            code: data.error.type,
             message: data.error.message,
           },
         };
       }
 
-      // If the finish reason isn't "stop", return an error
-      if (data.choices[0].finish_reason !== "stop") {
+      // If the stop reason isn't "stop", return an error
+      if (data.stop_reason !== "end_turn") {
         return {
           ok: false,
           error: {
-            code: data.choices[0].finish_reason,
-            message: data.choices[0].finish_reason,
+            code: `unknown_stop_reason`,
+            message: `Unknown stop reason ${data.stop_reason}`,
           },
         };
       }
 
-      const message = data.choices[0].message.content as string;
+      const message = data.content[0].text;
       return { ok: true, message };
     } catch (error: any) {
       // If an error occurs during the fetch, return an error
