@@ -10,6 +10,14 @@ import { setWorkingDir } from "./fs/workingDir.js";
 import * as url from "url";
 import * as path from "path";
 
+function get__filename() {
+  if (import.meta.url) {
+    return url.fileURLToPath(import.meta.url);
+  } else {
+    return __filename;
+  }
+}
+
 async function main() {
   setWorkingDir(process.cwd());
 
@@ -24,7 +32,7 @@ async function main() {
           describe: "Force overwrite the codespin.json config file",
         }),
       async (argv) => {
-        const __filename = url.fileURLToPath(import.meta.url);
+        const __filename = get__filename();
         const __dirname = path.dirname(__filename);
         const builtInTemplatesDir = path.join(__dirname, "templates");
         await init({ ...argv, templatesDir: builtInTemplatesDir });

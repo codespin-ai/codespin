@@ -1,7 +1,15 @@
 import path from "path";
-import { pathExists } from "../fs/pathExists.js";
-import { fileURLToPath } from "url";
+import * as url from "url";
 import { getTemplatesDir } from "../fs/codespinPaths.js";
+import { pathExists } from "../fs/pathExists.js";
+
+function get__filename() {
+  if (import.meta.url) {
+    return url.fileURLToPath(import.meta.url);
+  } else {
+    return __filename;
+  }
+}
 
 export async function getTemplatePath(
   template: string | undefined,
@@ -19,7 +27,7 @@ export async function getTemplatePath(
         ))
       ? path.join(projectTemplateDir, template || localFallback)
       : await (async () => {
-          const __filename = fileURLToPath(import.meta.url);
+          const __filename = get__filename();
           const builtInTemplatesDir = path.resolve(
             __filename,
             "../../templates"
