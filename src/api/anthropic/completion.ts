@@ -99,6 +99,7 @@ export async function completion(
       const headers: { [key: string]: string } = {
         "Content-Type": "application/json",
         "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01"
       };
 
       const body: CompletionRequest = {
