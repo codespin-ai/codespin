@@ -4,7 +4,7 @@ import path from "path";
 import { CompletionOptions } from "../api/CompletionOptions.js";
 import { getCompletionAPI } from "../api/getCompletionAPI.js";
 import { exception } from "../exception.js";
-import { getDeclarationsDir } from "../fs/codespinPaths.js";
+import { getDeclarationsDir } from "../settings/getDeclarationsDir.js";
 import { computeHash } from "../fs/computeHash.js";
 import { getPathRelativeToProjectRoot } from "../fs/getPathRelativeToProjectRoot.js";
 import { pathExists } from "../fs/pathExists.js";
@@ -15,7 +15,7 @@ import { getTemplate } from "../templating/getTemplate.js";
 export async function generateDeclaration(
   filePath: string,
   api: string,
-  configDirFromArgs: string | undefined,
+  codespinDir: string | undefined,
   completionOptions: CompletionOptions
 ): Promise<string> {
   const filePathRelativeToProjectRoot = await getPathRelativeToProjectRoot(
@@ -23,7 +23,7 @@ export async function generateDeclaration(
   );
 
   const declarationsPath = path.join(
-    await getDeclarationsDir(),
+    await getDeclarationsDir(codespinDir),
     `${filePathRelativeToProjectRoot}.txt`
   );
 
@@ -51,7 +51,7 @@ export async function generateDeclaration(
   const latestDeclarations = await callCompletion(
     filePath,
     api,
-    configDirFromArgs,
+    codespinDir,
     completionOptions
   );
 
@@ -68,7 +68,7 @@ export async function generateDeclaration(
 async function callCompletion(
   filePath: string,
   api: string,
-  configDirFromArgs: string | undefined,
+  codespinDir: string | undefined,
   completionOptions: CompletionOptions
 ): Promise<string> {
   const sourceCode = await readFile(filePath, "utf-8");
@@ -76,7 +76,7 @@ async function callCompletion(
   const templateFunc = await getTemplate(
     undefined,
     "declarations",
-    configDirFromArgs
+    codespinDir
   );
 
   const evaluatedPrompt = await templateFunc({
@@ -89,7 +89,7 @@ async function callCompletion(
 
   const completionResult = await completion(
     evaluatedPrompt,
-    configDirFromArgs,
+    codespinDir,
     completionOptions
   );
 

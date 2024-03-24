@@ -2,7 +2,7 @@ import * as fs from "fs/promises";
 import * as path from "path";
 import { writeToConsole } from "../../console.js";
 import { pathExists } from "../../fs/pathExists.js";
-import { getCodespinConfigDir } from "../../settings/getCodespinConfigDir.js";
+import { getConfigFilePath } from "../../settings/getConfigFilePath.js";
 import { CompletionOptions } from "../CompletionOptions.js";
 import { CompletionResult } from "../CompletionResult.js";
 
@@ -47,7 +47,7 @@ let OPENAI_AUTH_TYPE: string | undefined;
 let OPENAI_COMPLETIONS_ENDPOINT: string | undefined;
 let configLoaded = false;
 
-async function loadConfigIfRequired(configDirFromArgs: string | undefined) {
+async function loadConfigIfRequired(codespinDir: string | undefined) {
   if (!configLoaded) {
     // Environment variables have higher priority
     OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -55,23 +55,19 @@ async function loadConfigIfRequired(configDirFromArgs: string | undefined) {
     OPENAI_COMPLETIONS_ENDPOINT = process.env.OPENAI_COMPLETIONS_ENDPOINT;
 
     if (!OPENAI_API_KEY) {
-      const codespinConfigDir = await getCodespinConfigDir(
-        configDirFromArgs,
-        true
+      const configFilePath = await getConfigFilePath(
+        "openai.json",
+        codespinDir
       );
 
-      if (codespinConfigDir) {
-        const openaiConfigPath = path.join(codespinConfigDir, "openai.json");
+      if (configFilePath) {
+        const openaiConfigFile = await fs.readFile(configFilePath, "utf8");
+        const openaiConfig = JSON.parse(openaiConfigFile);
 
-        if (await pathExists(openaiConfigPath)) {
-          const openaiConfigFile = await fs.readFile(openaiConfigPath, "utf8");
-          const openaiConfig = JSON.parse(openaiConfigFile);
-
-          OPENAI_API_KEY = OPENAI_API_KEY || openaiConfig.apiKey;
-          OPENAI_AUTH_TYPE = OPENAI_AUTH_TYPE || openaiConfig.authType;
-          OPENAI_COMPLETIONS_ENDPOINT =
-            OPENAI_COMPLETIONS_ENDPOINT || openaiConfig.completionsEndpoint;
-        }
+        OPENAI_API_KEY = OPENAI_API_KEY || openaiConfig.apiKey;
+        OPENAI_AUTH_TYPE = OPENAI_AUTH_TYPE || openaiConfig.authType;
+        OPENAI_COMPLETIONS_ENDPOINT =
+          OPENAI_COMPLETIONS_ENDPOINT || openaiConfig.completionsEndpoint;
       }
     }
   }
@@ -80,14 +76,14 @@ async function loadConfigIfRequired(configDirFromArgs: string | undefined) {
 
 export async function completion(
   prompt: string,
-  configDirFromArgs: string | undefined,
+  codespinDir: string | undefined,
   options: CompletionOptions
 ): Promise<CompletionResult> {
   const model = options.model || "gpt-3.5-turbo";
   const maxTokens = options.maxTokens;
   const debug = Boolean(options.debug);
 
-  await loadConfigIfRequired(configDirFromArgs);
+  await loadConfigIfRequired(codespinDir);
 
   if (debug) {
     writeToConsole(`OPENAI: model=${model}`);

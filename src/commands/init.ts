@@ -4,7 +4,7 @@ import { writeToConsole } from "../console.js";
 import { copyFilesInDir } from "../fs/copyFilesInDir.js";
 import { pathExists } from "../fs/pathExists.js";
 import {
-  CODESPIN_CONFIG_DIRNAME,
+  CODESPIN_DIRNAME,
   CODESPIN_CONFIG_FILENAME,
   CODESPIN_DECLARATIONS_DIRNAME,
   CODESPIN_TEMPLATES_DIRNAME,
@@ -28,7 +28,7 @@ export async function init(args: InitArgs): Promise<void> {
   let gitDir = await getGitRoot();
   let rootDir = gitDir ?? getWorkingDir();
 
-  const configDir = path.resolve(rootDir, CODESPIN_CONFIG_DIRNAME);
+  const configDir = path.resolve(rootDir, CODESPIN_DIRNAME);
   const configFile = path.resolve(configDir, CODESPIN_CONFIG_FILENAME);
   const templateDir = path.resolve(configDir, CODESPIN_TEMPLATES_DIRNAME);
   const declarationsDir = path.resolve(
@@ -68,19 +68,19 @@ export async function init(args: InitArgs): Promise<void> {
 
         if (
           !content.includes(
-            `${CODESPIN_CONFIG_DIRNAME}/${CODESPIN_DECLARATIONS_DIRNAME}`
+            `${CODESPIN_DIRNAME}/${CODESPIN_DECLARATIONS_DIRNAME}`
           )
         ) {
           await writeToFile(
             gitIgnorePath,
-            `\n${CODESPIN_CONFIG_DIRNAME}/`,
+            `\n${CODESPIN_DIRNAME}/`,
             true
           );
         }
       } else {
         await writeToFile(
           gitIgnorePath,
-          `${CODESPIN_CONFIG_DIRNAME}/`,
+          `${CODESPIN_DIRNAME}/`,
           true
         );
       }

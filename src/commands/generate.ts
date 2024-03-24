@@ -312,7 +312,7 @@ async function getIncludedDeclarations(
   promptSettings: PromptSettings | undefined,
   completionOptions: CompletionOptions,
   maxDeclare: number,
-  configDirFromArgs: string | undefined
+  codespinDir: string | undefined
 ): Promise<BasicFileInfo[]> {
   const pathsFromPrompt = promptFilePath
     ? await Promise.all(
@@ -344,7 +344,7 @@ async function getIncludedDeclarations(
     return await getDeclarations(
       filePaths,
       api,
-      configDirFromArgs,
+      codespinDir,
       completionOptions
     );
   } else {

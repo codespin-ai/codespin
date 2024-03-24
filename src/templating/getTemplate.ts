@@ -1,17 +1,17 @@
 import path from "path";
-import { getTemplatesDir } from "../fs/codespinPaths.js";
 import { pathExists } from "../fs/pathExists.js";
 import defaultTemplate from "../templates/default.js";
 import plainTemplate from "../templates/plain.js";
 import declarationsTemplate from "../templates/declarations.js";
 import { exception } from "../exception.js";
+import { getTemplatesDir } from "../settings/getTemplatesDir.js";
 
 export async function getTemplate(
   template: string | undefined,
   templateType: "plain" | "default" | "declarations",
-  configDirFromArgs: string | undefined
+  codespinDir: string | undefined
 ): Promise<Function> {
-  const projectTemplateDir = await getTemplatesDir(configDirFromArgs);
+  const projectTemplateDir = await getTemplatesDir(codespinDir);
 
   const templatePath =
     template && (await pathExists(template))

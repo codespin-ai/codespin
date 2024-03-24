@@ -2,18 +2,18 @@ import * as fs from "fs/promises";
 import * as path from "path";
 import { writeToConsole } from "../../console.js";
 import { pathExists } from "../../fs/pathExists.js";
-import { getCodespinConfigDir } from "../../settings/getCodespinConfigDir.js";
+import { getConfigFilePath } from "../../settings/getConfigFilePath.js";
 import { CompletionOptions } from "../CompletionOptions.js";
 import { CompletionResult } from "../CompletionResult.js";
 
 type CompletionRequest = {
   model: string;
   messages: {
-    role: "user" | "system" | "assistant"; 
+    role: "user" | "system" | "assistant";
     content: string;
   }[];
   temperature: number;
-  max_tokens?: number; 
+  max_tokens?: number;
 };
 
 type ValidResponse = {
@@ -45,32 +45,21 @@ type CompletionResponse = ValidResponse | ErrorResponse;
 let ANTHROPIC_API_KEY: string | undefined;
 let configLoaded = false; // Track if the config has already been loaded
 
-async function loadConfigIfRequired(configDirFromArgs: string | undefined) {
+async function loadConfigIfRequired(codespinDir: string | undefined) {
   if (!configLoaded) {
     // Environment variables have higher priority
     ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 
     if (!ANTHROPIC_API_KEY) {
-      const codespinConfigDir = await getCodespinConfigDir(
-        configDirFromArgs,
-        true
+      const configFilePath = await getConfigFilePath(
+        "anthropic.json",
+        codespinDir
       );
 
-      if (codespinConfigDir) {
-        const anthropicConfigPath = path.join(
-          codespinConfigDir,
-          "anthropic.json"
-        );
-
-        if (await pathExists(anthropicConfigPath)) {
-          const anthropicConfigFile = await fs.readFile(
-            anthropicConfigPath,
-            "utf8"
-          );
-          const anthropicConfig = JSON.parse(anthropicConfigFile);
-
-          ANTHROPIC_API_KEY = ANTHROPIC_API_KEY || anthropicConfig.apiKey;
-        }
+      if (configFilePath) {
+        const anthropicConfigFile = await fs.readFile(configFilePath, "utf8");
+        const anthropicConfig = JSON.parse(anthropicConfigFile);
+        ANTHROPIC_API_KEY = ANTHROPIC_API_KEY || anthropicConfig.apiKey;
       }
     }
   }
@@ -79,14 +68,14 @@ async function loadConfigIfRequired(configDirFromArgs: string | undefined) {
 
 export async function completion(
   prompt: string,
-  configDirFromArgs: string | undefined,
+  codespinDir: string | undefined,
   options: CompletionOptions
 ): Promise<CompletionResult> {
   const model = options.model || "claude-3-haiku";
   const maxTokens = options.maxTokens;
   const debug = Boolean(options.debug);
 
-  await loadConfigIfRequired(configDirFromArgs);
+  await loadConfigIfRequired(codespinDir);
 
   if (debug) {
     writeToConsole(`ANTHROPIC: model=${model}`);

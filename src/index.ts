@@ -127,7 +127,7 @@ async function main() {
           .option("config", {
             type: "string",
             alias: "c",
-            describe: "Path to the config directory (.codespin).",
+            describe: "Path to a config directory (.codespin).",
           })
           .option("outDir", {
             type: "string",
@@ -185,7 +185,7 @@ async function main() {
           .option("config", {
             type: "string",
             alias: "c",
-            describe: "Path to the config directory (.codespin).",
+            describe: "Path to a config directory (.codespin).",
           })
           .option("outDir", {
             type: "string",
