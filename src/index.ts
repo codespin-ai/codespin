@@ -8,7 +8,6 @@ import { writeToConsole } from "./console.js";
 import { setWorkingDir } from "./fs/workingDir.js";
 import { getPackageVersion } from "./getPackageVersion.js";
 
-
 async function main() {
   setWorkingDir(process.cwd());
 
@@ -147,6 +146,10 @@ async function main() {
             type: "number",
             describe:
               "The maximum number of declaration files allowed. Defaults to 10.",
+          })
+          .option("apiVersion", {
+            type: "string",
+            describe: "version is required by some APIs - eg: Anthropic.",
           })
           .option("go", {
             type: "boolean",

@@ -3,4 +3,5 @@ export type CompletionOptions = {
   maxTokens: number | undefined;
   debug: boolean | undefined;
   dataCallback?: (data: string) => void;
+  apiVersion?: string;
 };

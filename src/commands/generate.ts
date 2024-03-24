@@ -47,6 +47,7 @@ export type GenerateArgs = {
   parse: boolean | undefined;
   go: boolean | undefined;
   maxDeclare: number | undefined;
+  apiVersion: string | undefined;
   dataCallback?: (data: string) => void;
 };
 
@@ -86,17 +87,19 @@ export async function generate(args: GenerateArgs): Promise<void> {
 
   const api = args.api || "openai";
   const model = args.model || promptSettings?.model || config?.model;
+  const apiVersion =
+    args.apiVersion ?? promptSettings?.apiVersion ?? config.apiVersion;
   const maxTokens =
     args.maxTokens ?? promptSettings?.maxTokens ?? config?.maxTokens;
-
   const maxDeclare =
     args.maxDeclare ?? promptSettings?.maxDeclare ?? config?.maxDeclare ?? 30;
 
-  const completionOptions = {
+  const completionOptions: CompletionOptions = {
     model,
     maxTokens,
     debug: args.debug,
     dataCallback: args.dataCallback,
+    apiVersion,
   };
 
   const sourceFileContent = await getSourceFileContent(
