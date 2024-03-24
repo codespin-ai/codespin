@@ -3,6 +3,7 @@ import { pathExists } from "../fs/pathExists.js";
 import { CODESPIN_DIRNAME } from "../fs/pathNames.js";
 import { getWorkingDir } from "../fs/workingDir.js";
 import { getGitRoot } from "../git/getGitRoot.js";
+import { homedir } from "os";
 
 export async function getConfigFilePath(
   pathFragment: string,
@@ -28,6 +29,10 @@ export async function getConfigFilePath(
     (await pathExists(join(workingDir, CODESPIN_DIRNAME, pathFragment)))
   ) {
     return join(workingDir, CODESPIN_DIRNAME, pathFragment);
+  }
+
+  if (await pathExists(join(homedir(), CODESPIN_DIRNAME, pathFragment))) {
+    return join(homedir(), CODESPIN_DIRNAME, pathFragment);
   }
 
   return undefined;
