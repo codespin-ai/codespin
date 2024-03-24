@@ -4,19 +4,10 @@ import yargs from "yargs";
 import { generate } from "./commands/generate.js";
 import { init } from "./commands/init.js";
 import { parse } from "./commands/parse.js";
-import { getPackageVersion } from "./getPackageVersion.js";
 import { writeToConsole } from "./console.js";
 import { setWorkingDir } from "./fs/workingDir.js";
-import * as url from "url";
-import * as path from "path";
+import { getPackageVersion } from "./getPackageVersion.js";
 
-function get__filename() {
-  if (import.meta.url) {
-    return url.fileURLToPath(import.meta.url);
-  } else {
-    return __filename;
-  }
-}
 
 async function main() {
   setWorkingDir(process.cwd());
@@ -32,10 +23,7 @@ async function main() {
           describe: "Force overwrite the codespin.json config file",
         }),
       async (argv) => {
-        const __filename = get__filename();
-        const __dirname = path.dirname(__filename);
-        const builtInTemplatesDir = path.join(__dirname, "templates");
-        await init({ ...argv, templatesDir: builtInTemplatesDir });
+        await init(argv);
       }
     )
     .command(

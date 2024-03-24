@@ -15,7 +15,6 @@ import { getGitRoot } from "../git/getGitRoot.js";
 
 type InitArgs = {
   force?: boolean;
-  templatesDir: string;
 };
 
 const DEFAULT_JSON_CONTENT = {
@@ -32,7 +31,10 @@ export async function init(args: InitArgs): Promise<void> {
   const configDir = path.resolve(rootDir, CODESPIN_CONFIG_DIRNAME);
   const configFile = path.resolve(configDir, CODESPIN_CONFIG_FILENAME);
   const templateDir = path.resolve(configDir, CODESPIN_TEMPLATES_DIRNAME);
-  const declarationsDir = path.resolve(configDir, CODESPIN_DECLARATIONS_DIRNAME);
+  const declarationsDir = path.resolve(
+    configDir,
+    CODESPIN_DECLARATIONS_DIRNAME
+  );
 
   try {
     // Check if .codespin already exists
@@ -55,14 +57,6 @@ export async function init(args: InitArgs): Promise<void> {
     await fs.writeFile(
       configFile,
       JSON.stringify(DEFAULT_JSON_CONTENT, null, 2)
-    );
-
-    // Copy all templates into the codespin directory.
-    // Copy only js files.
-    await copyFilesInDir(args.templatesDir, templateDir, (filename) =>
-      filename.endsWith(".js")
-        ? filename.replace(/\.js$/, ".example.mjs")
-        : undefined
     );
 
     // if the project is under git, exclude codespin/declarations in .gitignore
@@ -108,4 +102,3 @@ async function createDirectoriesIfNotExist(
     }
   }
 }
-
