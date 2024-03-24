@@ -6,12 +6,11 @@ import { getCompletionAPI } from "../api/getCompletionAPI.js";
 import { exception } from "../exception.js";
 import { getDeclarationsDir } from "../fs/codespinPaths.js";
 import { computeHash } from "../fs/computeHash.js";
-import { pathExists } from "../fs/pathExists.js";
-import { evalDeclarationTemplate } from "../prompts/evalDeclarationTemplate.js";
-import { extractCode } from "../prompts/extractCode.js";
-import { getTemplatePath } from "../templating/getTemplatePath.js";
-import { getWorkingDir } from "../fs/workingDir.js";
 import { getPathRelativeToProjectRoot } from "../fs/getPathRelativeToProjectRoot.js";
+import { pathExists } from "../fs/pathExists.js";
+import { getWorkingDir } from "../fs/workingDir.js";
+import { extractCode } from "../prompts/extractCode.js";
+import { getTemplate } from "../templating/getTemplate.js";
 
 export async function generateDeclaration(
   filePath: string,
@@ -74,13 +73,13 @@ async function callCompletion(
 ): Promise<string> {
   const sourceCode = await readFile(filePath, "utf-8");
 
-  const templatePath = await getTemplatePath(
+  const templateFunc = await getTemplate(
     undefined,
-    "declarations.mjs",
+    "declarations",
     configDirFromArgs
   );
 
-  const evaluatedPrompt = await evalDeclarationTemplate(templatePath, {
+  const evaluatedPrompt = await templateFunc({
     filePath,
     sourceCode,
     workingDir: getWorkingDir(),

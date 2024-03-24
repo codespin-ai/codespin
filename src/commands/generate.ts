@@ -7,12 +7,12 @@ import { BasicFileInfo } from "../fs/BasicFileInfo.js";
 import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
 import { getVersionedFileInfo } from "../fs/getFileContent.js";
 import { pathExists } from "../fs/pathExists.js";
+import { resolvePath } from "../fs/resolvePath.js";
 import { resolveProjectPath } from "../fs/resolveProjectPath.js";
 import { resolveWildcardPaths } from "../fs/resolveWildcards.js";
 import { getWorkingDir } from "../fs/workingDir.js";
 import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
 import { writeToFile } from "../fs/writeToFile.js";
-import { evalTemplate } from "../prompts/evalTemplate.js";
 import { extractCode } from "../prompts/extractCode.js";
 import { readPrompt } from "../prompts/readPrompt.js";
 import {
@@ -21,8 +21,7 @@ import {
 } from "../prompts/readPromptSettings.js";
 import { readConfig } from "../settings/readConfig.js";
 import { getDeclarations } from "../sourceCode/getDeclarations.js";
-import { getTemplatePath } from "../templating/getTemplatePath.js";
-import { resolvePath } from "../fs/resolvePath.js";
+import { getTemplate } from "../templating/getTemplate.js";
 
 export type GenerateArgs = {
   promptFile: string | undefined;
@@ -124,9 +123,9 @@ export async function generate(args: GenerateArgs): Promise<void> {
     args.config
   );
 
-  const templatePath = await getTemplatePath(
+  const templateFunc = await getTemplate(
     args.template,
-    args.go ? "plain.mjs" : "default.mjs",
+    args.go ? "plain" : "default",
     args.config
   );
 
@@ -135,7 +134,7 @@ export async function generate(args: GenerateArgs): Promise<void> {
     args.prompt
   );
 
-  const evaluatedPrompt = await evalTemplate(templatePath, {
+  const evaluatedPrompt = await templateFunc({
     prompt,
     promptWithLineNumbers,
     include: includes,

@@ -1,17 +1,17 @@
 import { promises as fs } from "fs";
 import path from "path";
+import { writeToConsole } from "../console.js";
 import { copyFilesInDir } from "../fs/copyFilesInDir.js";
 import { pathExists } from "../fs/pathExists.js";
-import { writeToFile } from "../fs/writeToFile.js";
-import { errorToConsole, writeToConsole } from "../console.js";
-import { getGitRoot } from "../git/getGitRoot.js";
-import { getWorkingDir } from "../fs/workingDir.js";
 import {
   CODESPIN_CONFIG_DIRNAME,
   CODESPIN_CONFIG_FILENAME,
   CODESPIN_DECLARATIONS_DIRNAME,
   CODESPIN_TEMPLATES_DIRNAME,
 } from "../fs/pathNames.js";
+import { getWorkingDir } from "../fs/workingDir.js";
+import { writeToFile } from "../fs/writeToFile.js";
+import { getGitRoot } from "../git/getGitRoot.js";
 
 type InitArgs = {
   force?: boolean;

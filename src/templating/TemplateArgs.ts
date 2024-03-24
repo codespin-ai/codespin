@@ -14,15 +14,3 @@ export type TemplateArgs = {
   workingDir: string;
 };
 
-export async function evalTemplate(
-  templatePath: string,
-  args: TemplateArgs
-): Promise<string> {
-  try {
-    const template = await import(templatePath);
-    const result = await template.default(args);
-    return result;
-  } catch (error: any) {
-    throw new Error(`Failed to evaluate the template: ${error.message}`);
-  }
-}
