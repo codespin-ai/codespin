@@ -76,7 +76,7 @@ export async function generate(args: GenerateArgs): Promise<void> {
 
   const promptSettings = promptFilePath
     ? await readPromptSettings(promptFilePath)
-    : {};
+    : undefined;
 
   const sourceFilePath = await getSourceFilePath(
     sourceFromCLI,
@@ -245,19 +245,15 @@ async function getSourceFilePath(
   promptFilePath: string | undefined,
   promptSettings: PromptSettings | undefined
 ): Promise<string | undefined> {
-  return (
-    sourceFromCLI ??
-    (promptFilePath && promptSettings && promptSettings.source
-      ? (() => {
-          const dirOfPromptFile = path.dirname(promptFilePath);
-          const sourcePath = path.resolve(
-            dirOfPromptFile,
-            promptSettings.source
-          );
-          return sourcePath;
-        })()
-      : undefined)
-  );
+  return sourceFromCLI
+    ? resolvePath(sourceFromCLI)
+    : promptFilePath && promptSettings && promptSettings.source
+    ? (() => {
+        const dirOfPromptFile = path.dirname(promptFilePath);
+        const sourcePath = path.resolve(dirOfPromptFile, promptSettings.source);
+        return sourcePath;
+      })()
+    : undefined;
 }
 
 async function getIncludedFiles(
