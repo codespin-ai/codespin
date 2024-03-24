@@ -6,11 +6,11 @@ import { getCompletionAPI } from "../api/getCompletionAPI.js";
 import { exception } from "../exception.js";
 import { getDeclarationsDir } from "../settings/getDeclarationsDir.js";
 import { computeHash } from "../fs/computeHash.js";
-import { getPathRelativeToProjectRoot } from "../fs/getPathRelativeToProjectRoot.js";
 import { pathExists } from "../fs/pathExists.js";
 import { getWorkingDir } from "../fs/workingDir.js";
 import { extractCode } from "../prompts/extractCode.js";
 import { getTemplate } from "../templating/getTemplate.js";
+import { getProjectRootAndAssert } from "../fs/getProjectRootAndAssert.js";
 
 export async function generateDeclaration(
   filePath: string,
@@ -18,13 +18,14 @@ export async function generateDeclaration(
   codespinDir: string | undefined,
   completionOptions: CompletionOptions
 ): Promise<string> {
-  const filePathRelativeToProjectRoot = await getPathRelativeToProjectRoot(
-    filePath
-  );
+  // For declarations to work, you need to have initialized the project with codespin init.  
+  const projectRoot = await getProjectRootAndAssert();
+
+  const relativePath = path.relative(projectRoot, filePath);
 
   const declarationsPath = path.join(
     await getDeclarationsDir(codespinDir),
-    `${filePathRelativeToProjectRoot}.txt`
+    `${relativePath}.txt`
   );
 
   // 1. Check if the declarations file exists

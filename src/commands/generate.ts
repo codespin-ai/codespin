@@ -8,7 +8,7 @@ import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
 import { getVersionedFileInfo } from "../fs/getFileContent.js";
 import { pathExists } from "../fs/pathExists.js";
 import { resolvePath } from "../fs/resolvePath.js";
-import { resolveProjectPath } from "../fs/resolveProjectPath.js";
+import { resolvePathsInPrompt } from "../fs/resolvePathsInPrompt.js";
 import { resolveWildcardPaths } from "../fs/resolveWildcards.js";
 import { getWorkingDir } from "../fs/workingDir.js";
 import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
@@ -272,7 +272,7 @@ async function getIncludedFiles(
         await Promise.all(
           (promptSettings?.include || [])
             .map(async (x) =>
-              resolveProjectPath(path.dirname(promptFilePath), x)
+              resolvePathsInPrompt(path.dirname(promptFilePath), x)
             )
             .filter((x) => x !== undefined)
         )
@@ -317,7 +317,7 @@ async function getIncludedDeclarations(
   const pathsFromPrompt = promptFilePath
     ? await Promise.all(
         (promptSettings?.declare || []).map(async (x) =>
-          resolveProjectPath(path.dirname(promptFilePath), x)
+          resolvePathsInPrompt(path.dirname(promptFilePath), x)
         )
       )
     : [];
