@@ -1,17 +1,17 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { writeToConsole } from "../console.js";
-import { copyFilesInDir } from "../fs/copyFilesInDir.js";
 import { pathExists } from "../fs/pathExists.js";
 import {
-  CODESPIN_DIRNAME,
   CODESPIN_CONFIG_FILENAME,
   CODESPIN_DECLARATIONS_DIRNAME,
+  CODESPIN_DIRNAME,
   CODESPIN_TEMPLATES_DIRNAME,
 } from "../fs/pathNames.js";
 import { getWorkingDir } from "../fs/workingDir.js";
 import { writeToFile } from "../fs/writeToFile.js";
 import { getGitRoot } from "../git/getGitRoot.js";
+import { createDirIfMissing } from "../fs/createDirIfMissing.js";
 
 type InitArgs = {
   force?: boolean;
@@ -45,13 +45,13 @@ export async function init(args: InitArgs): Promise<void> {
     }
 
     // Create the config dir at root
-    await createDirectoriesIfNotExist(configDir);
+    await createDirIfMissing(configDir);
 
     // Create template dir
-    await createDirectoriesIfNotExist(templateDir);
+    await createDirIfMissing(templateDir);
 
     // Create codespin/declarations
-    await createDirectoriesIfNotExist(declarationsDir);
+    await createDirIfMissing(declarationsDir);
 
     // Write the config file.
     await fs.writeFile(
@@ -71,34 +71,15 @@ export async function init(args: InitArgs): Promise<void> {
             `${CODESPIN_DIRNAME}/${CODESPIN_DECLARATIONS_DIRNAME}`
           )
         ) {
-          await writeToFile(
-            gitIgnorePath,
-            `\n${CODESPIN_DIRNAME}/`,
-            true
-          );
+          await writeToFile(gitIgnorePath, `\n${CODESPIN_DIRNAME}/`, true);
         }
       } else {
-        await writeToFile(
-          gitIgnorePath,
-          `${CODESPIN_DIRNAME}/`,
-          true
-        );
+        await writeToFile(gitIgnorePath, `${CODESPIN_DIRNAME}/`, true);
       }
     }
 
     writeToConsole("Initialization completed.");
   } catch (err: any) {
     writeToConsole(`Error during initialization: ${err.message}`);
-  }
-}
-
-async function createDirectoriesIfNotExist(
-  ...dirPaths: string[]
-): Promise<void> {
-  for (const dirPath of dirPaths) {
-    const exists = await pathExists(dirPath);
-    if (!exists) {
-      await fs.mkdir(dirPath, { recursive: true }); // Using recursive to ensure all nested directories are created
-    }
   }
 }
