@@ -6,7 +6,7 @@ import { getCodespinConfigDir } from "../../settings/getCodespinConfigDir.js";
 import { CompletionOptions } from "../CompletionOptions.js";
 import { CompletionResult } from "../CompletionResult.js";
 
-type OpenAICompletionResponse = {
+type AnthropicCompletionResponse = {
   error?: {
     code: string;
     message: string;
@@ -19,35 +19,28 @@ type OpenAICompletionResponse = {
   }[];
 };
 
-let OPENAI_API_KEY: string | undefined;
-let OPENAI_AUTH_TYPE: string | undefined;
-let OPENAI_COMPLETIONS_ENDPOINT: string | undefined;
+let ANTHROPIC_API_KEY: string | undefined;
 let configLoaded = false; // Track if the config has already been loaded
 
 async function loadConfigIfRequired(configDirFromArgs: string | undefined) {
   if (!configLoaded) {
     // Environment variables have higher priority
-    OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-    OPENAI_AUTH_TYPE = process.env.OPENAI_AUTH_TYPE;
-    OPENAI_COMPLETIONS_ENDPOINT = process.env.OPENAI_COMPLETIONS_ENDPOINT;
+    ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 
-    if (!OPENAI_API_KEY) {
+    if (!ANTHROPIC_API_KEY) {
       const codespinConfigDir = await getCodespinConfigDir(
         configDirFromArgs,
         true
       );
 
       if (codespinConfigDir) {
-        const openaiConfigPath = path.join(codespinConfigDir, "openai.json");
+        const anthropicConfigPath = path.join(codespinConfigDir, "anthropic.json");
 
-        if (await pathExists(openaiConfigPath)) {
-          const openaiConfigFile = await fs.readFile(openaiConfigPath, "utf8");
-          const openaiConfig = JSON.parse(openaiConfigFile);
+        if (await pathExists(anthropicConfigPath)) {
+          const anthropicConfigFile = await fs.readFile(anthropicConfigPath, "utf8");
+          const anthropicConfig = JSON.parse(anthropicConfigFile);
 
-          OPENAI_API_KEY = OPENAI_API_KEY || openaiConfig.apiKey;
-          OPENAI_AUTH_TYPE = OPENAI_AUTH_TYPE || openaiConfig.authType;
-          OPENAI_COMPLETIONS_ENDPOINT =
-            OPENAI_COMPLETIONS_ENDPOINT || openaiConfig.completionsEndpoint;
+          ANTHROPIC_API_KEY = ANTHROPIC_API_KEY || anthropicConfig.apiKey;
         }
       }
     }
@@ -60,44 +53,37 @@ export async function completion(
   configDirFromArgs: string | undefined,
   options: CompletionOptions
 ): Promise<CompletionResult> {
-  const model = options.model || "gpt-3.5-turbo";
+  const model = options.model || "claude-3-haiku";
   const maxTokens = options.maxTokens;
   const debug = Boolean(options.debug);
 
   await loadConfigIfRequired(configDirFromArgs);
 
   if (debug) {
-    writeToConsole(`OPENAI: model=${model}`);
-    writeToConsole(`OPENAI: maxTokens=${maxTokens}`);
+    writeToConsole(`ANTHROPIC: model=${model}`);
+    writeToConsole(`ANTHROPIC: maxTokens=${maxTokens}`);
   }
 
   // Check if the API key is available
-  if (!OPENAI_API_KEY) {
+  if (!ANTHROPIC_API_KEY) {
     return {
       ok: false,
       error: {
         code: "missing_api_key",
-        message: "OPENAI_API_KEY is not set in the environment variables.",
+        message: "ANTHROPIC_API_KEY is not set in the environment variables.",
       },
     };
   } else {
-    const openaiCompletionsEndpoint =
-      OPENAI_COMPLETIONS_ENDPOINT ||
-      "https://api.openai.com/v1/chat/completions";
+    const anthropicCompletionsEndpoint =
+      "https://api.anthropic.com/v1/messages";
 
     try {
-      const headers: { [key: string]: string } =
-        OPENAI_AUTH_TYPE === "API_KEY"
-          ? {
+      const headers: { [key: string]: string } = {
               "Content-Type": "application/json",
-              "api-key": OPENAI_API_KEY,
+              "x-api-key": ANTHROPIC_API_KEY,
             }
-          : {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${OPENAI_API_KEY}`,
-            };
 
-      // Make a POST request to the OpenAI API
+      // Make a POST request to the Anthropic API
       const body: any = {
         model,
         messages: [
@@ -113,7 +99,7 @@ export async function completion(
         body.max_tokens = maxTokens;
       }
 
-      const response = await fetch(openaiCompletionsEndpoint, {
+      const response = await fetch(anthropicCompletionsEndpoint, {
         method: "POST",
         headers,
         body: JSON.stringify(body),
@@ -131,11 +117,11 @@ export async function completion(
       }
 
       // Parse the response as JSON
-      const data = (await response.json()) as OpenAICompletionResponse;
+      const data = (await response.json()) as AnthropicCompletionResponse;
 
-      // If the debug parameter is set, stringify and print the response from OpenAI.
+      // If the debug parameter is set, stringify and print the response from Anthropic.
       if (debug) {
-        writeToConsole("---OPENAI RESPONSE---");
+        writeToConsole("---ANTHROPIC RESPONSE---");
         writeToConsole(JSON.stringify({ data }));
       }
 

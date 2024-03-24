@@ -73,14 +73,14 @@ export async function init(args: InitArgs): Promise<void> {
         ) {
           await writeToFile(
             gitIgnorePath,
-            `\n${CODESPIN_CONFIG_DIRNAME}/${CODESPIN_DECLARATIONS_DIRNAME}`,
+            `\n${CODESPIN_CONFIG_DIRNAME}/`,
             true
           );
         }
       } else {
         await writeToFile(
           gitIgnorePath,
-          `${CODESPIN_CONFIG_DIRNAME}/${CODESPIN_DECLARATIONS_DIRNAME}`,
+          `${CODESPIN_CONFIG_DIRNAME}/`,
           true
         );
       }
