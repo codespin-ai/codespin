@@ -132,14 +132,17 @@ export async function completion(
         body: JSON.stringify(body),
       });
 
-      if (response.body && options.dataCallback) {
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
-          const chunk = decoder.decode(value, { stream: true });
-          options.dataCallback(chunk);
+      if (options.dataCallback) {
+        const clonedResponse = response.clone();
+        if (clonedResponse.body) {
+          const reader = clonedResponse.body.getReader();
+          const decoder = new TextDecoder();
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            const chunk = decoder.decode(value, { stream: true });
+            options.dataCallback(chunk);
+          }
         }
       }
 
