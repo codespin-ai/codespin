@@ -45,7 +45,7 @@ type OpenAICompletionResponse = {
 let OPENAI_API_KEY: string | undefined;
 let OPENAI_AUTH_TYPE: string | undefined;
 let OPENAI_COMPLETIONS_ENDPOINT: string | undefined;
-let configLoaded = false; // Track if the config has already been loaded
+let configLoaded = false;
 
 async function loadConfigIfRequired(configDirFromArgs: string | undefined) {
   if (!configLoaded) {
