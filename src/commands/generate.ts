@@ -49,6 +49,7 @@ export type GenerateArgs = {
   maxDeclare: number | undefined;
   apiVersion: string | undefined;
   dataCallback?: (data: string) => void;
+  promptCallback?: (prompt: string) => void;
 };
 
 export async function generate(args: GenerateArgs): Promise<void> {
@@ -148,6 +149,8 @@ export async function generate(args: GenerateArgs): Promise<void> {
     version: args.version ?? "current",
     workingDir: getWorkingDir(),
   });
+
+  args.promptCallback?.(evaluatedPrompt);
 
   if (args.debug) {
     writeToConsole("--- PROMPT ---");

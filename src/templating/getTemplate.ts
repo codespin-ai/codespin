@@ -10,7 +10,7 @@ export async function getTemplate(
   template: string | undefined,
   templateType: "plain" | "default" | "declarations",
   codespinDir: string | undefined
-): Promise<Function> {
+): Promise<(args: any) => Promise<string>> {
   const projectTemplateDir = await getTemplatesDir(codespinDir);
 
   const templatePath =
