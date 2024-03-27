@@ -22,6 +22,7 @@ import {
 import { readCodespinConfig } from "../settings/readCodespinConfig.js";
 import { getDeclarations } from "../sourceCode/getDeclarations.js";
 import { getTemplate } from "../templating/getTemplate.js";
+import { SourceFile } from "../sourceCode/SourceFile.js";
 
 export type GenerateArgs = {
   promptFile: string | undefined;
@@ -47,9 +48,10 @@ export type GenerateArgs = {
   parse: boolean | undefined;
   go: boolean | undefined;
   maxDeclare: number | undefined;
-  apiVersion: string | undefined;
-  dataCallback?: (data: string) => void;
+  responseCallback?: (text: string) => void;
+  responseStreamCallback?: (text: string) => void;
   promptCallback?: (prompt: string) => void;
+  parseCallback?: (files: SourceFile[]) => void;
 };
 
 export async function generate(args: GenerateArgs): Promise<void> {
@@ -88,7 +90,6 @@ export async function generate(args: GenerateArgs): Promise<void> {
 
   const api = args.api || "openai";
   const model = args.model || promptSettings?.model || config?.model;
-  const apiVersion = args.apiVersion;
   const maxTokens =
     args.maxTokens ?? promptSettings?.maxTokens ?? config?.maxTokens;
   const maxDeclare =
@@ -98,8 +99,8 @@ export async function generate(args: GenerateArgs): Promise<void> {
     model,
     maxTokens,
     debug: args.debug,
-    dataCallback: args.dataCallback,
-    apiVersion,
+    responseStreamCallback: args.responseStreamCallback,
+    responseCallback: args.responseCallback,
   };
 
   const sourceFileContent = await getSourceFileContent(
@@ -150,7 +151,9 @@ export async function generate(args: GenerateArgs): Promise<void> {
     workingDir: getWorkingDir(),
   });
 
-  args.promptCallback?.(evaluatedPrompt);
+  if (args.promptCallback) {
+    args.promptCallback(evaluatedPrompt);
+  }
 
   if (args.debug) {
     writeToConsole("--- PROMPT ---");
@@ -193,7 +196,11 @@ export async function generate(args: GenerateArgs): Promise<void> {
         ? (await import(customParser)).default
         : extractCode;
 
-      const files = parseFunc(completionResult.message);
+      const files: SourceFile[] = parseFunc(completionResult.message);
+
+      if (args.parseCallback) {
+        args.parseCallback(files);
+      }
 
       if (args.write) {
         const extractResult = await writeFilesToDisk(

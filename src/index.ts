@@ -147,10 +147,6 @@ async function main() {
             describe:
               "The maximum number of declaration files allowed. Defaults to 10.",
           })
-          .option("apiVersion", {
-            type: "string",
-            describe: "version is required by some APIs - eg: Anthropic.",
-          })
           .option("go", {
             type: "boolean",
             alias: "g",

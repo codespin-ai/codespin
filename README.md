@@ -368,17 +368,6 @@ ls | codespin gen -p $'Convert to uppercase each line in the following text \nco
 ls | codespin gen -p $'Convert to uppercase each line in the following text \ncodespin:stdin' -g
 ```
 
-## Using Azure OpenAI API
-
-You may use Azure's OpenAI endpoint by setting the following environment variables:
-
-- OPENAI_COMPLETIONS_ENDPOINT: Set this to your completions endpoint
-- OPENAI_AUTH_TYPE: Set this to "API_KEY"
-
-```sh
-export OPENAI_COMPLETIONS_ENDPOINT='https://YOUR_RESOURCE_NAME.openai.azure.com/openai/deployments/YOUR_DEPLOYMENT_NAME/completions'
-```
-
 ## Contributing
 
 If you find more effective templates or prompts, please open a Pull Request.

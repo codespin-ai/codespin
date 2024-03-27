@@ -1,3 +1,4 @@
+import OpenAI from "openai";
 import { writeToConsole } from "../../console.js";
 import { readConfig } from "../../settings/readConfig.js";
 import { CompletionOptions } from "../CompletionOptions.js";
@@ -5,49 +6,9 @@ import { CompletionResult } from "../CompletionResult.js";
 
 type OpenAIConfig = {
   apiKey: string;
-  authType: string;
-  completionsEndpoint: string;
 };
 
-type CompletionRequest = {
-  model: string;
-  messages: {
-    role: "user" | "system" | "assistant";
-    content: string;
-  }[];
-  temperature: number;
-  max_tokens?: number;
-};
-
-type OpenAICompletionResponse = {
-  id: string;
-  object: string;
-  created: number;
-  model: string;
-  system_fingerprint: string;
-  choices: {
-    index: number;
-    message: {
-      role: string;
-      content: string;
-    };
-    logprobs: null; // Assuming logprobs is always null based on provided example. Adjust if it can have other types.
-    finish_reason: string;
-  }[];
-  usage: {
-    prompt_tokens: number;
-    completion_tokens: number;
-    total_tokens: number;
-  };
-  error?: {
-    code: string;
-    message: string;
-  };
-};
-
-let OPENAI_API_KEY: string | undefined;
-let OPENAI_AUTH_TYPE: string | undefined;
-let OPENAI_COMPLETIONS_ENDPOINT: string | undefined;
+let openaiClient: OpenAI | undefined;
 
 let configLoaded = false;
 
@@ -59,13 +20,17 @@ async function loadConfigIfRequired(codespinDir: string | undefined) {
     );
 
     // Environment variables have higher priority
-    OPENAI_API_KEY = process.env.OPENAI_API_KEY ?? openaiConfig?.apiKey;
-    OPENAI_AUTH_TYPE = process.env.OPENAI_AUTH_TYPE ?? openaiConfig?.authType;
-    OPENAI_COMPLETIONS_ENDPOINT =
-      process.env.OPENAI_COMPLETIONS_ENDPOINT ??
-      openaiConfig?.completionsEndpoint;
+    const apiKey = process.env.OPENAI_API_KEY ?? openaiConfig?.apiKey;
+
+    if (!apiKey) {
+      throw new Error(
+        "OPENAI_API_KEY is not set in the environment variables."
+      );
+    }
+
+    openaiClient = new OpenAI({ apiKey });
+    configLoaded = true;
   }
-  configLoaded = true;
 }
 
 export async function completion(
@@ -73,122 +38,65 @@ export async function completion(
   codespinDir: string | undefined,
   options: CompletionOptions
 ): Promise<CompletionResult> {
-  const model = options.model || "gpt-3.5-turbo";
-  const maxTokens = options.maxTokens;
-  const debug = Boolean(options.debug);
-
   await loadConfigIfRequired(codespinDir);
 
-  if (debug) {
-    writeToConsole(`OPENAI: model=${model}`);
-    writeToConsole(`OPENAI: maxTokens=${maxTokens}`);
-  }
-
-  // Check if the API key is available
-  if (!OPENAI_API_KEY) {
+  if (!openaiClient) {
     return {
       ok: false,
       error: {
-        code: "missing_api_key",
-        message: "OPENAI_API_KEY is not set in the environment variables.",
+        code: "client_initialization_error",
+        message: "Failed to initialize OpenAI client.",
       },
     };
-  } else {
-    const openaiCompletionsEndpoint =
-      OPENAI_COMPLETIONS_ENDPOINT ||
-      "https://api.openai.com/v1/chat/completions";
+  }
 
-    try {
-      const headers: { [key: string]: string } =
-        OPENAI_AUTH_TYPE === "API_KEY"
-          ? {
-              "Content-Type": "application/json",
-              "api-key": OPENAI_API_KEY,
-            }
-          : {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${OPENAI_API_KEY}`,
-            };
+  const model = options.model || "gpt-3.5-turbo";
+  const debug = Boolean(options.debug);
 
-      // Make a POST request to the OpenAI API
-      const body: CompletionRequest = {
-        model,
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        temperature: 0,
-      };
-
-      if (maxTokens) {
-        body.max_tokens = maxTokens;
-      }
-
-      const response = await fetch(openaiCompletionsEndpoint, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(body),
-      });
-
-      if (options.dataCallback) {
-        const clonedResponse = response.clone();
-        if (clonedResponse.body) {
-          const reader = clonedResponse.body.getReader();
-          const decoder = new TextDecoder();
-          while (true) {
-            const { value, done } = await reader.read();
-            if (done) break;
-            const chunk = decoder.decode(value, { stream: true });
-            options.dataCallback(chunk);
-          }
-        }
-      }
-
-      // Parse the response as JSON
-      const data = (await response.json()) as OpenAICompletionResponse;
-
-      // If the debug parameter is set, stringify and print the response from OpenAI.
-      if (debug) {
-        writeToConsole("---OPENAI RESPONSE---");
-        writeToConsole(JSON.stringify({ data }));
-      }
-
-      // Check if the response has an error
-      if (data.error) {
-        return {
-          ok: false,
-          error: {
-            code: data.error.code,
-            message: data.error.message,
-          },
-        };
-      }
-
-      // If the finish reason isn't "stop", return an error
-      if (data.choices[0].finish_reason !== "stop") {
-        return {
-          ok: false,
-          error: {
-            code: data.choices[0].finish_reason,
-            message: data.choices[0].finish_reason,
-          },
-        };
-      }
-
-      const message = data.choices[0].message.content as string;
-      return { ok: true, message };
-    } catch (error: any) {
-      // If an error occurs during the fetch, return an error
-      return {
-        ok: false,
-        error: {
-          code: "fetch_error",
-          message:
-            error.message || "An error occurred while fetching the completion.",
-        },
-      };
+  if (debug) {
+    writeToConsole(`OPENAI: model=${model}`);
+    if (options.maxTokens) {
+      writeToConsole(`OPENAI: maxTokens=${options.maxTokens}`);
     }
+  }
+
+  try {
+    const stream = await openaiClient.chat.completions.create({
+      model: model,
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: options.maxTokens,
+      stream: true,
+    });
+
+    let responseText = "";
+
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content || "";
+      responseText += content;
+      if (options.responseStreamCallback) {
+        options.responseStreamCallback(content);
+      }
+    }
+
+    if (options.responseCallback) {
+      options.responseCallback(responseText);
+    }
+
+    if (debug) {
+      writeToConsole("---OPENAI RESPONSE---");
+      writeToConsole(responseText);
+    }
+
+    return { ok: true, message: responseText };
+  } catch (error: any) {
+    return {
+      ok: false,
+      error: {
+        code: "api_error",
+        message:
+          error.message ||
+          "An error occurred while communicating with the OpenAI API.",
+      },
+    };
   }
 }
