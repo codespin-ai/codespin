@@ -17,7 +17,7 @@ export async function writeFilesToDisk(
       await writeFile(generatedFilePath, file.contents);
 
       if (exec) {
-        await execString(`exec ${generatedFilePath}`, workingDir);
+        await execString(`${exec} ${generatedFilePath}`, workingDir);
       }
       return { generated: true, file: file.path };
     })
