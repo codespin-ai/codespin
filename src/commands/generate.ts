@@ -53,6 +53,7 @@ export type GenerateArgs = {
   responseStreamCallback?: (text: string) => void;
   promptCallback?: (prompt: string) => void;
   parseCallback?: (files: SourceFile[]) => void;
+  cancelCallback?: (onCancel: () => void) => void;
 };
 
 export async function generate(
@@ -100,12 +101,17 @@ export async function generate(
   const maxDeclare =
     args.maxDeclare ?? promptSettings?.maxDeclare ?? config?.maxDeclare ?? 30;
 
+  let cancelCompletion: (() => void) | undefined;
+
   const completionOptions: CompletionOptions = {
     model,
     maxTokens,
     debug: args.debug,
     responseStreamCallback: args.responseStreamCallback,
     responseCallback: args.responseCallback,
+    cancelCallback: (onCancel) => {
+      cancelCompletion = onCancel;
+    },
   };
 
   const includes = await getIncludedFiles(
@@ -187,6 +193,16 @@ export async function generate(
     }
 
     return;
+  }
+
+  function cancelGenerateCommand() {
+    if (cancelCompletion) {
+      cancelCompletion();
+    }
+  }
+
+  if (args.cancelCallback) {
+    args.cancelCallback(cancelGenerateCommand);
   }
 
   const completion = getCompletionAPI(api);

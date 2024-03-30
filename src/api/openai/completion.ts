@@ -73,6 +73,12 @@ export async function completion(
       stream: true,
     });
 
+    if (options.cancelCallback) {
+      options.cancelCallback(() => {
+        stream.controller.abort();
+      });
+    }
+
     let responseText = "";
 
     for await (const chunk of stream) {

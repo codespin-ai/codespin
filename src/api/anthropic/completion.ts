@@ -55,23 +55,30 @@ export async function completion(
 
   try {
     let responseText = "";
-    const stream = anthropic.messages
-      .stream({
-        model: options.model || "claude-3-haiku",
-        max_tokens: options.maxTokens || 1024,
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-      })
-      .on("text", (text) => {
-        responseText += text;
-        if (options.responseStreamCallback) {
-          options.responseStreamCallback(text);
-        }
+
+    const stream = anthropic.messages.stream({
+      model: options.model || "claude-3-haiku",
+      max_tokens: options.maxTokens || 1024,
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    });
+
+    if (options.cancelCallback) {
+      options.cancelCallback(() => {
+        stream.abort();
       });
+    }
+
+    stream.on("text", (text) => {
+      responseText += text;
+      if (options.responseStreamCallback) {
+        options.responseStreamCallback(text);
+      }
+    });
 
     await stream.finalMessage();
 
