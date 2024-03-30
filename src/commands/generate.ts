@@ -101,7 +101,7 @@ export async function generate(
   const maxDeclare =
     args.maxDeclare ?? promptSettings?.maxDeclare ?? config?.maxDeclare ?? 30;
 
-  let completionCancel: (() => void) | undefined;
+  let cancelCompletion: (() => void) | undefined;
 
   const completionOptions: CompletionOptions = {
     model,
@@ -110,7 +110,7 @@ export async function generate(
     responseStreamCallback: args.responseStreamCallback,
     responseCallback: args.responseCallback,
     cancelCallback: (cancel) => {
-      completionCancel = cancel;
+      cancelCompletion = cancel;
     },
   };
 
@@ -196,8 +196,8 @@ export async function generate(
   }
 
   function generateCommandCancel() {
-    if (completionCancel) {
-      completionCancel();
+    if (cancelCompletion) {
+      cancelCompletion();
     }
   }
 
