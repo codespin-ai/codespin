@@ -53,7 +53,7 @@ export type GenerateArgs = {
   responseStreamCallback?: (text: string) => void;
   promptCallback?: (prompt: string) => void;
   parseCallback?: (files: SourceFile[]) => void;
-  cancelCallback?: (onCancel: () => void) => void;
+  cancelCallback?: (cancallation: () => void) => void;
 };
 
 export async function generate(
@@ -101,7 +101,7 @@ export async function generate(
   const maxDeclare =
     args.maxDeclare ?? promptSettings?.maxDeclare ?? config?.maxDeclare ?? 30;
 
-  let cancelCompletion: (() => void) | undefined;
+  let completionCancellation: (() => void) | undefined;
 
   const completionOptions: CompletionOptions = {
     model,
@@ -109,8 +109,8 @@ export async function generate(
     debug: args.debug,
     responseStreamCallback: args.responseStreamCallback,
     responseCallback: args.responseCallback,
-    cancelCallback: (onCancel) => {
-      cancelCompletion = onCancel;
+    cancelCallback: (cancellation) => {
+      completionCancellation = cancellation;
     },
   };
 
@@ -195,14 +195,14 @@ export async function generate(
     return;
   }
 
-  function cancelGenerateCommand() {
-    if (cancelCompletion) {
-      cancelCompletion();
+  function generateCommandCancellation() {
+    if (completionCancellation) {
+      completionCancellation();
     }
   }
 
   if (args.cancelCallback) {
-    args.cancelCallback(cancelGenerateCommand);
+    args.cancelCallback(generateCommandCancellation);
   }
 
   const completion = getCompletionAPI(api);
