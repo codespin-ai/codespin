@@ -7,25 +7,25 @@ import { exception } from "../exception.js";
 import { getDiff } from "../git/getDiff.js";
 import { VersionedPath } from "./VersionedPath.js";
 
-export async function getVersionedFileInfo({
-  version: versionOrDiff,
-  path: filePath,
-}: VersionedPath): Promise<VersionedFileInfo> {
+export async function getVersionedFileInfo(
+  { version: versionOrDiff, path: filePath }: VersionedPath,
+  workingDir: string
+): Promise<VersionedFileInfo> {
   const isDiff = versionOrDiff?.includes("+");
 
   if (await pathExists(filePath)) {
-    return versionOrDiff && (await isGitRepo())
+    return versionOrDiff && (await isGitRepo(workingDir))
       ? isDiff
         ? await (async () => {
             const [version1, version2] = versionOrDiff.split("+");
             const diff =
               version1 === undefined && version2 === undefined
-                ? await getDiff(filePath, "HEAD", undefined)
+                ? await getDiff(filePath, "HEAD", undefined, workingDir)
                 : version2 === undefined
-                ? await getDiff(filePath, version1, undefined)
+                ? await getDiff(filePath, version1, undefined, workingDir)
                 : version1 === undefined
                 ? exception(`The version cannot be undefined in a diff.`)
-                : await getDiff(filePath, version1, version2);
+                : await getDiff(filePath, version1, version2, workingDir);
 
             return {
               path: filePath,
@@ -37,7 +37,11 @@ export async function getVersionedFileInfo({
           })()
         : {
             path: filePath,
-            contents: await getFileFromCommit(filePath, versionOrDiff),
+            contents: await getFileFromCommit(
+              filePath,
+              versionOrDiff,
+              workingDir
+            ),
             type: "contents",
             version: versionOrDiff,
           }

@@ -2,12 +2,12 @@ import { promises as fs } from "fs";
 import { execString } from "../process/execString.js";
 import { createTempFile } from "../fs/createTempFile.js";
 import path from "path";
-import { getWorkingDir } from "../fs/workingDir.js";
 
 export async function diffStrings(
   newContent: string,
   oldContent: string,
-  filename: string
+  filename: string,
+  workingDir: string
 ): Promise<string> {
   const tempPathCurrent = await createTempFile(newContent);
   const tempPathCommitted = await createTempFile(oldContent);
@@ -15,17 +15,17 @@ export async function diffStrings(
   try {
     const diff = await execString(
       `git diff --no-index ${tempPathCommitted} ${tempPathCurrent}`,
-      getWorkingDir()
+      workingDir
     );
 
     return diff
       .replaceAll(
         `${tempPathCommitted}`,
-        `/${path.relative(getWorkingDir(), filename)}`
+        `/${path.relative(workingDir, filename)}`
       )
       .replaceAll(
         `${tempPathCurrent}`,
-        `/${path.relative(getWorkingDir(), filename)}`
+        `/${path.relative(workingDir, filename)}`
       );
   } finally {
     await Promise.all([

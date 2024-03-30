@@ -1,7 +1,10 @@
 import { errorToConsole } from "../console.js";
 import { getInvokeMode } from "../process/getInvokeMode.js";
 
-export async function stdinDirective(contents: string): Promise<string> {
+export async function stdinDirective(
+  contents: string,
+  workingDir: string
+): Promise<string> {
   if (getInvokeMode() === "cli") {
     let stdinContent = "";
 

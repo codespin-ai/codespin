@@ -7,7 +7,8 @@ import { CompletionResult } from "./CompletionResult.js";
 export type CompletionFunc = (
   prompt: string,
   codespinDir: string | undefined,
-  options: CompletionOptions
+  options: CompletionOptions,
+  workingDir: string
 ) => Promise<CompletionResult>;
 
 export function getCompletionAPI(name: string): CompletionFunc {

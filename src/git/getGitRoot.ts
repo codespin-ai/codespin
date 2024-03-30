@@ -1,10 +1,11 @@
-import { getWorkingDir } from "../fs/workingDir.js";
 import { execString } from "../process/execString.js";
 
 let gitRoot: string | undefined;
 let notUnderGit = false;
 
-export async function getGitRoot(): Promise<string | undefined> {
+export async function getGitRoot(
+  workingDir: string
+): Promise<string | undefined> {
   if (notUnderGit) {
     return undefined;
   }
@@ -13,7 +14,7 @@ export async function getGitRoot(): Promise<string | undefined> {
     if (!gitRoot) {
       const result = await execString(
         "git rev-parse --show-toplevel",
-        getWorkingDir()
+        workingDir
       );
 
       // trim is used to remove the trailing newline character from the output

@@ -5,12 +5,15 @@ import { stdinDirective } from "./stdinDirective.js";
 
 export async function processPrompt(
   contents: string,
-  filePath: string | undefined
+  filePath: string | undefined,
+  workingDir: string
 ): Promise<string> {
   return await stdinDirective(
     await execDirective(
-      await includeDirective(removeFrontMatter(contents), filePath),
-      filePath
-    )
+      await includeDirective(removeFrontMatter(contents), filePath, workingDir),
+      filePath,
+      workingDir
+    ),
+    workingDir
   );
 }

@@ -2,7 +2,7 @@ import { promises as fs } from "fs";
 import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
 import { extractCode } from "../prompts/extractCode.js";
 import { writeToConsole } from "../console.js";
-import { getWorkingDir } from "../fs/workingDir.js";
+import { CodespinContext } from "../CodeSpinContext.js";
 
 type ParseArgs = {
   filename: string;
@@ -12,15 +12,19 @@ type ParseArgs = {
   outDir: string | undefined;
 };
 
-export async function parse(args: ParseArgs): Promise<void> {
+export async function parse(
+  args: ParseArgs,
+  context: CodespinContext
+): Promise<void> {
   const llmResponse = await fs.readFile(args.filename, "utf-8");
   const files = extractCode(llmResponse);
 
   if (args.write) {
     const extractResult = await writeFilesToDisk(
-      args.outDir || getWorkingDir(),
+      args.outDir || context.workingDir,
       files,
-      args.exec
+      args.exec,
+      context.workingDir
     );
     const generatedFiles = extractResult.filter((x) => x.generated);
     const skippedFiles = extractResult.filter((x) => !x.generated);

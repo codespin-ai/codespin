@@ -13,11 +13,15 @@ let ANTHROPIC_API_KEY: string | undefined;
 let configLoaded = false; // Track if the config has already been loaded
 
 // Function to load the configuration from a file or environment variables
-async function loadConfigIfRequired(codespinDir: string | undefined) {
+async function loadConfigIfRequired(
+  codespinDir: string | undefined,
+  workingDir: string
+) {
   if (!configLoaded) {
     const anthropicConfig = await readConfig<AnthropicConfig>(
       "anthropic.json",
-      codespinDir
+      codespinDir,
+      workingDir
     );
     // Environment variables have higher priority
     ANTHROPIC_API_KEY =
@@ -30,9 +34,10 @@ async function loadConfigIfRequired(codespinDir: string | undefined) {
 export async function completion(
   prompt: string,
   codespinDir: string | undefined,
-  options: CompletionOptions
+  options: CompletionOptions,
+  workingDir: string
 ): Promise<CompletionResult> {
-  await loadConfigIfRequired(codespinDir);
+  await loadConfigIfRequired(codespinDir, workingDir);
 
   if (!ANTHROPIC_API_KEY) {
     return {

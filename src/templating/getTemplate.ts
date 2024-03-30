@@ -9,9 +9,10 @@ import { getTemplatesDir } from "../settings/getTemplatesDir.js";
 export async function getTemplate<T>(
   template: string | undefined,
   templateType: "plain" | "default" | "declarations",
-  codespinDir: string | undefined
+  codespinDir: string | undefined,
+  workingDir: string
 ): Promise<(args: T) => Promise<string>> {
-  const projectTemplateDir = await getTemplatesDir(codespinDir);
+  const projectTemplateDir = await getTemplatesDir(codespinDir, workingDir);
 
   const templatePath =
     template && (await pathExists(template))

@@ -1,10 +1,11 @@
 import path from "path";
-import { getWorkingDir } from "../fs/workingDir.js";
+
 import { execString } from "../process/execString.js";
 
 export async function execDirective(
   contents: string,
-  promptFilePath: string | undefined
+  promptFilePath: string | undefined,
+  workingDir: string
 ): Promise<string> {
   const execPattern = /codespin:exec:(.+)/g;
   let match;
@@ -15,7 +16,7 @@ export async function execDirective(
 
     const commandDir = promptFilePath
       ? path.dirname(promptFilePath)
-      : getWorkingDir();
+      : workingDir;
 
     let commandOutput;
 

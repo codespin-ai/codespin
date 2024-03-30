@@ -8,10 +8,11 @@ import {
   CODESPIN_DIRNAME,
   CODESPIN_TEMPLATES_DIRNAME,
 } from "../fs/pathNames.js";
-import { getWorkingDir } from "../fs/workingDir.js";
+
 import { writeToFile } from "../fs/writeToFile.js";
 import { getGitRoot } from "../git/getGitRoot.js";
 import { createDirIfMissing } from "../fs/createDirIfMissing.js";
+import { CodespinContext } from "../CodeSpinContext.js";
 
 type InitArgs = {
   force?: boolean;
@@ -22,11 +23,14 @@ const DEFAULT_JSON_CONTENT = {
   model: "gpt-3.5-turbo",
 };
 
-export async function init(args: InitArgs): Promise<void> {
+export async function init(
+  args: InitArgs,
+  context: CodespinContext
+): Promise<void> {
   // If we are under a git directory, we'll make .codespin under the git dir root.
   // Otherwise, we'll make .codespin under the current dir.
-  let gitDir = await getGitRoot();
-  let rootDir = gitDir ?? getWorkingDir();
+  let gitDir = await getGitRoot(context.workingDir);
+  let rootDir = gitDir ?? context.workingDir;
 
   const configDir = path.resolve(rootDir, CODESPIN_DIRNAME);
   const configFile = path.resolve(configDir, CODESPIN_CONFIG_FILENAME);

@@ -7,7 +7,8 @@ import {
 } from "../fs/pathNames.js";
 
 export async function getTemplatesDir(
-  codespinDir: string | undefined
+  codespinDir: string | undefined,
+  workingDir: string
 ): Promise<string | undefined> {
   if (
     codespinDir &&
@@ -15,7 +16,7 @@ export async function getTemplatesDir(
   ) {
     return join(codespinDir, CODESPIN_TEMPLATES_DIRNAME);
   }
-  const projectDir = codespinDir || (await getProjectRoot());
+  const projectDir = codespinDir || (await getProjectRoot(workingDir));
 
   if (projectDir) {
     const templatesDir = join(

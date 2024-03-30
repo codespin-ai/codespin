@@ -7,7 +7,7 @@ import { exception } from "../exception.js";
 import { getDeclarationsDir } from "../settings/getDeclarationsDir.js";
 import { computeHash } from "../fs/computeHash.js";
 import { pathExists } from "../fs/pathExists.js";
-import { getWorkingDir } from "../fs/workingDir.js";
+
 import { extractCode } from "../prompts/extractCode.js";
 import { getTemplate } from "../templating/getTemplate.js";
 import { getProjectRootAndAssert } from "../fs/getProjectRootAndAssert.js";
@@ -16,15 +16,16 @@ export async function generateDeclaration(
   filePath: string,
   api: string,
   codespinDir: string | undefined,
-  completionOptions: CompletionOptions
+  completionOptions: CompletionOptions,
+  workingDir: string
 ): Promise<string> {
-  // For declarations to work, you need to have initialized the project with codespin init.  
-  const projectRoot = await getProjectRootAndAssert();
+  // For declarations to work, you need to have initialized the project with codespin init.
+  const projectRoot = await getProjectRootAndAssert(workingDir);
 
   const relativePath = path.relative(projectRoot, filePath);
 
   const declarationsPath = path.join(
-    await getDeclarationsDir(codespinDir),
+    await getDeclarationsDir(codespinDir, workingDir),
     `${relativePath}.txt`
   );
 
@@ -53,7 +54,8 @@ export async function generateDeclaration(
     filePath,
     api,
     codespinDir,
-    completionOptions
+    completionOptions,
+    workingDir
   );
 
   // 7. Write the hash and the latest declarations to the declarations file
@@ -70,20 +72,22 @@ async function callCompletion(
   filePath: string,
   api: string,
   codespinDir: string | undefined,
-  completionOptions: CompletionOptions
+  completionOptions: CompletionOptions,
+  workingDir: string
 ): Promise<string> {
   const sourceCode = await readFile(filePath, "utf-8");
 
   const templateFunc = await getTemplate(
     undefined,
     "declarations",
-    codespinDir
+    codespinDir,
+    workingDir
   );
 
   const evaluatedPrompt = await templateFunc({
     filePath,
     sourceCode,
-    workingDir: getWorkingDir(),
+    workingDir,
   });
 
   const completion = getCompletionAPI(api);
@@ -91,7 +95,8 @@ async function callCompletion(
   const completionResult = await completion(
     evaluatedPrompt,
     codespinDir,
-    completionOptions
+    completionOptions,
+    workingDir
   );
 
   if (completionResult.ok) {

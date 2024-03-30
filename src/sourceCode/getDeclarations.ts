@@ -7,7 +7,8 @@ export async function getDeclarations(
   filePaths: string[],
   api: string,
   codespinDir: string | undefined,
-  completionOptions: CompletionOptions
+  completionOptions: CompletionOptions,
+  workingDir: string
 ): Promise<BasicFileInfo[]> {
   return await Promise.all(
     filePaths.map(async (filePath) => {
@@ -15,7 +16,8 @@ export async function getDeclarations(
         filePath,
         api,
         codespinDir,
-        completionOptions
+        completionOptions,
+        workingDir
       );
       return {
         path: filePath,

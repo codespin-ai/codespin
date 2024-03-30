@@ -2,9 +2,10 @@ import { CodespinConfig } from "./CodespinConfig.js";
 import { readConfig } from "./readConfig.js";
 
 export async function readCodespinConfig(
-  codespinDir: string | undefined
+  codespinDir: string | undefined,
+  workingDir: string
 ): Promise<CodespinConfig> {
-  const config = await readConfig("codespin.json", codespinDir);
+  const config = await readConfig("codespin.json", codespinDir, workingDir);
 
   if (config) {
     return config;

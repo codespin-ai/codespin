@@ -5,12 +5,9 @@ import { generate } from "./commands/generate.js";
 import { init } from "./commands/init.js";
 import { parse } from "./commands/parse.js";
 import { writeToConsole } from "./console.js";
-import { setWorkingDir } from "./fs/workingDir.js";
 import { getPackageVersion } from "./getPackageVersion.js";
 
 async function main() {
-  setWorkingDir(process.cwd());
-
   yargs(process.argv.slice(2))
     .command(
       "init",
@@ -22,7 +19,7 @@ async function main() {
           describe: "Force overwrite the codespin.json config file",
         }),
       async (argv) => {
-        await init(argv);
+        await init(argv, { workingDir: process.cwd() });
       }
     )
     .command(
@@ -148,7 +145,7 @@ async function main() {
               "Shorthand which sets template to plain.mjs and parse to false.",
           }),
       async (argv) => {
-        await generate(argv);
+        await generate(argv, { workingDir: process.cwd() });
       }
     )
     .command(
@@ -183,7 +180,7 @@ async function main() {
               "Path to directory relative to which files are generated. Defaults to the directory of the prompt file.",
           }),
       async (argv) => {
-        await parse(argv);
+        await parse(argv, { workingDir: process.cwd() });
       }
     )
     .command("version", "Display the current version", {}, () => {

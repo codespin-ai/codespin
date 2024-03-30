@@ -1,11 +1,12 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { getWorkingDir } from "../fs/workingDir.js";
+
 import { resolvePath } from "../fs/resolvePath.js";
 
 export async function includeDirective(
   contents: string,
-  promptFilePath: string | undefined
+  promptFilePath: string | undefined,
+  workingDir: string
 ): Promise<string> {
   const includePattern = /codespin:include:([^"\s]+)/g;
   let match;
@@ -16,14 +17,19 @@ export async function includeDirective(
 
     const fullPath = await resolvePath(
       includedPath,
-      promptFilePath ? path.dirname(promptFilePath) : getWorkingDir(),
-      true
+      promptFilePath ? path.dirname(promptFilePath) : workingDir,
+      true,
+      workingDir
     );
 
     let includedContent = await fs.readFile(fullPath, "utf-8");
 
     // Recursively process includes within the included content
-    includedContent = await includeDirective(includedContent, fullPath);
+    includedContent = await includeDirective(
+      includedContent,
+      fullPath,
+      workingDir
+    );
 
     // Replace the matched pattern with the included content
     contents = contents.replace(match[0], includedContent);

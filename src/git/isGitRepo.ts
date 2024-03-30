@@ -1,9 +1,8 @@
-import { getWorkingDir } from "../fs/workingDir.js";
 import { execString } from "../process/execString.js";
 
-export async function isGitRepo(): Promise<boolean> {
+export async function isGitRepo(workingDir: string): Promise<boolean> {
   try {
-    await execString("git rev-parse --is-inside-work-tree", getWorkingDir());
+    await execString("git rev-parse --is-inside-work-tree", workingDir);
     return true;
   } catch (error) {
     return false;

@@ -8,7 +8,7 @@ import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
 import { getVersionedFileInfo } from "../fs/getFileContent.js";
 import { resolvePath } from "../fs/resolvePath.js";
 import { resolveWildcardPaths } from "../fs/resolveWildcards.js";
-import { getWorkingDir } from "../fs/workingDir.js";
+
 import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
 import { writeToFile } from "../fs/writeToFile.js";
 import { extractCode } from "../prompts/extractCode.js";
@@ -24,6 +24,7 @@ import { TemplateArgs } from "../templating/TemplateArgs.js";
 import { getTemplate } from "../templating/getTemplate.js";
 import { getVersionedPath } from "../fs/getVersionedPath.js";
 import { VersionedPath } from "../fs/VersionedPath.js";
+import { CodespinContext } from "../CodeSpinContext.js";
 
 export type GenerateArgs = {
   promptFile: string | undefined;
@@ -54,25 +55,39 @@ export type GenerateArgs = {
   parseCallback?: (files: SourceFile[]) => void;
 };
 
-export async function generate(args: GenerateArgs): Promise<void> {
+export async function generate(
+  args: GenerateArgs,
+  context: CodespinContext
+): Promise<void> {
   // Convert everything to absolute paths
   const promptFilePath = args.promptFile
-    ? await resolvePath(args.promptFile, getWorkingDir(), false)
+    ? await resolvePath(
+        args.promptFile,
+        context.workingDir,
+        false,
+        context.workingDir
+      )
     : undefined;
 
   const includesFromCLI: VersionedPath[] = await Promise.all(
-    (args.include || []).map((x) => getVersionedPath(x, getWorkingDir(), false))
+    (args.include || []).map((x) =>
+      getVersionedPath(x, context.workingDir, false, context.workingDir)
+    )
   );
   const excludesFromCLI = await Promise.all(
-    (args.exclude || []).map((x) => resolvePath(x, getWorkingDir(), false))
+    (args.exclude || []).map((x) =>
+      resolvePath(x, context.workingDir, false, context.workingDir)
+    )
   );
   const declarationsFromCLI = await Promise.all(
-    (args.declare || []).map((x) => resolvePath(x, getWorkingDir(), false))
+    (args.declare || []).map((x) =>
+      resolvePath(x, context.workingDir, false, context.workingDir)
+    )
   );
 
   const mustParse = args.parse ?? (args.go ? false : true);
 
-  const config = await readCodespinConfig(args.config);
+  const config = await readCodespinConfig(args.config, context.workingDir);
 
   const promptSettings = promptFilePath
     ? await readPromptSettings(promptFilePath)
@@ -97,7 +112,8 @@ export async function generate(args: GenerateArgs): Promise<void> {
     includesFromCLI,
     excludesFromCLI,
     promptFilePath,
-    promptSettings
+    promptSettings,
+    context.workingDir
   );
 
   const declarations = await getIncludedDeclarations(
@@ -107,21 +123,29 @@ export async function generate(args: GenerateArgs): Promise<void> {
     promptSettings,
     completionOptions,
     maxDeclare,
-    args.config
+    args.config,
+    context.workingDir
   );
 
   const templateFunc = await getTemplate<TemplateArgs>(
     args.template,
     args.go ? "plain" : "default",
-    args.config
+    args.config,
+    context.workingDir
   );
 
   const { prompt, promptWithLineNumbers } = await readPrompt(
     promptFilePath,
-    args.prompt
+    args.prompt,
+    context.workingDir
   );
 
-  const outPath = await getOutPath(args.out, promptFilePath, promptSettings);
+  const outPath = await getOutPath(
+    args.out,
+    promptFilePath,
+    promptSettings,
+    context.workingDir
+  );
 
   const generateCodeTemplateArgs: TemplateArgs = {
     prompt,
@@ -131,7 +155,7 @@ export async function generate(args: GenerateArgs): Promise<void> {
     declare: declarations,
     promptSettings,
     templateArgs: args.templateArgs,
-    workingDir: getWorkingDir(),
+    workingDir: context.workingDir,
   };
 
   const evaluatedPrompt = await templateFunc(generateCodeTemplateArgs);
@@ -170,7 +194,8 @@ export async function generate(args: GenerateArgs): Promise<void> {
   const completionResult = await completion(
     evaluatedPrompt,
     args.config,
-    completionOptions
+    completionOptions,
+    context.workingDir
   );
 
   if (completionResult.ok) {
@@ -189,9 +214,10 @@ export async function generate(args: GenerateArgs): Promise<void> {
 
       if (args.write) {
         const extractResult = await writeFilesToDisk(
-          args.outDir || getWorkingDir(),
+          args.outDir || context.workingDir,
           files,
-          args.exec
+          args.exec,
+          context.workingDir
         );
         const generatedFiles = extractResult.filter((x) => x.generated);
         const skippedFiles = extractResult.filter((x) => !x.generated);
@@ -251,12 +277,13 @@ async function getIncludedFiles(
   includesFromCLI: VersionedPath[],
   excludesFromCLI: string[],
   promptFilePath: string | undefined,
-  promptSettings: PromptSettings | undefined
+  promptSettings: PromptSettings | undefined,
+  workingDir: string
 ): Promise<VersionedFileInfo[]> {
   const includesFromPrompt = promptFilePath
     ? await Promise.all(
         (promptSettings?.include || []).map(async (x) =>
-          getVersionedPath(x, path.dirname(promptFilePath), true)
+          getVersionedPath(x, path.dirname(promptFilePath), true, workingDir)
         )
       )
     : [];
@@ -283,7 +310,9 @@ async function getIncludedFiles(
     (x) => x.path
   );
 
-  const fileInfoList = await Promise.all(validFiles.map(getVersionedFileInfo));
+  const fileInfoList = await Promise.all(
+    validFiles.map((x) => getVersionedFileInfo(x, workingDir))
+  );
 
   return fileInfoList;
 }
@@ -295,12 +324,13 @@ async function getIncludedDeclarations(
   promptSettings: PromptSettings | undefined,
   completionOptions: CompletionOptions,
   maxDeclare: number,
-  codespinDir: string | undefined
+  codespinDir: string | undefined,
+  workingDir: string
 ): Promise<BasicFileInfo[]> {
   const declarationsFromPrompt = promptFilePath
     ? await Promise.all(
         (promptSettings?.declare || []).map(async (x) =>
-          resolvePath(x, path.dirname(promptFilePath), true)
+          resolvePath(x, path.dirname(promptFilePath), true, workingDir)
         )
       )
     : [];
@@ -328,7 +358,8 @@ async function getIncludedDeclarations(
       filePaths,
       api,
       codespinDir,
-      completionOptions
+      completionOptions,
+      workingDir
     );
   } else {
     return [];
@@ -340,10 +371,11 @@ async function getIncludedDeclarations(
 async function getOutPath(
   outFromCLI: string | undefined,
   promptFilePath: string | undefined,
-  promptSettings: PromptSettings | undefined
+  promptSettings: PromptSettings | undefined,
+  workingDir: string
 ): Promise<string | undefined> {
   return outFromCLI
-    ? resolvePath(outFromCLI, getWorkingDir(), false)
+    ? resolvePath(outFromCLI, workingDir, false, workingDir)
     : promptFilePath && promptSettings && promptSettings.out
     ? (() => {
         const dirOfPromptFile = path.dirname(promptFilePath);

@@ -5,7 +5,8 @@ import { VersionedPath } from "./VersionedPath.js";
 export async function getVersionedPath(
   versionedFilePath: string,
   relativeToDir: string,
-  rootIsProjectRoot: boolean
+  rootIsProjectRoot: boolean,
+  workingDir: string
 ): Promise<VersionedPath> {
   return versionedFilePath.includes(":")
     ? await (async () => {
@@ -14,14 +15,14 @@ export async function getVersionedPath(
           version: versionOrDiff,
           path:
             rootIsProjectRoot && filePath.startsWith("/")
-              ? path.join(await getProjectRootAndAssert(), filePath)
+              ? path.join(await getProjectRootAndAssert(workingDir), filePath)
               : path.resolve(relativeToDir, filePath),
         };
       })()
     : rootIsProjectRoot && versionedFilePath.startsWith("/")
     ? {
         version: undefined,
-        path: path.join(await getProjectRootAndAssert(), versionedFilePath),
+        path: path.join(await getProjectRootAndAssert(workingDir), versionedFilePath),
       }
     : {
         version: undefined,

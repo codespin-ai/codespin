@@ -8,7 +8,8 @@ import {
 } from "../fs/pathNames.js";
 
 export async function getDeclarationsDir(
-  codespinDir: string | undefined
+  codespinDir: string | undefined,
+  workingDir: string
 ): Promise<string> {
   if (
     codespinDir &&
@@ -17,7 +18,7 @@ export async function getDeclarationsDir(
     return join(codespinDir, CODESPIN_DECLARATIONS_DIRNAME);
   }
 
-  const projectDir = await getProjectRootAndAssert();
+  const projectDir = await getProjectRootAndAssert(workingDir);
 
   const declarationsDir = path.join(
     projectDir,
