@@ -25,6 +25,8 @@ import { SourceFile } from "../sourceCode/SourceFile.js";
 import { getDeclarations } from "../sourceCode/getDeclarations.js";
 import { TemplateArgs } from "../templating/TemplateArgs.js";
 import { getTemplate } from "../templating/getTemplate.js";
+import { readFile } from "fs/promises";
+import { GeneratedSourceFile } from "../sourceCode/GeneratedSourceFile.js";
 
 export type GenerateArgs = {
   promptFile: string | undefined;
@@ -52,7 +54,7 @@ export type GenerateArgs = {
   responseCallback?: (text: string) => void;
   responseStreamCallback?: (text: string) => void;
   promptCallback?: (prompt: string) => void;
-  parseCallback?: (files: SourceFile[]) => void;
+  parseCallback?: (files: GeneratedSourceFile[]) => void;
   cancelCallback?: (cancel: () => void) => void;
 };
 
@@ -225,7 +227,19 @@ export async function generate(
       const files: SourceFile[] = parseFunc(completionResult.message);
 
       if (args.parseCallback) {
-        args.parseCallback(files);
+        args.parseCallback(
+          await Promise.all(
+            files.map(async (file) => {
+              return {
+                path: file.path,
+                original: (
+                  await readFile(path.resolve(context.workingDir, file.path))
+                ).toString(),
+                generated: file.contents,
+              };
+            })
+          )
+        );
       }
 
       if (args.write) {
