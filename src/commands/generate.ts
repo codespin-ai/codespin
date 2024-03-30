@@ -9,6 +9,9 @@ import { getVersionedFileInfo } from "../fs/getFileContent.js";
 import { resolvePath } from "../fs/resolvePath.js";
 import { resolveWildcardPaths } from "../fs/resolveWildcards.js";
 
+import { CodespinContext } from "../CodeSpinContext.js";
+import { VersionedPath } from "../fs/VersionedPath.js";
+import { getVersionedPath } from "../fs/getVersionedPath.js";
 import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
 import { writeToFile } from "../fs/writeToFile.js";
 import { extractCode } from "../prompts/extractCode.js";
@@ -22,9 +25,6 @@ import { SourceFile } from "../sourceCode/SourceFile.js";
 import { getDeclarations } from "../sourceCode/getDeclarations.js";
 import { TemplateArgs } from "../templating/TemplateArgs.js";
 import { getTemplate } from "../templating/getTemplate.js";
-import { getVersionedPath } from "../fs/getVersionedPath.js";
-import { VersionedPath } from "../fs/VersionedPath.js";
-import { CodespinContext } from "../CodeSpinContext.js";
 
 export type GenerateArgs = {
   promptFile: string | undefined;
@@ -53,7 +53,7 @@ export type GenerateArgs = {
   responseStreamCallback?: (text: string) => void;
   promptCallback?: (prompt: string) => void;
   parseCallback?: (files: SourceFile[]) => void;
-  cancelCallback?: (cancallation: () => void) => void;
+  cancelCallback?: (cancel: () => void) => void;
 };
 
 export async function generate(
@@ -101,7 +101,7 @@ export async function generate(
   const maxDeclare =
     args.maxDeclare ?? promptSettings?.maxDeclare ?? config?.maxDeclare ?? 30;
 
-  let completionCancellation: (() => void) | undefined;
+  let completionCancel: (() => void) | undefined;
 
   const completionOptions: CompletionOptions = {
     model,
@@ -109,8 +109,8 @@ export async function generate(
     debug: args.debug,
     responseStreamCallback: args.responseStreamCallback,
     responseCallback: args.responseCallback,
-    cancelCallback: (cancellation) => {
-      completionCancellation = cancellation;
+    cancelCallback: (cancel) => {
+      completionCancel = cancel;
     },
   };
 
@@ -195,14 +195,14 @@ export async function generate(
     return;
   }
 
-  function generateCommandCancellation() {
-    if (completionCancellation) {
-      completionCancellation();
+  function generateCommandCancel() {
+    if (completionCancel) {
+      completionCancel();
     }
   }
 
   if (args.cancelCallback) {
-    args.cancelCallback(generateCommandCancellation);
+    args.cancelCallback(generateCommandCancel);
   }
 
   const completion = getCompletionAPI(api);
