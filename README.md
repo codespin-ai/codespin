@@ -78,13 +78,9 @@ Let's start with something simple.
 Create a file called `main.py.md` as follows:
 
 ```markdown
-# specify the output file name
-
 out: main.py
-
-# which file contents to include in the prompt
-
-## include: main.py
+include:
+  - main.py
 
 Print Hello, World!
 Include a shebang to make it directly executable.
