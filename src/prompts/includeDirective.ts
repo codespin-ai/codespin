@@ -1,7 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { resolvePathsInPrompt } from "../fs/resolvePathsInPrompt.js";
 import { getWorkingDir } from "../fs/workingDir.js";
+import { resolvePath } from "../fs/resolvePath.js";
 
 export async function includeDirective(
   contents: string,
@@ -14,9 +14,10 @@ export async function includeDirective(
   while ((match = includePattern.exec(contents)) !== null) {
     const includedPath = match[1];
 
-    const fullPath = await resolvePathsInPrompt(
+    const fullPath = await resolvePath(
+      includedPath,
       promptFilePath ? path.dirname(promptFilePath) : getWorkingDir(),
-      includedPath
+      true
     );
 
     let includedContent = await fs.readFile(fullPath, "utf-8");

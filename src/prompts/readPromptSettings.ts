@@ -3,7 +3,7 @@ import * as yaml from "js-yaml";
 import { errorToConsole } from "../console.js";
 
 export type PromptSettings = {
-  source?: string;
+  out?: string;
   model?: string;
   maxTokens?: number;
   maxDeclare?: number;

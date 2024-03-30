@@ -39,22 +39,16 @@ async function main() {
             alias: "p",
             describe: "Specify the prompt directly on the command line.",
           })
-          .option("source", {
+          .option("out", {
             type: "string",
-            alias: "s",
-            describe: "Specify the source code file name to generate.",
-          })
-          .option("head", {
-            type: "boolean",
-            default: false,
-            describe:
-              "When including source code, use the committed version (HEAD) instead of the working copy.",
+            alias: "o",
+            describe: "Specify the output file name to generate.",
           })
           .option("write", {
             type: "boolean",
             default: false,
             alias: "w",
-            describe: "Write generated code to source file.",
+            describe: "Write generated code to source file(s).",
           })
           .option("include", {
             type: "array",
@@ -154,10 +148,7 @@ async function main() {
               "Shorthand which sets template to plain.mjs and parse to false.",
           }),
       async (argv) => {
-        await generate({
-          ...argv,
-          version: argv.head ? "HEAD" : "current",
-        });
+        await generate(argv);
       }
     )
     .command(
@@ -174,7 +165,7 @@ async function main() {
             type: "boolean",
             default: false,
             alias: "w",
-            describe: "Write generated code to source file.",
+            describe: "Write generated code to source file(s).",
           })
           .option("exec", {
             type: "string",

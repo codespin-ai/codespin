@@ -1,8 +1,14 @@
 import * as path from "path";
-import { getWorkingDir } from "./workingDir.js";
+import { getProjectRootAndAssert } from "./getProjectRootAndAssert.js";
 
-export async function resolvePath(filePath: string) {
+export async function resolvePath(
+  filePath: string,
+  relativeToDir: string,
+  rootIsProjectRoot: boolean
+) {
   return filePath.startsWith("/")
-    ? filePath
-    : path.resolve(getWorkingDir(), filePath);
+    ? rootIsProjectRoot
+      ? path.join(await getProjectRootAndAssert(), filePath)
+      : path.resolve(relativeToDir, filePath)
+    : path.resolve(relativeToDir, filePath);
 }

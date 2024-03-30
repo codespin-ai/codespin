@@ -1,38 +1,21 @@
-// getDiff.ts
-
-import { promises as fs } from "fs";
-import { execString } from "../process/execString.js";
-import { createTempFile } from "../fs/createTempFile.js";
-import path from "path";
 import { getWorkingDir } from "../fs/workingDir.js";
+import { execString } from "../process/execString.js";
+import { getPathRelativeToGitRoot } from "./getPathRelativeToGitRoot.js";
 
 export async function getDiff(
-  newContent: string,
-  oldContent: string,
-  filename: string
+  filePath: string,
+  version1: string | undefined,
+  version2: string | undefined
 ): Promise<string> {
-  const tempPathCurrent = await createTempFile(newContent);
-  const tempPathCommitted = await createTempFile(oldContent);
-
-  try {
-    const diff = await execString(
-      `git diff --no-index ${tempPathCommitted} ${tempPathCurrent}`,
-      getWorkingDir()
-    );
-
-    return diff
-      .replaceAll(
-        `${tempPathCommitted}`,
-        `/${path.relative(getWorkingDir(), filename)}`
+  const relativePath = await getPathRelativeToGitRoot(filePath);
+  const committedFile = version2
+    ? await execString(
+        `git diff ${version1} ${version2} -- ${relativePath}`,
+        getWorkingDir()
       )
-      .replaceAll(
-        `${tempPathCurrent}`,
-        `/${path.relative(getWorkingDir(), filename)}`
+    : await execString(
+        `git diff ${version1} -- ${relativePath}`,
+        getWorkingDir()
       );
-  } finally {
-    await Promise.all([
-      fs.unlink(tempPathCurrent),
-      fs.unlink(tempPathCommitted),
-    ]);
-  }
+  return committedFile;
 }

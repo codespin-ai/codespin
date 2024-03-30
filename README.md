@@ -35,7 +35,7 @@ Also, check the [Discord Channel](https://discord.gg/mGRbwE7n).
 
 ## Usage
 
-Set the `OPENAI_API_KEY` environment variable. If you don't have an account, register at [https://platform.openai.com/signup](https://platform.openai.com/signup).
+Set the `OPENAI_API_KEY` (OR `ANTHROPIC_API_KEY` for Anthropic) environment variable. If you don't have an account, register at [https://platform.openai.com/signup](https://platform.openai.com/signup).
 
 If you don't want to get an `OPENAI_API_KEY`, you may also [use it with ChatGPT](#using-with-chatgpt).
 
@@ -51,7 +51,7 @@ To save the generated code to a file, use the `--write` (or `-w`) option:
 codespin gen --prompt 'Make a python program (in main.py) that prints Hello, World!' --write
 ```
 
-Simple, right? But that's just the beginning.
+Simple, right? That's just the beginning.
 
 ### codespin init
 
@@ -78,9 +78,13 @@ Let's start with something simple.
 Create a file called `main.py.md` as follows:
 
 ```markdown
----
-source: main.py
----
+# specify the output file name
+
+out: main.py
+
+# which file contents to include in the prompt
+
+## include: main.py
 
 Print Hello, World!
 Include a shebang to make it directly executable.
@@ -92,10 +96,10 @@ Then generate the code by calling codespin:
 codespin gen main.py.md --write
 ```
 
-Alternatively, you could specify the source file path with the `--source` (or `-s` shorthand) CLI parameter instead of using front-matter.
+Alternatively, you could specify the file paths in CLI with `--out` (or `-o` shorthand) and `--include` (or `-o`) instead of using front-matter.
 
 ```sh
-codespin gen main.py.md --source main.py --write
+codespin gen main.py.md --out main.py --include main.py --write
 ```
 
 #### Generating multiple files
@@ -113,26 +117,26 @@ Place database code in a different file (a database layer).
 
 #### Include External Files and Declarations
 
-For the code generator to better understand the context, you can pass the relevant external files (such as dependencies) with the `--include` (or `-i`) option.
+For the code generator to better understand the context, you must pass the relevant external files (such as dependencies) with the `--include` (or `-i`) option.
 
 For example, if `main.py` depends on `dep1.py` and `dep2.py`:
 
 ```sh
-codespin gen main.py.md -i dep1.py -i dep2.py --write
+codespin gen main.py.md --out main.py --include main.py --include dep1.py --include dep2.py --write
 ```
 
 But in some cases, including entire files (with `--include` or `-i`) will result in larger context sizes. To reduce the size of the context, you can send just the declarations/signatures found in a file with the `--declare` (or `-d`) option.
 
 ```sh
-codespin gen main.py.md -d dep1.py -d dep2.py --write
+codespin gen main.py.md --out main.py --include main.py -d dep1.py -d dep2.py --write
 ```
 
-Do note that creating declarations will require a call to the LLM. Declarations are then cached until the file changes.
+Note that creating declarations will require a call to the LLM. Declarations are then cached until the file changes.
 
 With both `--include` and `--declare`, you can specify wildcards. The following will include all ".py" files:
 
 ```sh
-codespin gen main.py.md -d "*.py" --write
+codespin gen main.py.md --out main.py -d "*.py" --write
 ```
 
 You can also define the `--include`, `--declare`, `--template`, `--parser`, `--api`, `--model`, and `--max-tokens` parameters in front-matter like this:
@@ -141,9 +145,13 @@ You can also define the `--include`, `--declare`, `--template`, `--parser`, `--a
 ---
 model: gpt-3.5-turbo-16k
 maxTokens: 8000
+out: main.py
+include:
+  - dep1.py
+  - dep2.py
 ---
 
-Generate a Python CLI script named index.py that accepts arguments and prints their sum.
+Generate a Python CLI script named index.py that accepts arguments, called the calculate() function in dep1.py and prints their sum with print() in dep2.py.
 ```
 
 #### In-place Includes in Prompt Files
@@ -183,42 +191,55 @@ The easiest way to regenerate code (for a single file) is by changing the origin
 For example, if you originally had this in `calculate_area.py.md`:
 
 ```markdown
----
-source: calculate_area.py
----
-
 Write a function named calculate_area(l, b) which returns l\*b.
 ```
 
 You could rewrite it as:
 
 ```markdown
----
-source: calculate_area.py
----
-
 Change the function calculate_area to take an additional parameter shape_type (as the first param), and return the correct caculations. The subsequent parameters are dimensions of the shape, and there could be one (for a circle) or more dimensions (for a multi-sided shape).
 ```
 
 And run the gen command as usual:
 
 ```sh
-codespin gen calculate_area.py.md -w
+codespin gen calculate_area.py.md --out calculate_area.py --include calculate_area.py -w
 ```
 
 Sometimes you want to ignore the latest modifications while generating code, and use previously committed file contents.
+The include parameter (both as a CLI arg and in frontmatter) understands git revisions.
 
-You can do that with the `--head` flag:
+You can do that by specifying the version like this.
 
 ```sh
-codespin gen main.py.md --head -w
+codespin gen calculate_area.py.md --out calculate_area.py --include HEAD:calculate_area.py -w
+```
+
+You can include diffs as well:
+
+```sh
+# Diff a file between two versions
+codespin gen main.py.md --out main.py --include HEAD~2+HEAD:main.py -w
+```
+
+There are some convenient shortcuts.
+
+```sh
+# include HEAD:main.py
+codespin gen main.py.md --out main.py --include :main.py -w
+
+# diff between HEAD and Working Copy
+codespin gen main.py.md --out main.py --include +:main.py -w
+
+# diff between HEAD~2 and Working Copy
+codespin gen main.py.md --out main.py --include HEAD~2+:main.py -w
 ```
 
 This command above will ignore the latest edits to main.py and use content from git's HEAD.
 
 #### Options for codespin gen
 
-- `-s, --source <source file path>`: Name of the source code file to generate
+- `-o, --out <output file path>`: Name of the file to generate (optional)
 - `-p, --prompt <some text>`: Specify the prompt directly in the command line.
 - `-t, --template <template path>`: Specify the template. If not provided, a default template is used.
 - `-w, --write`: Save the generated code to a file. Defaults to 'false'.
@@ -265,11 +286,9 @@ where TemplateArgs is the following:
 export type TemplateArgs = {
   prompt: string;
   promptWithLineNumbers: string;
-  version: "current" | "HEAD";
   include: VersionedFileInfo[];
   declare: BasicFileInfo[];
-  sourceFile: VersionedFileInfo | undefined;
-  targetFilePath: string | undefined;
+  outPath: string | undefined;
   promptSettings: unknown;
   templateArgs: string[] | undefined;
   workingDir: string;
@@ -280,17 +299,26 @@ export type BasicFileInfo = {
   contents: string;
 };
 
-export type VersionedFileInfo = {
-  path: string;
-  contents: string;
-  contentsWithLineNumbers: string;
-};
+export type VersionedFileInfo =
+  | {
+      path: string;
+      type: "contents";
+      contents: string;
+      version: string;
+    }
+  | {
+      path: string;
+      type: "diff";
+      diff: string;
+      version1: string | undefined;
+      version2: string | undefined;
+    };
 ```
 
 When generating code, specify custom templates with the `--template` (or `-t`) option:
 
 ```sh
-codespin gen main.py.md --template mypythontemplate.mjs --include main.py --write
+codespin gen main.py.md --out main.py --template mypythontemplate.mjs --include main.py -w
 ```
 
 💡: Your template should the extension `mjs` instead of `js`.
@@ -306,16 +334,18 @@ There are two ways to pass custom args to a custom template.
 model: gpt-3.5-turbo-16k
 maxTokens: 8000
 useJDK: true //custom arg
+out: main.py
 ---
 ```
 
-2. CLI args can be passed with the `-a` (or `--template-args`), and they'll be available in args.templateArgs as a string array.
+2. CLI args can be passed to the template with the `-a` (or `--template-args`), and they'll be available in args.templateArgs as a string array.
 
 ```sh
 codespin gen main.py.md \
   --template mypythontemplate.mjs \
   -a useAWS \
   -a swagger \
+  --out main.py \
   --include main.py \
   --write
 ```

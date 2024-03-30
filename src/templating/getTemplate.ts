@@ -6,11 +6,11 @@ import declarationsTemplate from "../templates/declarations.js";
 import { exception } from "../exception.js";
 import { getTemplatesDir } from "../settings/getTemplatesDir.js";
 
-export async function getTemplate(
+export async function getTemplate<T>(
   template: string | undefined,
   templateType: "plain" | "default" | "declarations",
   codespinDir: string | undefined
-): Promise<(args: any) => Promise<string>> {
+): Promise<(args: T) => Promise<string>> {
   const projectTemplateDir = await getTemplatesDir(codespinDir);
 
   const templatePath =
@@ -28,11 +28,11 @@ export async function getTemplate(
     return template.default;
   } else {
     return templateType === "plain"
-      ? plainTemplate
+      ? (plainTemplate as (args: T) => Promise<string>)
       : templateType === "default"
-      ? defaultTemplate
+      ? (defaultTemplate as (args: T) => Promise<string>)
       : templateType === "declarations"
-      ? declarationsTemplate
+      ? (declarationsTemplate as (args: T) => Promise<string>)
       : exception(
           `The template ${template || `${templateType}.mjs`} was not found.`
         );
