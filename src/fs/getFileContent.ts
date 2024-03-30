@@ -23,6 +23,8 @@ export async function getVersionedFileInfo({
                 ? await getDiff(filePath, "HEAD", undefined)
                 : version2 === undefined
                 ? await getDiff(filePath, version1, undefined)
+                : version1 === undefined
+                ? exception(`The version cannot be undefined in a diff.`)
                 : await getDiff(filePath, version1, version2);
 
             return {

@@ -147,7 +147,7 @@ include:
   - dep2.py
 ---
 
-Generate a Python CLI script named index.py that accepts arguments, called the calculate() function in dep1.py and prints their sum with print() in dep2.py.
+Generate a Python CLI script named index.py that accepts arguments, calls calculate() function in dep1.py and prints their sum with print() in dep2.py.
 ```
 
 #### In-place Includes in Prompt Files
