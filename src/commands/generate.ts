@@ -27,6 +27,7 @@ import { TemplateArgs } from "../templating/TemplateArgs.js";
 import { getTemplate } from "../templating/getTemplate.js";
 import { readFile } from "fs/promises";
 import { GeneratedSourceFile } from "../sourceCode/GeneratedSourceFile.js";
+import { pathExists } from "../fs/pathExists.js";
 
 export type GenerateArgs = {
   promptFile: string | undefined;
@@ -232,9 +233,13 @@ export async function generate(
             files.map(async (file) => {
               return {
                 path: file.path,
-                original: (
-                  await readFile(path.resolve(context.workingDir, file.path))
-                ).toString(),
+                original: (await pathExists(
+                  path.resolve(context.workingDir, file.path)
+                ))
+                  ? await readFile(
+                      path.resolve(context.workingDir, file.path)
+                    ).toString()
+                  : undefined,
                 generated: file.contents,
               };
             })
