@@ -80,7 +80,8 @@ Create a file called `main.py.md` as follows:
 ```markdown
 out: main.py
 include:
-  - main.py
+
+- main.py
 
 Print Hello, World!
 Include a shebang to make it directly executable.
@@ -154,7 +155,7 @@ Generate a Python CLI script named index.py that accepts arguments, calls calcul
 
 It's quite a common requirement to mention a standard set of rules in all prompt files; such as mentioning coding convetions for a project. The include directive (`codespin:include:<path>`) let's you write common rules in a file, and include them in prompts as needed.
 
-For example, if you had a `./codegen/conventions.txt` file:
+For example, if you had a `./conventions.txt` file:
 
 ```
 - Use snake_case for variables
@@ -166,7 +167,29 @@ You can include it like this:
 ```
 Generate a Python CLI script named index.py that accepts arguments and prints their sum.
 
-codespin:include:codegen/conventions.txt
+codespin:include:/conventions.txt
+```
+
+#### Spec Files
+
+Spec files are another way to handle coding conventions and other instructions.
+
+A "spec" is a template file containing a placeholder "{prompt}". The placeholder will be replaced by the prompt supplied (via the prompt file, or the --prompt argument).
+
+For example, if you have the following spec called `./myrules.txt` file:
+
+```
+{prompt}
+
+Rules:
+- Use snake_case for variables
+- Generate extensive comments
+```
+
+You can include it like this:
+
+```sh
+codespin gen main.py.md --spec myrules.txt
 ```
 
 #### Executing code in Prompt Files
@@ -235,23 +258,27 @@ This command above will ignore the latest edits to main.py and use content from 
 
 #### Options for codespin gen
 
-- `-o, --out <output file path>`: Name of the file to generate (optional)
-- `-p, --prompt <some text>`: Specify the prompt directly in the command line.
-- `-t, --template <template path>`: Specify the template. If not provided, a default template is used.
-- `-w, --write`: Save the generated code to a file. Defaults to 'false'.
-- `--pp, --print-prompt`: Display the generated prompt without making an API call.
-- `--write-prompt`: Save the generated prompt to a specified path without making an API call.
-- `--api <api name>`: Specify the API service, like 'openai'. Defaults to 'openai'.
-- `--model <model name>`: Specify the desired model, e.g., 'gpt-4'.
-- `--max-tokens <count>`: Set the maximum tokens for the generated code.
-- `-i, --include <file path>`: Specify files to include in the prompt for better context. Repeat for multiple files.
-- `-e, --exec <script path>`: Execute a command for each generated file, e.g., to run a formatting tool.
-- `--debug`: Enable debug mode, showing debug messages for each step.
-- `-c, --config <file path>`: Specify the path to a config file.
-- `--base-dir <dir path>`: Set the directory path relative to where files are generated. Defaults to the current directory.
-- `--parser <path to js file>`: Use this parser to process LLM results
-- `--no-parse`: Do not parse llm results. Print it as received.
-- `--head`: Use content from git's HEAD rather than the working copy
+- `-c, --config <file path>`: Path to a config directory (.codespin).
+- `-e, --exec <script path>`: Execute a command for each generated file.
+- `-g, --go`: Shorthand which sets the template to plain.mjs and parsing to false.
+- `-i, --include <file path>`: List of files to include in the prompt for additional context.
+- `-o, --out <output file path>`: Specify the output file name to generate.
+- `-p, --prompt <some text>`: Specify the prompt directly on the command line.
+- `-t, --template <template path>`: Path to the template file.
+- `-w, --write`: Write generated code to source file(s).
+- `--api <api name>`: API to use, such as 'openai'. Only 'openai' is supported now.
+- `--debug`: Enable debug mode. Prints debug messages for every step.
+- `--declare <file path>`: Specify declaration files for additional context. Repeat for multiple files.
+- `--exclude <file path>`: List of files to exclude from the prompt. Used to override automatically included source files.
+- `--maxDeclare <count>`: The maximum number of declaration files allowed. Defaults to 10.
+- `--maxTokens`: Maximum number of tokens for generated code.
+- `--model <model name>`: Name of the model to use, such as 'gpt-4'.
+- `--outDir <dir path>`: Path to directory relative to which files are generated. Defaults to the directory of the prompt file.
+- `--parse`: Whether the LLM response needs to be processed. Defaults to true. Use `--no-parse` to disable parsing.
+- `--parser <path to js file>`: Use a custom script to parse LLM response.
+- `--pp, --printPrompt`: Print the generated prompt to the screen. Does not call the API.
+- `--templateArgs <argument>`: An argument passed to a custom template. Can pass many by repeating `-a`.
+- `--writePrompt`: Write the generated prompt out to the specified path. Does not call the API.
 - `-h, --help`: Display help.
 
 ## Inline Prompting

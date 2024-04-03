@@ -8,7 +8,6 @@ import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
 import { getVersionedFileInfo } from "../fs/getFileContent.js";
 import { resolvePath } from "../fs/resolvePath.js";
 import { resolveWildcardPaths } from "../fs/resolveWildcards.js";
-
 import { CodespinContext } from "../CodeSpinContext.js";
 import { VersionedPath } from "../fs/VersionedPath.js";
 import { getVersionedPath } from "../fs/getVersionedPath.js";
@@ -28,6 +27,8 @@ import { getTemplate } from "../templating/getTemplate.js";
 import { readFile } from "fs/promises";
 import { GeneratedSourceFile } from "../sourceCode/GeneratedSourceFile.js";
 import { pathExists } from "../fs/pathExists.js";
+import { evalSpec } from "../specs/evalSpec.js";
+import { addLineNumbers } from "../text/addLineNumbers.js";
 
 export type GenerateArgs = {
   promptFile: string | undefined;
@@ -52,6 +53,7 @@ export type GenerateArgs = {
   parse: boolean | undefined;
   go: boolean | undefined;
   maxDeclare: number | undefined;
+  spec: string | undefined; // New option
   responseCallback?: (text: string) => void;
   responseStreamCallback?: (text: string) => void;
   promptCallback?: (prompt: string) => void;
@@ -143,11 +145,18 @@ export async function generate(
     context.workingDir
   );
 
-  const { prompt, promptWithLineNumbers } = await readPrompt(
+  const basicPrompt = await readPrompt(
     promptFilePath,
     args.prompt,
     context.workingDir
   );
+
+  // If the spec option is specified, evaluate the spec
+  const prompt = args.spec
+    ? await evalSpec(basicPrompt, args.spec, context.workingDir)
+    : basicPrompt;
+
+  const promptWithLineNumbers = addLineNumbers(prompt);
 
   const outPath = await getOutPath(
     args.out,

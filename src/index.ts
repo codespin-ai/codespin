@@ -54,6 +54,11 @@ async function main() {
               "List of files to include in the prompt. This provides additional context during code generation.",
             string: true,
           })
+          .option("spec", {
+            alias: "s",
+            type: "string",
+            describe: "A spec to apply to the prompt.",
+          })
           .option("declare", {
             type: "array",
             alias: "d",
