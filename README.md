@@ -176,7 +176,7 @@ Spec files are another way to handle coding conventions and other instructions.
 
 A "spec" is a template file containing a placeholder "{prompt}". The placeholder will be replaced by the prompt supplied (via the prompt file, or the --prompt argument).
 
-For example, if you have the following spec called `./myrules.txt` file:
+For example, if you have the following spec called `./myrules.txt`:
 
 ```
 {prompt}
@@ -277,6 +277,7 @@ This command above will ignore the latest edits to main.py and use content from 
 - `--parse`: Whether the LLM response needs to be processed. Defaults to true. Use `--no-parse` to disable parsing.
 - `--parser <path to js file>`: Use a custom script to parse LLM response.
 - `--pp, --printPrompt`: Print the generated prompt to the screen. Does not call the API.
+- `--spec`: Specify a spec (prompt template) file.
 - `--templateArgs <argument>`: An argument passed to a custom template. Can pass many by repeating `-a`.
 - `--writePrompt`: Write the generated prompt out to the specified path. Does not call the API.
 - `-h, --help`: Display help.

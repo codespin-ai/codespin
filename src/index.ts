@@ -55,9 +55,8 @@ async function main() {
             string: true,
           })
           .option("spec", {
-            alias: "s",
             type: "string",
-            describe: "A spec to apply to the prompt.",
+            describe: "A spec (template) to apply to the prompt.",
           })
           .option("declare", {
             type: "array",
