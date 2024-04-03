@@ -1,7 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 
-import { resolvePath } from "../fs/resolvePath.js";
+import { resolvePathInProject } from "../fs/resolvePath.js";
 
 export async function includeDirective(
   contents: string,
@@ -15,10 +15,9 @@ export async function includeDirective(
   while ((match = includePattern.exec(contents)) !== null) {
     const includedPath = match[1];
 
-    const fullPath = await resolvePath(
+    const fullPath = await resolvePathInProject(
       includedPath,
       promptFilePath ? path.dirname(promptFilePath) : workingDir,
-      true,
       workingDir
     );
 

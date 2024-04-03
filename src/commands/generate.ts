@@ -6,7 +6,6 @@ import { exception } from "../exception.js";
 import { BasicFileInfo } from "../fs/BasicFileInfo.js";
 import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
 import { getVersionedFileInfo } from "../fs/getFileContent.js";
-import { resolvePath } from "../fs/resolvePath.js";
 import { resolveWildcardPaths } from "../fs/resolveWildcards.js";
 import { CodespinContext } from "../CodeSpinContext.js";
 import { VersionedPath } from "../fs/VersionedPath.js";
@@ -29,6 +28,7 @@ import { GeneratedSourceFile } from "../sourceCode/GeneratedSourceFile.js";
 import { pathExists } from "../fs/pathExists.js";
 import { evalSpec } from "../specs/evalSpec.js";
 import { addLineNumbers } from "../text/addLineNumbers.js";
+import { resolvePathInProject } from "../fs/resolvePath.js";
 
 export type GenerateArgs = {
   promptFile: string | undefined;
@@ -67,12 +67,7 @@ export async function generate(
 ): Promise<void> {
   // Convert everything to absolute paths
   const promptFilePath = args.promptFile
-    ? await resolvePath(
-        args.promptFile,
-        context.workingDir,
-        false,
-        context.workingDir
-      )
+    ? await path.resolve(context.workingDir, args.promptFile)
     : undefined;
 
   const includesFromCLI: VersionedPath[] = await Promise.all(
@@ -81,14 +76,10 @@ export async function generate(
     )
   );
   const excludesFromCLI = await Promise.all(
-    (args.exclude || []).map((x) =>
-      resolvePath(x, context.workingDir, false, context.workingDir)
-    )
+    (args.exclude || []).map((x) => path.resolve(context.workingDir, x))
   );
   const declarationsFromCLI = await Promise.all(
-    (args.declare || []).map((x) =>
-      resolvePath(x, context.workingDir, false, context.workingDir)
-    )
+    (args.declare || []).map((x) => path.resolve(context.workingDir, x))
   );
 
   const mustParse = args.parse ?? (args.go ? false : true);
@@ -374,7 +365,7 @@ async function getIncludedDeclarations(
   const declarationsFromPrompt = promptFilePath
     ? await Promise.all(
         (promptSettings?.declare || []).map(async (x) =>
-          resolvePath(x, path.dirname(promptFilePath), true, workingDir)
+          resolvePathInProject(x, path.dirname(promptFilePath), workingDir)
         )
       )
     : [];
@@ -419,7 +410,7 @@ async function getOutPath(
   workingDir: string
 ): Promise<string | undefined> {
   return outFromCLI
-    ? resolvePath(outFromCLI, workingDir, false, workingDir)
+    ? path.resolve(workingDir, outFromCLI)
     : promptFilePath && promptSettings && promptSettings.out
     ? (() => {
         const dirOfPromptFile = path.dirname(promptFilePath);

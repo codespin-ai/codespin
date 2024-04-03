@@ -7,7 +7,7 @@ export async function evalSpec(
   spec: string,
   workingDir: string
 ): Promise<string> {
-  const specFilePath = path.join(workingDir, spec);
+  const specFilePath = path.resolve(workingDir, spec);
   const specContent = await fs.readFile(specFilePath, "utf-8");
   const specContentWithoutFrontMatter = spec.endsWith(".md")
     ? removeFrontMatter(specContent)
