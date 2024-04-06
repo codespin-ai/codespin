@@ -80,7 +80,7 @@ export async function init(
 
         if (
           !content.includes(
-            `${CODESPIN_DIRNAME}/${CODESPIN_DECLARATIONS_DIRNAME}`
+            `${CODESPIN_DIRNAME}/`
           )
         ) {
           await writeToFile(gitIgnorePath, `\n${CODESPIN_DIRNAME}/`, true);

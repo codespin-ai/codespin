@@ -3,8 +3,9 @@ import { fileURLToPath } from "url";
 
 function isMainModule() {
   return (
+    import.meta?.url &&
     process.argv[1] ===
-    path.resolve(fileURLToPath(import.meta.url), "../../index.js")
+      path.resolve(fileURLToPath(import.meta.url), "../../index.js")
   );
 }
 
