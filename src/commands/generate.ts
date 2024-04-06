@@ -29,6 +29,7 @@ import { pathExists } from "../fs/pathExists.js";
 import { evalSpec } from "../specs/evalSpec.js";
 import { addLineNumbers } from "../text/addLineNumbers.js";
 import { resolvePathInProject } from "../fs/resolvePath.js";
+import { getApiAndModel } from "../settings/getApiAndModel.js";
 
 export type GenerateArgs = {
   promptFile: string | undefined;
@@ -86,12 +87,19 @@ export async function generate(
 
   const config = await readCodespinConfig(args.config, context.workingDir);
 
+  const [apiFromAlias, modelFromAlias] = args.model
+    ? getApiAndModel(args.model, config)
+    : [undefined, undefined];
+
   const promptSettings = promptFilePath
     ? await readPromptSettings(promptFilePath)
     : undefined;
 
-  const api = args.api || "openai";
-  const model = args.model || promptSettings?.model || config?.model;
+  const api = args.api || apiFromAlias || "openai";
+
+  const model =
+    modelFromAlias || args.model || promptSettings?.model || config?.model;
+
   const maxTokens =
     args.maxTokens ?? promptSettings?.maxTokens ?? config?.maxTokens;
   const maxDeclare =

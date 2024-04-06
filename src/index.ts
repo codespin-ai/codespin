@@ -86,7 +86,6 @@ async function main() {
           })
           .option("api", {
             type: "string",
-            default: "openai",
             describe:
               "API to use, such as 'openai'. Only 'openai' is supported now.",
           })

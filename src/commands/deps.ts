@@ -5,6 +5,8 @@ import { getCompletionAPI } from "../api/getCompletionAPI.js";
 import { getTemplate } from "../templating/getTemplate.js";
 import { extractFromCodeBlock } from "../prompts/extractFromCodeBlock.js";
 import { writeToConsole } from "../console.js";
+import { readCodespinConfig } from "../settings/readCodespinConfig.js";
+import { getApiAndModel } from "../settings/getApiAndModel.js";
 
 type DependenciesArgs = {
   filename: string;
@@ -19,6 +21,15 @@ export async function deps(
   args: DependenciesArgs,
   context: CodespinContext
 ): Promise<string> {
+  const config = await readCodespinConfig(args.config, context.workingDir);
+
+  const [apiFromAlias, modelFromAlias] = args.model
+    ? getApiAndModel(args.model, config)
+    : [undefined, undefined];
+
+  const api = args.api || apiFromAlias || "openai";
+
+  const model = modelFromAlias || args.model || config?.model;
   const sourceCode = await fs.readFile(args.filename, "utf-8");
 
   const templateFunc = await getTemplate(
@@ -34,10 +45,8 @@ export async function deps(
     workingDir: context.workingDir,
   });
 
-  const api = args.api || "openai";
-
   const completionOptions: CompletionOptions = {
-    model: args.model,
+    model,
     maxTokens: args.maxTokens,
     debug: args.debug,
   };
