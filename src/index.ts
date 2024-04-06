@@ -4,8 +4,10 @@ import yargs from "yargs";
 import { generate } from "./commands/generate.js";
 import { init } from "./commands/init.js";
 import { parse } from "./commands/parse.js";
-import { writeToConsole } from "./console.js";
+import { errorToConsole, writeToConsole } from "./console.js";
 import { getPackageVersion } from "./getPackageVersion.js";
+import { deps } from "./commands/deps.js";
+import { Dependency } from "./templates/Dependency.js";
 
 async function main() {
   yargs(process.argv.slice(2))
@@ -158,7 +160,7 @@ async function main() {
       (yargs) =>
         yargs
           .positional("filename", {
-            describe: "Name of the prompt file.",
+            describe: "Name of the file.",
             demandOption: true,
             type: "string",
           })
@@ -185,6 +187,54 @@ async function main() {
           }),
       async (argv) => {
         await parse(argv, { workingDir: process.cwd() });
+      }
+    )
+    .command(
+      "deps <filename>",
+      "Print the dependencies of a file as JSON",
+      (yargs) =>
+        yargs
+          .positional("filename", {
+            describe: "Name of the source file.",
+            demandOption: true,
+            type: "string",
+          })
+          .option("api", {
+            type: "string",
+            default: "openai",
+            describe:
+              "API to use, such as 'openai'. Only 'openai' is supported now.",
+          })
+          .option("model", {
+            type: "string",
+            describe: "Name of the model to use. Such as 'gpt-4'.",
+          })
+          .option("maxTokens", {
+            type: "number",
+            describe: "Maximum number of tokens for generated code.",
+          })
+          .option("debug", {
+            type: "boolean",
+            describe:
+              "Enable debug mode. This prints a debug messages for every step.",
+          })
+          .option("config", {
+            type: "string",
+            alias: "c",
+            describe: "Path to a config directory (.codespin).",
+          }),
+      async (argv) => {
+        const dependenciesJSON = await deps(argv, {
+          workingDir: process.cwd(),
+        });
+        const allDeps: Dependency[] = JSON.parse(dependenciesJSON);
+        for (const item of allDeps) {
+          writeToConsole(
+            `${item.dependency} -> ${item.filePath} (${
+              item.isProjectFile ? "local" : "external"
+            })`
+          );
+        }
       }
     )
     .command("version", "Display the current version", {}, () => {

@@ -1,5 +1,5 @@
 import path from "path";
-import { TemplateArgs } from "../templating/TemplateArgs.js";
+import { TemplateArgs } from "./TemplateArgs.js";
 import { addLineNumbers } from "../text/addLineNumbers.js";
 
 export default async function generate(args: TemplateArgs): Promise<string> {

@@ -1,5 +1,5 @@
 import path from "path";
-import { DeclarationsTemplateArgs } from "../templating/DeclarationsTemplateArgs.js";
+import { DeclarationsTemplateArgs } from "./DeclarationsTemplateArgs.js";
 
 export default async function declarations(args: DeclarationsTemplateArgs) {
   return (
