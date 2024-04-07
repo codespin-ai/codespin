@@ -7,6 +7,7 @@ import { extractFromCodeBlock } from "../prompts/extractFromCodeBlock.js";
 import { writeToConsole } from "../console.js";
 import { readCodespinConfig } from "../settings/readCodespinConfig.js";
 import { getApiAndModel } from "../settings/getApiAndModel.js";
+import path from "path";
 
 type DependenciesArgs = {
   file: string;
@@ -40,7 +41,7 @@ export async function deps(
   );
 
   const evaluatedPrompt = await templateFunc({
-    filePath: args.file,
+    filePath: await path.resolve(context.workingDir, args.file),
     sourceCode,
     workingDir: context.workingDir,
   });
