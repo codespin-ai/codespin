@@ -14,7 +14,7 @@ import { getGitRoot } from "../git/getGitRoot.js";
 import { createDirIfMissing } from "../fs/createDirIfMissing.js";
 import { CodespinContext } from "../CodeSpinContext.js";
 
-type InitArgs = {
+export type InitArgs = {
   force?: boolean;
 };
 

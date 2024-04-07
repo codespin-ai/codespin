@@ -9,7 +9,7 @@ import { readCodespinConfig } from "../settings/readCodespinConfig.js";
 import { getApiAndModel } from "../settings/getApiAndModel.js";
 import path from "path";
 
-type DependenciesArgs = {
+export type DependenciesArgs = {
   file: string;
   config: string | undefined;
   api: string | undefined;
@@ -18,10 +18,16 @@ type DependenciesArgs = {
   debug: boolean | undefined;
 };
 
+export type Dependency = {
+  dependency: string;
+  filePath: string;
+  isProjectFile: boolean;
+};
+
 export async function deps(
   args: DependenciesArgs,
   context: CodespinContext
-): Promise<string> {
+): Promise<Dependency[]> {
   const config = await readCodespinConfig(args.config, context.workingDir);
 
   const [apiFromAlias, modelFromAlias] = args.model
@@ -70,7 +76,7 @@ export async function deps(
   );
 
   if (completionResult.ok) {
-    return extractFromCodeBlock(completionResult.message).contents;
+    return JSON.parse(extractFromCodeBlock(completionResult.message).contents);
   } else {
     throw new Error(
       `${completionResult.error.code}: ${completionResult.error.message}`

@@ -4,7 +4,7 @@ import { extractCode } from "../prompts/extractCode.js";
 import { writeToConsole } from "../console.js";
 import { CodespinContext } from "../CodeSpinContext.js";
 
-type ParseArgs = {
+export type ParseArgs = {
   file: string;
   write: boolean | undefined;
   exec: string | undefined;

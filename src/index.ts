@@ -1,13 +1,12 @@
 #!/usr/bin/env node
 
 import yargs from "yargs";
+import { deps } from "./commands/deps.js";
 import { generate } from "./commands/generate.js";
 import { init } from "./commands/init.js";
 import { parse } from "./commands/parse.js";
-import { errorToConsole, writeToConsole } from "./console.js";
+import { writeToConsole } from "./console.js";
 import { getPackageVersion } from "./getPackageVersion.js";
-import { deps } from "./commands/deps.js";
-import { Dependency } from "./templates/Dependency.js";
 
 async function main() {
   yargs(process.argv.slice(2))
@@ -223,10 +222,9 @@ async function main() {
             describe: "Path to a config directory (.codespin).",
           }),
       async (argv) => {
-        const dependenciesJSON = await deps(argv, {
+        const allDeps = await deps(argv, {
           workingDir: process.cwd(),
         });
-        const allDeps: Dependency[] = JSON.parse(dependenciesJSON);
         for (const item of allDeps) {
           writeToConsole(
             `${item.dependency} -> ${item.filePath} (${

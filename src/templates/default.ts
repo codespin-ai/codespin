@@ -52,6 +52,8 @@ function printFileTemplate(args: TemplateArgs) {
     //....
   }
   $END_FILE_CONTENTS:${filePath}$
+
+  DO NOT omit any code when printing the file. Don't include placeholders, "omitted for brevity" etc. You should print the complete file.
   `;
 
   return printLine(fixTemplateWhitespace(tmpl), true);
