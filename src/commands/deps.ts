@@ -8,6 +8,7 @@ import { writeToConsole } from "../console.js";
 import { readCodespinConfig } from "../settings/readCodespinConfig.js";
 import { getApiAndModel } from "../settings/getApiAndModel.js";
 import path from "path";
+import { pathExists } from "../fs/pathExists.js";
 
 export type DependenciesArgs = {
   file: string;
@@ -76,7 +77,29 @@ export async function deps(
   );
 
   if (completionResult.ok) {
-    return JSON.parse(extractFromCodeBlock(completionResult.message).contents);
+    const dependencies = JSON.parse(
+      extractFromCodeBlock(completionResult.message).contents
+    ) as Dependency[];
+
+    // Fix language specific quirks here.
+    if (args.file.endsWith(".ts")) {
+      for (const dep of dependencies) {
+        if (dep.isProjectFile) {
+          if (
+            await pathExists(
+              path.join(
+                context.workingDir,
+                dep.filePath.replace(/\.js$/, ".ts")
+              )
+            )
+          ) {
+            dep.filePath = dep.filePath.replace(/\.js$/, ".ts");
+          }
+        }
+      }
+    }
+
+    return dependencies;
   } else {
     throw new Error(
       `${completionResult.error.code}: ${completionResult.error.message}`
