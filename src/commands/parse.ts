@@ -5,7 +5,7 @@ import { writeToConsole } from "../console.js";
 import { CodespinContext } from "../CodeSpinContext.js";
 
 type ParseArgs = {
-  filename: string;
+  file: string;
   write: boolean | undefined;
   exec: string | undefined;
   config: string | undefined;
@@ -16,7 +16,7 @@ export async function parse(
   args: ParseArgs,
   context: CodespinContext
 ): Promise<void> {
-  const llmResponse = await fs.readFile(args.filename, "utf-8");
+  const llmResponse = await fs.readFile(args.file, "utf-8");
   const files = extractCode(llmResponse);
 
   if (args.write) {

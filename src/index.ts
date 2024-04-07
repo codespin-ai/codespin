@@ -154,12 +154,12 @@ async function main() {
       }
     )
     .command(
-      "parse <filename>",
+      "parse <file>",
       "Extract files from an LLM response stored in a text file",
       (yargs) =>
         yargs
-          .positional("filename", {
-            describe: "Name of the file.",
+          .positional("file", {
+            describe: "Path to the file.",
             demandOption: true,
             type: "string",
           })
@@ -189,12 +189,12 @@ async function main() {
       }
     )
     .command(
-      "deps <filename>",
+      "deps <file>",
       "Print the dependencies of a file as JSON",
       (yargs) =>
         yargs
-          .positional("filename", {
-            describe: "Name of the source file.",
+          .positional("file", {
+            describe: "Path to the source file.",
             demandOption: true,
             type: "string",
           })

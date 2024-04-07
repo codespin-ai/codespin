@@ -9,7 +9,7 @@ import { readCodespinConfig } from "../settings/readCodespinConfig.js";
 import { getApiAndModel } from "../settings/getApiAndModel.js";
 
 type DependenciesArgs = {
-  filename: string;
+  file: string;
   config: string | undefined;
   api: string | undefined;
   model: string | undefined;
@@ -30,7 +30,7 @@ export async function deps(
   const api = args.api || apiFromAlias || "openai";
 
   const model = modelFromAlias || args.model || config?.model;
-  const sourceCode = await fs.readFile(args.filename, "utf-8");
+  const sourceCode = await fs.readFile(args.file, "utf-8");
 
   const templateFunc = await getTemplate(
     undefined,
@@ -40,7 +40,7 @@ export async function deps(
   );
 
   const evaluatedPrompt = await templateFunc({
-    filePath: args.filename,
+    filePath: args.file,
     sourceCode,
     workingDir: context.workingDir,
   });

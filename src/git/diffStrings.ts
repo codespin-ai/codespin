@@ -6,7 +6,7 @@ import path from "path";
 export async function diffStrings(
   newContent: string,
   oldContent: string,
-  filename: string,
+  filePath: string,
   workingDir: string
 ): Promise<string> {
   const tempPathCurrent = await createTempFile(newContent);
@@ -21,11 +21,11 @@ export async function diffStrings(
     return diff
       .replaceAll(
         `${tempPathCommitted}`,
-        `/${path.relative(workingDir, filename)}`
+        `/${path.relative(workingDir, filePath)}`
       )
       .replaceAll(
         `${tempPathCurrent}`,
-        `/${path.relative(workingDir, filename)}`
+        `/${path.relative(workingDir, filePath)}`
       );
   } finally {
     await Promise.all([
