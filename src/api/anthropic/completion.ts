@@ -58,7 +58,7 @@ export async function completion(
 
     const stream = anthropic.messages.stream({
       model: options.model || "claude-3-haiku",
-      max_tokens: options.maxTokens || 1024,
+      max_tokens: options.maxTokens || 4096,
       messages: [
         {
           role: "user",
