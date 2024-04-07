@@ -31,7 +31,10 @@ export async function deps(
   const api = args.api || apiFromAlias || "openai";
 
   const model = modelFromAlias || args.model || config?.model;
-  const sourceCode = await fs.readFile(args.file, "utf-8");
+  const sourceCode = await fs.readFile(
+    path.resolve(context.workingDir, args.file),
+    "utf-8"
+  );
 
   const templateFunc = await getTemplate(
     undefined,
@@ -41,7 +44,7 @@ export async function deps(
   );
 
   const evaluatedPrompt = await templateFunc({
-    filePath: await path.resolve(context.workingDir, args.file),
+    filePath: args.file,
     sourceCode,
     workingDir: context.workingDir,
   });
