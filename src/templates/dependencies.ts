@@ -19,12 +19,14 @@ Your output should be structured as follows:
 ]
 \`\`\`
 
-### Example for TypeScript (for the file src/lorem/ipsum.ts):
+### Example for TypeScript (for the file src/lorem/ipsum/dolor.ts):
 
 \`\`\`typescript
 import * as express from 'express';  // External library
 import { MyInterface } from './interfaces/MyInterface';  // Project file
 import someFunc from '../someFunc.js';  // Project file
+import someFunc from '../../sit/amet.js';  // Project file
+
 \`\`\`
 
 Expected analysis output:
@@ -33,7 +35,8 @@ Expected analysis output:
 dependencies = [
   { "dependency": "express", "filePath": "node_modules/express", "isProjectFile": false },
   { "dependency": "./interfaces/MyInterface", "filePath": "src/lorem/interfaces/MyInterface.ts", "isProjectFile": true }
-  { "dependency": "../someFunc.js", "filePath": "src/someFunc.ts", "isProjectFile": true }
+  { "dependency": "../someFunc.js", "filePath": "src/lorem/someFunc.ts", "isProjectFile": true }
+  { "dependency": "../../sit/amet.js", "filePath": "src/sit/amet.ts", "isProjectFile": true }
 ]
 \`\`\`
 
@@ -62,6 +65,9 @@ ${sourceCode}
 \`\`\`
 
 Make sure relative imports (such as those starting with "../") are calculated from the file path given above.
+For example, in the typescript example above, the import "../../sit/amet.js" from the source path "src/lorem/ipsum/dolor.ts" is correctly calculated as "src/sit/amet.js".
+That's because "../../" (two levels of parent directories) got us to the "src/" directory, and the subsequent "sit/amet.js" from "src/" gave us "src/sit/amet.js".
+
 Print only the JSON and no other text. Enclose it in a JSON codeblock.
 `;
 }
