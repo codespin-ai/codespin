@@ -19,11 +19,12 @@ Your output should be structured as follows:
 ]
 \`\`\`
 
-### Example for TypeScript:
+### Example for TypeScript (for the file src/lorem/ipsum.ts):
 
 \`\`\`typescript
 import * as express from 'express';  // External library
 import { MyInterface } from './interfaces/MyInterface';  // Project file
+import someFunc from '../someFunc.js';  // Project file
 \`\`\`
 
 Expected analysis output:
@@ -31,7 +32,8 @@ Expected analysis output:
 \`\`\`json
 dependencies = [
   { "dependency": "express", "filePath": "node_modules/express", "isProjectFile": false },
-  { "dependency": "./interfaces/MyInterface", "filePath": "src/interfaces/MyInterface.ts", "isProjectFile": true }
+  { "dependency": "./interfaces/MyInterface", "filePath": "src/lorem/interfaces/MyInterface.ts", "isProjectFile": true }
+  { "dependency": "../someFunc.js", "filePath": "src/someFunc.ts", "isProjectFile": true }
 ]
 \`\`\`
 
@@ -53,12 +55,13 @@ Expected analysis output:
 
 Please apply this analysis framework universally, considering any programming language such as Rust, C++, etc. The goal is to accurately identify the nature and location of each dependency to the best of your understanding, based on the code snippet provided."
 
-The following is the source (in the file ${filePath}) to be analyzed:
+The following is the source (${filePath}) to be analyzed:
 
 \`\`\`
 ${sourceCode}
 \`\`\`
 
+Make sure relative imports (such as those starting with "../") are calculated from the file path given above.
 Print only the JSON and no other text. Enclose it in a JSON codeblock.
 `;
 }
