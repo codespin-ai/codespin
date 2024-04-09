@@ -82,18 +82,22 @@ export async function deps(
     ) as Dependency[];
 
     // Fix language specific quirks here.
-    if (args.file.endsWith(".ts")) {
+    const extensionsToCheck = ["tsx", "ts", "jsx", "js"];
+    if (extensionsToCheck.some((ext) => args.file.endsWith(`.${ext}`))) {
       for (const dep of dependencies) {
         if (dep.isProjectFile) {
-          if (
-            await pathExists(
-              path.join(
-                context.workingDir,
-                dep.filePath.replace(/\.js$/, ".ts")
-              )
-            )
-          ) {
-            dep.filePath = dep.filePath.replace(/\.js$/, ".ts");
+          for (const extension of extensionsToCheck) {
+            const potentialFilePath = path.join(
+              context.workingDir,
+              dep.filePath.replace(/\.(ts|js)x?$/, `.${extension}`)
+            );
+            if (await pathExists(potentialFilePath)) {
+              dep.filePath = dep.filePath.replace(
+                /\.(ts|js)x?$/,
+                `.${extension}`
+              );
+              break;
+            }
           }
         }
       }
