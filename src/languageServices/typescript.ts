@@ -4,10 +4,10 @@ import fs from "fs";
 import { Dependency } from "../commands/deps.js";
 
 export async function getDependencies(
-  srcPath: string,
+  srcRelativePath: string,
   workingDir: string
 ): Promise<Dependency[]> {
-  const fullPath = path.resolve(srcPath);
+  const fullPath = path.resolve(workingDir, srcRelativePath);
   const fileContent = fs.readFileSync(fullPath, "utf8");
   const sourceFile = ts.createSourceFile(
     fullPath,
