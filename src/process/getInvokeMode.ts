@@ -1,23 +1,10 @@
-import path from "path";
-import { fileURLToPath } from "url";
-
-function isMainModule() {
-  return (
-    import.meta?.url &&
-    process.argv[1] ===
-      path.resolve(fileURLToPath(import.meta.url), "../../index.js")
-  );
-}
 
 let isModule: "cli" | "module" | undefined = undefined;
 
-export function getInvokeMode() {
-  if (isModule === undefined) {
-    isModule =
-      process.env.CODESPIN_CLI_MODE === "true" || isMainModule()
-        ? "cli"
-        : "module";
-  }
+export function setInvokeMode(mode: "cli" | "module") {
+  isModule = mode;
+}
 
-  return isModule;
+export function getInvokeMode() {
+  return isModule === undefined ? "module" : isModule;
 }

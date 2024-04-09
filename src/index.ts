@@ -7,8 +7,11 @@ import { init } from "./commands/init.js";
 import { parse } from "./commands/parse.js";
 import { writeToConsole } from "./console.js";
 import { getPackageVersion } from "./getPackageVersion.js";
+import { setInvokeMode } from "./process/getInvokeMode.js";
 
-async function main() {
+setInvokeMode("cli");
+
+export async function main() {
   yargs(process.argv.slice(2))
     .command(
       "init",
