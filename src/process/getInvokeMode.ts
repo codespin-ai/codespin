@@ -1,5 +1,5 @@
 export function getInvokeMode() {
-  if (process.argv.includes("--cli")) {
+  if (process.env.CODESPIN_CLI_MODE === "true") {
     return "cli";
   } else {
     return "module";
