@@ -16,7 +16,7 @@ import { getGitRoot } from "../git/getGitRoot.js";
 
 export type InitArgs = {
   force?: boolean;
-  debug: boolean | undefined;
+  debug?: boolean;
 };
 
 const DEFAULT_JSON_CONTENT = {

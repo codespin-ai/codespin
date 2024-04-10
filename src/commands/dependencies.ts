@@ -15,11 +15,11 @@ import { Dependency } from "../sourceCode/Dependency.js";
 
 export type DependenciesArgs = {
   file: string;
-  config: string | undefined;
-  api: string | undefined;
-  model: string | undefined;
-  maxTokens: number | undefined;
-  debug: boolean | undefined;
+  config?: string;
+  api?: string;
+  model?: string;
+  maxTokens?: number;
+  debug?: boolean;
 };
 
 export type DependenciesResult = {

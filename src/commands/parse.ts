@@ -7,11 +7,11 @@ import { SourceFile } from "../sourceCode/SourceFile.js";
 
 export type ParseArgs = {
   file: string;
-  write: boolean | undefined;
-  exec: string | undefined;
-  config: string | undefined;
-  outDir: string | undefined;
-  debug: boolean | undefined;
+  write?: boolean;
+  exec?: string;
+  config?: string;
+  outDir?: string;
+  debug?: boolean;
 };
 
 export type ParseResult =
