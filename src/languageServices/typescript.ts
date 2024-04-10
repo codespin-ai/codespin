@@ -51,32 +51,48 @@ export async function getDependencies(
   }
 
   function visit(node: ts.Node) {
+    // Check for ES module import declarations
     if (
       ts.isImportDeclaration(node) &&
       node.moduleSpecifier &&
       ts.isStringLiteral(node.moduleSpecifier)
     ) {
       const importPath = node.moduleSpecifier.text;
-      let isProjectFile = false;
+      processImport(importPath, fullPath);
+    }
 
-      let resolvedPath = "";
-      if (importPath.startsWith(".") || importPath.startsWith("..")) {
-        resolvedPath = resolveFilePath(fullPath, importPath);
-        isProjectFile = true;
-      } else {
-        // Simplified handling for node_modules or external modules
-        resolvedPath = `node_modules/${importPath}`;
-        isProjectFile = false;
-      }
-
-      dependencies.push({
-        dependency: importPath,
-        filePath: path.relative(workingDir, resolvedPath),
-        isProjectFile: isProjectFile,
-      });
+    // Additional check for CommonJS require calls
+    else if (
+      ts.isCallExpression(node) &&
+      node.expression.getText(sourceFile) === "require" &&
+      node.arguments.length === 1 &&
+      ts.isStringLiteral(node.arguments[0])
+    ) {
+      const importPath = node.arguments[0].text;
+      processImport(importPath, fullPath);
     }
 
     ts.forEachChild(node, visit);
+  }
+
+  function processImport(importPath: string, basePath: string) {
+    let isProjectFile = false;
+
+    let resolvedPath = "";
+    if (importPath.startsWith(".") || importPath.startsWith("..")) {
+      resolvedPath = resolveFilePath(basePath, importPath);
+      isProjectFile = true;
+    } else {
+      // Simplified handling for node_modules or external modules
+      resolvedPath = `node_modules/${importPath}`;
+      isProjectFile = false;
+    }
+
+    dependencies.push({
+      dependency: importPath,
+      filePath: path.relative(workingDir, resolvedPath),
+      isProjectFile: isProjectFile,
+    });
   }
 
   visit(sourceFile);
