@@ -126,7 +126,7 @@ export async function generate(
     ? await readPromptSettings(promptFilePath)
     : undefined;
 
-  const api = args.api || apiFromAlias || "openai";
+  const api = args.api || apiFromAlias || config.api || "openai";
 
   const model =
     modelFromAlias || args.model || promptSettings?.model || config?.model;
