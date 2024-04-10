@@ -1,7 +1,7 @@
 import ts from "typescript";
 import path from "path";
 import fs from "fs";
-import { Dependency } from "../commands/deps.js";
+import { Dependency } from "../sourceCode/Dependency.js";
 
 export async function getDependencies(
   srcRelativePath: string,

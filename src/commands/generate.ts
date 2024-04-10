@@ -1,15 +1,19 @@
+import { readFile } from "fs/promises";
 import path from "path";
+import { CodespinContext } from "../CodeSpinContext.js";
 import { CompletionOptions } from "../api/CompletionOptions.js";
 import { getCompletionAPI } from "../api/getCompletionAPI.js";
-import { writeToConsole } from "../console.js";
+import { writeDebug } from "../console.js";
+import { setDebugFlag } from "../debugMode.js";
 import { exception } from "../exception.js";
 import { BasicFileInfo } from "../fs/BasicFileInfo.js";
 import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
-import { getVersionedFileInfo } from "../fs/getFileContent.js";
-import { resolveWildcardPaths } from "../fs/resolveWildcards.js";
-import { CodespinContext } from "../CodeSpinContext.js";
 import { VersionedPath } from "../fs/VersionedPath.js";
+import { getVersionedFileInfo } from "../fs/getFileContent.js";
 import { getVersionedPath } from "../fs/getVersionedPath.js";
+import { pathExists } from "../fs/pathExists.js";
+import { resolvePathInProject } from "../fs/resolvePath.js";
+import { resolveWildcardPaths } from "../fs/resolveWildcards.js";
 import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
 import { writeToFile } from "../fs/writeToFile.js";
 import { extractCode } from "../prompts/extractCode.js";
@@ -18,18 +22,15 @@ import {
   PromptSettings,
   readPromptSettings,
 } from "../prompts/readPromptSettings.js";
+import { getApiAndModel } from "../settings/getApiAndModel.js";
 import { readCodespinConfig } from "../settings/readCodespinConfig.js";
+import { GeneratedSourceFile } from "../sourceCode/GeneratedSourceFile.js";
 import { SourceFile } from "../sourceCode/SourceFile.js";
 import { getDeclarations } from "../sourceCode/getDeclarations.js";
+import { evalSpec } from "../specs/evalSpec.js";
 import { TemplateArgs } from "../templates/TemplateArgs.js";
 import { getTemplate } from "../templating/getTemplate.js";
-import { readFile } from "fs/promises";
-import { GeneratedSourceFile } from "../sourceCode/GeneratedSourceFile.js";
-import { pathExists } from "../fs/pathExists.js";
-import { evalSpec } from "../specs/evalSpec.js";
 import { addLineNumbers } from "../text/addLineNumbers.js";
-import { resolvePathInProject } from "../fs/resolvePath.js";
-import { getApiAndModel } from "../settings/getApiAndModel.js";
 
 export type GenerateArgs = {
   promptFile: string | undefined;
@@ -62,10 +63,40 @@ export type GenerateArgs = {
   cancelCallback?: (cancel: () => void) => void;
 };
 
+export type GenerateResult =
+  | {
+      type: "prompt";
+      prompt: string | undefined;
+      filePath: string | undefined;
+    }
+  | {
+      type: "saved";
+      generatedFiles: {
+        generated: boolean;
+        file: string;
+      }[];
+      skippedFiles: {
+        generated: boolean;
+        file: string;
+      }[];
+    }
+  | {
+      type: "files";
+      files: SourceFile[];
+    }
+  | {
+      type: "unparsed";
+      text: string;
+    };
+
 export async function generate(
   args: GenerateArgs,
   context: CodespinContext
-): Promise<void> {
+): Promise<GenerateResult> {
+  if (args.debug) {
+    setDebugFlag();
+  }
+
   // Convert everything to absolute paths
   const promptFilePath = args.promptFile
     ? await path.resolve(context.workingDir, args.promptFile)
@@ -110,7 +141,6 @@ export async function generate(
   const completionOptions: CompletionOptions = {
     model,
     maxTokens,
-    debug: args.debug,
     responseStreamCallback: args.responseStreamCallback,
     responseCallback: args.responseCallback,
     cancelCallback: (cancel) => {
@@ -181,16 +211,10 @@ export async function generate(
     args.promptCallback(evaluatedPrompt);
   }
 
-  if (args.debug) {
-    writeToConsole("--- PROMPT ---");
-    writeToConsole(evaluatedPrompt);
-  }
+  writeDebug("--- PROMPT ---");
+  writeDebug(evaluatedPrompt);
 
   if (args.printPrompt || typeof args.writePrompt !== "undefined") {
-    if (args.printPrompt) {
-      writeToConsole(evaluatedPrompt);
-    }
-
     if (typeof args.writePrompt !== "undefined") {
       // If --write-prompt is specified but no file is mentioned
       if (!args.writePrompt) {
@@ -198,12 +222,14 @@ export async function generate(
           `Specify a file path for the --write-prompt parameter.`
         );
       }
-
       await writeToFile(args.writePrompt, evaluatedPrompt, false);
-      writeToConsole(`Wrote prompt to ${args.writePrompt}`);
     }
 
-    return;
+    return {
+      type: "prompt",
+      prompt: args.printPrompt ? evaluatedPrompt : undefined,
+      filePath: args.writePrompt ? args.writePrompt : undefined,
+    };
   }
 
   function generateCommandCancel() {
@@ -264,28 +290,22 @@ export async function generate(
         );
         const generatedFiles = extractResult.filter((x) => x.generated);
         const skippedFiles = extractResult.filter((x) => !x.generated);
-
-        if (generatedFiles.length) {
-          writeToConsole(
-            `Generated ${generatedFiles.map((x) => x.file).join(", ")}.`
-          );
-        }
-        if (skippedFiles.length) {
-          writeToConsole(
-            `Skipped ${skippedFiles.map((x) => x.file).join(", ")}.`
-          );
-        }
+        return {
+          type: "saved",
+          generatedFiles,
+          skippedFiles,
+        };
       } else {
-        for (const file of files) {
-          const header = `FILE: ${file.path}`;
-          writeToConsole(header);
-          writeToConsole("-".repeat(header.length));
-          writeToConsole(file.contents);
-          writeToConsole();
-        }
+        return {
+          type: "files",
+          files,
+        };
       }
     } else {
-      writeToConsole(completionResult.message);
+      return {
+        type: "unparsed",
+        text: completionResult.message,
+      };
     }
   } else {
     if (completionResult.error.code === "length") {

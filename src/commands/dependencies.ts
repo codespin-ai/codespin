@@ -1,15 +1,17 @@
 import { promises as fs } from "fs";
+import path from "path";
 import { CodespinContext } from "../CodeSpinContext.js";
 import { CompletionOptions } from "../api/CompletionOptions.js";
 import { getCompletionAPI } from "../api/getCompletionAPI.js";
-import { getTemplate } from "../templating/getTemplate.js";
-import { extractFromCodeBlock } from "../prompts/extractFromCodeBlock.js";
-import { writeToConsole } from "../console.js";
-import { readCodespinConfig } from "../settings/readCodespinConfig.js";
-import { getApiAndModel } from "../settings/getApiAndModel.js";
-import path from "path";
+import { writeDebug } from "../console.js";
+import { setDebugFlag } from "../debugMode.js";
 import { pathExists } from "../fs/pathExists.js";
 import { getLanguageService } from "../languageServices/getLanguageService.js";
+import { extractFromCodeBlock } from "../prompts/extractFromCodeBlock.js";
+import { getApiAndModel } from "../settings/getApiAndModel.js";
+import { readCodespinConfig } from "../settings/readCodespinConfig.js";
+import { getTemplate } from "../templating/getTemplate.js";
+import { Dependency } from "../sourceCode/Dependency.js";
 
 export type DependenciesArgs = {
   file: string;
@@ -20,21 +22,28 @@ export type DependenciesArgs = {
   debug: boolean | undefined;
 };
 
-export type Dependency = {
-  dependency: string;
-  filePath: string;
-  isProjectFile: boolean;
+export type DependenciesResult = {
+  dependencies: Dependency[];
 };
 
-export async function deps(
+export async function dependencies(
   args: DependenciesArgs,
   context: CodespinContext
-): Promise<Dependency[]> {
+): Promise<DependenciesResult> {
+  if (args.debug) {
+    setDebugFlag();
+  }
+
   // First see if we can get a language service.
   const languageService = getLanguageService(args.file);
 
   if (languageService) {
-    return languageService.getDependencies(args.file, context.workingDir);
+    return {
+      dependencies: await languageService.getDependencies(
+        args.file,
+        context.workingDir
+      ),
+    };
   }
   // No language service.
   else {
@@ -68,13 +77,10 @@ export async function deps(
     const completionOptions: CompletionOptions = {
       model,
       maxTokens: args.maxTokens,
-      debug: args.debug,
     };
 
-    if (args.debug) {
-      writeToConsole("--- PROMPT ---");
-      writeToConsole(evaluatedPrompt);
-    }
+    writeDebug("--- PROMPT ---");
+    writeDebug(evaluatedPrompt);
 
     const completion = getCompletionAPI(api);
 
@@ -112,7 +118,7 @@ export async function deps(
         }
       }
 
-      return dependencies;
+      return { dependencies };
     } else {
       throw new Error(
         `${completionResult.error.code}: ${completionResult.error.message}`

@@ -1,8 +1,9 @@
 import { promises as fs } from "fs";
+import { CodespinContext } from "../CodeSpinContext.js";
+import { setDebugFlag } from "../debugMode.js";
 import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
 import { extractCode } from "../prompts/extractCode.js";
-import { writeToConsole } from "../console.js";
-import { CodespinContext } from "../CodeSpinContext.js";
+import { SourceFile } from "../sourceCode/SourceFile.js";
 
 export type ParseArgs = {
   file: string;
@@ -10,12 +11,34 @@ export type ParseArgs = {
   exec: string | undefined;
   config: string | undefined;
   outDir: string | undefined;
+  debug: boolean | undefined;
 };
+
+export type ParseResult =
+  | {
+      type: "saved";
+      generatedFiles: {
+        generated: boolean;
+        file: string;
+      }[];
+      skippedFiles: {
+        generated: boolean;
+        file: string;
+      }[];
+    }
+  | {
+      type: "files";
+      files: SourceFile[];
+    };
 
 export async function parse(
   args: ParseArgs,
   context: CodespinContext
-): Promise<void> {
+): Promise<ParseResult> {
+  if (args.debug) {
+    setDebugFlag();
+  }
+
   const llmResponse = await fs.readFile(args.file, "utf-8");
   const files = extractCode(llmResponse);
 
@@ -29,21 +52,15 @@ export async function parse(
     const generatedFiles = extractResult.filter((x) => x.generated);
     const skippedFiles = extractResult.filter((x) => !x.generated);
 
-    if (generatedFiles.length) {
-      writeToConsole(
-        `Generated ${generatedFiles.map((x) => x.file).join(", ")}.`
-      );
-    }
-    if (skippedFiles.length) {
-      writeToConsole(`Skipped ${skippedFiles.map((x) => x.file).join(", ")}.`);
-    }
+    return {
+      type: "saved",
+      generatedFiles,
+      skippedFiles,
+    };
   } else {
-    for (const file of files) {
-      const header = `FILE: ${file.path}`;
-      writeToConsole(header);
-      writeToConsole("-".repeat(header.length));
-      writeToConsole(file.contents);
-      writeToConsole();
-    }
+    return {
+      type: "files",
+      files,
+    };
   }
 }

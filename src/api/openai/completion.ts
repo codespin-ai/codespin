@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { writeToConsole } from "../../console.js";
+import { writeDebug } from "../../console.js";
 import { readConfig } from "../../settings/readConfig.js";
 import { CompletionOptions } from "../CompletionOptions.js";
 import { CompletionResult } from "../CompletionResult.js";
@@ -56,58 +56,41 @@ export async function completion(
   }
 
   const model = options.model || "gpt-3.5-turbo";
-  const debug = Boolean(options.debug);
 
-  if (debug) {
-    writeToConsole(`OPENAI: model=${model}`);
-    if (options.maxTokens) {
-      writeToConsole(`OPENAI: maxTokens=${options.maxTokens}`);
-    }
+  writeDebug(`OPENAI: model=${model}`);
+  if (options.maxTokens) {
+    writeDebug(`OPENAI: maxTokens=${options.maxTokens}`);
   }
 
-  try {
-    const stream = await openaiClient.chat.completions.create({
-      model: model,
-      messages: [{ role: "user", content: prompt }],
-      max_tokens: options.maxTokens,
-      stream: true,
+  const stream = await openaiClient.chat.completions.create({
+    model: model,
+    messages: [{ role: "user", content: prompt }],
+    max_tokens: options.maxTokens,
+    stream: true,
+  });
+
+  if (options.cancelCallback) {
+    options.cancelCallback(() => {
+      stream.controller.abort();
     });
-
-    if (options.cancelCallback) {
-      options.cancelCallback(() => {
-        stream.controller.abort();
-      });
-    }
-
-    let responseText = "";
-
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content || "";
-      responseText += content;
-      if (options.responseStreamCallback) {
-        options.responseStreamCallback(content);
-      }
-    }
-
-    if (options.responseCallback) {
-      options.responseCallback(responseText);
-    }
-
-    if (debug) {
-      writeToConsole("---OPENAI RESPONSE---");
-      writeToConsole(responseText);
-    }
-
-    return { ok: true, message: responseText };
-  } catch (error: any) {
-    return {
-      ok: false,
-      error: {
-        code: "api_error",
-        message:
-          error.message ||
-          "An error occurred while communicating with the OpenAI API.",
-      },
-    };
   }
+
+  let responseText = "";
+
+  for await (const chunk of stream) {
+    const content = chunk.choices[0]?.delta?.content || "";
+    responseText += content;
+    if (options.responseStreamCallback) {
+      options.responseStreamCallback(content);
+    }
+  }
+
+  if (options.responseCallback) {
+    options.responseCallback(responseText);
+  }
+
+  writeDebug("---OPENAI RESPONSE---");
+  writeDebug(responseText);
+
+  return { ok: true, message: responseText };
 }

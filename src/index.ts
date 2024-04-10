@@ -1,11 +1,10 @@
 #!/usr/bin/env node
 
 import yargs from "yargs";
-import { deps } from "./commands/deps.js";
+import { dependencies } from "./commands/dependencies.js";
 import { generate } from "./commands/generate.js";
 import { init } from "./commands/init.js";
 import { parse } from "./commands/parse.js";
-import { writeToConsole } from "./console.js";
 import { getPackageVersion } from "./getPackageVersion.js";
 import { setInvokeMode } from "./process/getInvokeMode.js";
 
@@ -17,13 +16,20 @@ export async function main() {
       "init",
       "Initialize a codespin project",
       (yargs) =>
-        yargs.option("force", {
-          type: "boolean",
-          demandOption: false,
-          describe: "Force overwrite the codespin.json config file",
-        }),
+        yargs
+          .option("force", {
+            type: "boolean",
+            demandOption: false,
+            describe: "Force overwrite the codespin.json config file",
+          })
+          .option("debug", {
+            type: "boolean",
+            describe:
+              "Enable debug mode. This prints a debug messages for every step.",
+          }),
       async (argv) => {
         await init(argv, { workingDir: process.cwd() });
+        writeToConsole("Initialization completed.");
       }
     )
     .command(
@@ -152,7 +158,39 @@ export async function main() {
               "Shorthand which sets template to plain.mjs and parse to false.",
           }),
       async (argv) => {
-        await generate(argv, { workingDir: process.cwd() });
+        const result = await generate(argv, { workingDir: process.cwd() });
+
+        if (result.type === "files") {
+          for (const file of result.files) {
+            const header = `FILE: ${file.path}`;
+            writeToConsole(header);
+            writeToConsole("-".repeat(header.length));
+            writeToConsole(file.contents);
+            writeToConsole();
+          }
+        } else if (result.type === "saved") {
+          if (result.generatedFiles.length) {
+            writeToConsole(
+              `Generated ${result.generatedFiles
+                .map((x) => x.file)
+                .join(", ")}.`
+            );
+          }
+          if (result.skippedFiles.length) {
+            writeToConsole(
+              `Skipped ${result.skippedFiles.map((x) => x.file).join(", ")}.`
+            );
+          }
+        } else if (result.type === "prompt") {
+          if (result.prompt) {
+            writeToConsole(result.prompt);
+          }
+          if (result.filePath) {
+            writeToConsole(`Wrote prompt to ${result.filePath}`);
+          }
+        } else if (result.type === "unparsed") {
+          writeToConsole(result.text);
+        }
       }
     )
     .command(
@@ -185,9 +223,37 @@ export async function main() {
             type: "string",
             describe:
               "Path to directory relative to which files are generated. Defaults to the directory of the prompt file.",
+          })
+          .option("debug", {
+            type: "boolean",
+            describe:
+              "Enable debug mode. This prints a debug messages for every step.",
           }),
       async (argv) => {
-        await parse(argv, { workingDir: process.cwd() });
+        const result = await parse(argv, { workingDir: process.cwd() });
+
+        if (result.type === "files") {
+          for (const file of result.files) {
+            const header = `FILE: ${file.path}`;
+            writeToConsole(header);
+            writeToConsole("-".repeat(header.length));
+            writeToConsole(file.contents);
+            writeToConsole();
+          }
+        } else if (result.type === "saved") {
+          if (result.generatedFiles.length) {
+            writeToConsole(
+              `Generated ${result.generatedFiles
+                .map((x) => x.file)
+                .join(", ")}.`
+            );
+          }
+          if (result.skippedFiles.length) {
+            writeToConsole(
+              `Skipped ${result.skippedFiles.map((x) => x.file).join(", ")}.`
+            );
+          }
+        }
       }
     )
     .command(
@@ -225,10 +291,10 @@ export async function main() {
             describe: "Path to a config directory (.codespin).",
           }),
       async (argv) => {
-        const allDeps = await deps(argv, {
+        const result = await dependencies(argv, {
           workingDir: process.cwd(),
         });
-        for (const item of allDeps) {
+        for (const item of result.dependencies) {
           writeToConsole(
             `${item.dependency} -> ${item.filePath} (${
               item.isProjectFile ? "local" : "external"
@@ -237,13 +303,18 @@ export async function main() {
         }
       }
     )
-    .command("version", "Display the current version", {}, () => {
-      writeToConsole(getPackageVersion());
+    .command("version", "Display the current version", {}, async () => {
+      const version = await getPackageVersion();
+      writeToConsole(version);
     })
     .showHelpOnFail(false)
     .completion()
     .help("help")
     .alias("h", "help").argv;
+}
+
+function writeToConsole(text?: string) {
+  console.log(text || "");
 }
 
 main();

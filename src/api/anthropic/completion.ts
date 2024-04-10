@@ -1,6 +1,6 @@
 // Import necessary modules and types
 import Anthropic from "@anthropic-ai/sdk";
-import { writeToConsole } from "../../console.js";
+import { writeDebug } from "../../console.js";
 import { readConfig } from "../../settings/readConfig.js";
 import { CompletionOptions } from "../CompletionOptions.js";
 import { CompletionResult } from "../CompletionResult.js";
@@ -49,58 +49,51 @@ export async function completion(
     };
   }
 
+  const model = options.model || "claude-3-haiku";
+
+  writeDebug(`ANTHROPIC: model=${model}`);
+  if (options.maxTokens) {
+    writeDebug(`ANTHROPIC: maxTokens=${options.maxTokens}`);
+  }
+
   const anthropic = new Anthropic({
     apiKey: ANTHROPIC_API_KEY,
   });
 
-  try {
-    let responseText = "";
+  let responseText = "";
 
-    const stream = anthropic.messages.stream({
-      model: options.model || "claude-3-haiku",
-      max_tokens: options.maxTokens || 4096,
-      messages: [
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-    });
-
-    if (options.cancelCallback) {
-      options.cancelCallback(() => {
-        stream.abort();
-      });
-    }
-
-    stream.on("text", (text) => {
-      responseText += text;
-      if (options.responseStreamCallback) {
-        options.responseStreamCallback(text);
-      }
-    });
-
-    await stream.finalMessage();
-
-    if (options.responseCallback) {
-      options.responseCallback(responseText);
-    }
-
-    if (options.debug) {
-      writeToConsole("---ANTHROPIC RESPONSE---");
-      writeToConsole(responseText);
-    }
-
-    return { ok: true, message: responseText };
-  } catch (error: any) {
-    return {
-      ok: false,
-      error: {
-        code: "sdk_error",
-        message:
-          error.message ||
-          "An error occurred during the Anthropic SDK operation.",
+  const stream = anthropic.messages.stream({
+    model,
+    max_tokens: options.maxTokens || 4096,
+    messages: [
+      {
+        role: "user",
+        content: prompt,
       },
-    };
+    ],
+  });
+
+  if (options.cancelCallback) {
+    options.cancelCallback(() => {
+      stream.abort();
+    });
   }
+
+  stream.on("text", (text) => {
+    responseText += text;
+    if (options.responseStreamCallback) {
+      options.responseStreamCallback(text);
+    }
+  });
+
+  await stream.finalMessage();
+
+  if (options.responseCallback) {
+    options.responseCallback(responseText);
+  }
+
+  writeDebug("---ANTHROPIC RESPONSE---");
+  writeDebug(responseText);
+
+  return { ok: true, message: responseText };
 }

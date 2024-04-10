@@ -18,15 +18,7 @@ export async function execDirective(
       ? path.dirname(promptFilePath)
       : workingDir;
 
-    let commandOutput;
-
-    try {
-      commandOutput = await execString(command, commandDir);
-    } catch (err: any) {
-      throw new Error(
-        `Failed to execute command: ${command}. Error: ${err.message}`
-      );
-    }
+    const commandOutput = await execString(command, commandDir);
 
     // Replace the matched pattern with the command output
     contents = contents.replace(match[0], commandOutput);
