@@ -63,31 +63,39 @@ export type GenerateArgs = {
   cancelCallback?: (cancel: () => void) => void;
 };
 
+export type PromptResult = {
+  type: "prompt";
+  prompt: string | undefined;
+  filePath: string | undefined;
+};
+
+export type SavedFilesResult = {
+  type: "saved";
+  generatedFiles: {
+    generated: boolean;
+    file: string;
+  }[];
+  skippedFiles: {
+    generated: boolean;
+    file: string;
+  }[];
+};
+
+export type FilesResult = {
+  type: "files";
+  files: SourceFile[];
+};
+
+export type UnparsedResult = {
+  type: "unparsed";
+  text: string;
+};
+
 export type GenerateResult =
-  | {
-      type: "prompt";
-      prompt: string | undefined;
-      filePath: string | undefined;
-    }
-  | {
-      type: "saved";
-      generatedFiles: {
-        generated: boolean;
-        file: string;
-      }[];
-      skippedFiles: {
-        generated: boolean;
-        file: string;
-      }[];
-    }
-  | {
-      type: "files";
-      files: SourceFile[];
-    }
-  | {
-      type: "unparsed";
-      text: string;
-    };
+  | PromptResult
+  | SavedFilesResult
+  | FilesResult
+  | UnparsedResult;
 
 export async function generate(
   args: GenerateArgs,

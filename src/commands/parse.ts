@@ -4,6 +4,7 @@ import { setDebugFlag } from "../debugMode.js";
 import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
 import { extractCode } from "../prompts/extractCode.js";
 import { SourceFile } from "../sourceCode/SourceFile.js";
+import { FilesResult, SavedFilesResult } from "./generate.js";
 
 export type ParseArgs = {
   file: string;
@@ -14,22 +15,7 @@ export type ParseArgs = {
   debug?: boolean;
 };
 
-export type ParseResult =
-  | {
-      type: "saved";
-      generatedFiles: {
-        generated: boolean;
-        file: string;
-      }[];
-      skippedFiles: {
-        generated: boolean;
-        file: string;
-      }[];
-    }
-  | {
-      type: "files";
-      files: SourceFile[];
-    };
+export type ParseResult = SavedFilesResult | FilesResult;
 
 export async function parse(
   args: ParseArgs,
