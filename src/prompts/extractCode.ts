@@ -9,14 +9,18 @@ type FileInfo = {
 
 export type ParseFunc = (
   response: string,
-  isDiff: boolean | undefined
+  isDiff: boolean | undefined,
+  workingDir: string
 ) => Promise<SourceFile[]>;
 
 export async function extractCode(
   response: string,
-  isDiff: boolean | undefined
+  isDiff: boolean | undefined,
+  workingDir: string
 ): Promise<SourceFile[]> {
-  return isDiff ? await applyCustomDiff(response) : parseFileContents(response);
+  return isDiff
+    ? await applyCustomDiff(response, workingDir)
+    : parseFileContents(response);
 }
 
 const parseFileContents = (input: string): FileInfo[] => {

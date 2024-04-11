@@ -1,4 +1,5 @@
 import { promises as fs } from "fs";
+import * as path from "path";
 
 type ContentLine = {
   type: "content";
@@ -98,13 +99,17 @@ const parseUpdates = (
 };
 
 export async function applyCustomDiff(
-  updateString: string
+  updateString: string,
+  workingDir: string
 ): Promise<SourceFile[]> {
   const updates = parseUpdates(updateString);
 
   return Promise.all(
-    updates.map(async ({ path, operations }) => {
-      const fileContent = await fs.readFile(path, "utf-8");
+    updates.map(async ({ path: filePath, operations }) => {
+      const fileContent = await fs.readFile(
+        path.resolve(workingDir, filePath),
+        "utf-8"
+      );
 
       const lines: FileLine[] = fileContent
         .split("\n")
@@ -186,7 +191,7 @@ export async function applyCustomDiff(
         })
         .join("\n");
 
-      return { path, contents: finalContent };
+      return { path: filePath, contents: finalContent };
     })
   );
 }

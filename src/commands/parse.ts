@@ -27,7 +27,7 @@ export async function parse(
   }
 
   const llmResponse = await fs.readFile(args.file, "utf-8");
-  const files = await extractCode(llmResponse, args.diff);
+  const files = await extractCode(llmResponse, args.diff, context.workingDir);
 
   if (args.write) {
     const extractResult = await writeFilesToDisk(
