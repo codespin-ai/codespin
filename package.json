@@ -1,6 +1,6 @@
 {
   "name": "codespin",
-  "version": "0.0.176",
+  "version": "0.0.177",
   "description": "Source code generation with LLM prompts",
   "main": "dist/index.js",
   "scripts": {

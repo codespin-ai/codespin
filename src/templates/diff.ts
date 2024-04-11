@@ -114,7 +114,27 @@ function printFileTemplate(args: TemplateArgs, config: CodespinConfig) {
       
       $${END_UPDATES_MARKER}:./src/math_operations.ts$
   
-  Make sure you include line 136 as well in the deletion, since it's part of the function (the "artefact" in this case).
+  In this case, make sure you include line 136 as well in the deletion, since it's a part of the function (the "artefact" in this case).
+
+  If files are lengthy or if there are many files, you must reduce the size of the output by printing only the edits which are necessary (instead of reprinting the entire file).
+
+  For example, if the task is to say remove comments across a bunch of files, you could respond with something like:
+      $${START_UPDATES_MARKER}:./src/some/file.ts$
+      $DELETE_LINES:43-44$
+      $${END_UPDATES_MARKER}:./src/some/file.ts$
+
+      $${START_UPDATES_MARKER}:./src/other/file.ts$
+      $DELETE_LINES:66-66$
+      $DELETE_LINES:122-124$
+      $DELETE_LINES:211-211$
+      $${END_UPDATES_MARKER}:./src/other/file.ts$
+
+      $${START_UPDATES_MARKER}:./src/another/file.ts$
+      $DELETE_LINES:1-1$
+      $DELETE_LINES:11-11$
+      $${END_UPDATES_MARKER}:./src/another/file.ts$
+
+  In the above example, you were able to edit three files while keeping the response size very small. In the same way, wherever possible print only the changes which need to be made.
   `;
 
   return printLine(fixTemplateWhitespace(tmpl), true);
