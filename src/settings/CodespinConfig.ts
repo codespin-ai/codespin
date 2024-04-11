@@ -6,4 +6,10 @@ export type CodespinConfig = {
   models?: {
     [key: string]: string;
   };
+  markers?: {
+    START_UPDATES: string;
+    END_UPDATES: string;
+    START_FILE_CONTENTS: string;
+    END_FILE_CONTENTS: string;
+  };
 };

@@ -1,5 +1,7 @@
 import { promises as fs } from "fs";
 import * as path from "path";
+import { CodespinConfig } from "../settings/CodespinConfig.js";
+import { getEndUpdatesRegex, getStartUpdatesRegex } from "./markers.js";
 
 type ContentLine = {
   type: "content";
@@ -44,17 +46,18 @@ type Operation = DeleteLinesOperation | InsertLinesOperation;
 export type SourceFile = { path: string; contents: string };
 
 const parseUpdates = (
-  updates: string
+  updates: string,
+  config: CodespinConfig
 ): { path: string; operations: Operation[] }[] => {
   // Split updates for multiple files
   const fileUpdates = updates
-    .split(/\$END_FILE_CONTENTS:.*?\$/)
+    .split(getEndUpdatesRegex(config))
     .filter((update) => update.trim())
     .map((update) => update.trim());
 
   return fileUpdates.map((update) => {
     // Extract file path
-    const filePathMatch = update.match(/\$START_UPDATES:(.*?)\$/);
+    const filePathMatch = update.match(getStartUpdatesRegex(config));
     const path = filePathMatch ? filePathMatch[1].trim() : "";
 
     const operations: Operation[] = [];
@@ -100,9 +103,10 @@ const parseUpdates = (
 
 export async function applyCustomDiff(
   updateString: string,
-  workingDir: string
+  workingDir: string,
+  config: CodespinConfig
 ): Promise<SourceFile[]> {
-  const updates = parseUpdates(updateString);
+  const updates = parseUpdates(updateString, config);
 
   return Promise.all(
     updates.map(async ({ path: filePath, operations }) => {

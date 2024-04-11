@@ -7,13 +7,19 @@ import defaultTemplate from "../templates/default.js";
 import dependenciesTemplate from "../templates/dependencies.js";
 import diffTemplate from "../templates/diff.js";
 import plainTemplate from "../templates/plain.js";
+import { CodespinConfig } from "../settings/CodespinConfig.js";
+
+export type TemplateFunc<T> = (
+  args: T,
+  config: CodespinConfig
+) => Promise<string>;
 
 export async function getTemplate<T>(
   template: string | undefined,
   templateType: "plain" | "declarations" | "default" | "dependencies" | "diff",
   customConfigDir: string | undefined,
   workingDir: string
-): Promise<(args: T) => Promise<string>> {
+): Promise<TemplateFunc<T>> {
   const projectTemplateDir = await getTemplatesDir(customConfigDir, workingDir);
 
   const templatePath =
@@ -31,15 +37,15 @@ export async function getTemplate<T>(
     return template.default;
   } else {
     return templateType === "plain"
-      ? (plainTemplate as (args: T) => Promise<string>)
+      ? (plainTemplate as TemplateFunc<T>)
       : templateType === "default"
-      ? (defaultTemplate as (args: T) => Promise<string>)
+      ? (defaultTemplate as TemplateFunc<T>)
       : templateType === "declarations"
-      ? (declarationsTemplate as (args: T) => Promise<string>)
+      ? (declarationsTemplate as TemplateFunc<T>)
       : templateType === "dependencies"
-      ? (dependenciesTemplate as (args: T) => Promise<string>)
+      ? (dependenciesTemplate as TemplateFunc<T>)
       : templateType === "diff"
-      ? (diffTemplate as (args: T) => Promise<string>)
+      ? (diffTemplate as TemplateFunc<T>)
       : exception(
           `The template ${template || `${templateType}.mjs`} was not found.`
         );

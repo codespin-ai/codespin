@@ -1,8 +1,16 @@
 import path from "path";
 import { TemplateArgs } from "./TemplateArgs.js";
 import { addLineNumbers } from "../text/addLineNumbers.js";
+import { CodespinConfig } from "../settings/CodespinConfig.js";
+import {
+  getEndFileContentsMarker,
+  getStartFileContentsMarker,
+} from "../prompts/markers.js";
 
-export default async function generate(args: TemplateArgs): Promise<string> {
+export default async function generate(
+  args: TemplateArgs,
+  config: CodespinConfig
+): Promise<string> {
   return (
     (args.outPath
       ? printLine(
@@ -18,7 +26,7 @@ export default async function generate(args: TemplateArgs): Promise<string> {
     (args.outPath ? printLine("-----", true) : "") +
     printDeclarations(args) +
     printIncludeFiles(args, false) +
-    printFileTemplate(args)
+    printFileTemplate(args, config)
   );
 }
 
@@ -39,21 +47,23 @@ function relativePath(filePath: string, workingDir: string) {
   return "./" + path.relative(workingDir, filePath);
 }
 
-function printFileTemplate(args: TemplateArgs) {
+function printFileTemplate(args: TemplateArgs, config: CodespinConfig) {
+  const START_FILE_CONTENTS_MARKER = getStartFileContentsMarker(config);
+  const END_FILE_CONTENTS_MARKER = getEndFileContentsMarker(config);
   const filePath = args.outPath
     ? relativePath(args.outPath, args.workingDir)
     : "./some/path/filename.ext";
   const tmpl = `
   Respond with just the code (but exclude invocation examples etc) in the following format:
 
-  $START_FILE_CONTENTS:${filePath}$
+  $${START_FILE_CONTENTS_MARKER}:${filePath}$
   import a from "./a";
   function somethingSomething() {
     //....
   }
-  $END_FILE_CONTENTS:${filePath}$
+  $${END_FILE_CONTENTS_MARKER}:${filePath}$
 
-  DO NOT omit any code when printing the file. Don't include placeholders, "omitted for brevity" etc. You should print the complete file.
+  DO NOT omit any code when printing the file. Don't include placeholders, "omitted for brevity" etc. You should print the complete file.  
   `;
 
   return printLine(fixTemplateWhitespace(tmpl), true);

@@ -48,10 +48,7 @@ export async function dependencies(
   else {
     const config = await readCodespinConfig(args.config, context.workingDir);
 
-    const [api, model] = getApiAndModel(
-      [args.model, config.model],
-      config
-    );
+    const [api, model] = getApiAndModel([args.model, config.model], config);
 
     const sourceCode = await fs.readFile(
       path.resolve(context.workingDir, args.file),
@@ -65,11 +62,14 @@ export async function dependencies(
       context.workingDir
     );
 
-    const evaluatedPrompt = await templateFunc({
-      filePath: args.file,
-      sourceCode,
-      workingDir: context.workingDir,
-    });
+    const evaluatedPrompt = await templateFunc(
+      {
+        filePath: args.file,
+        sourceCode,
+        workingDir: context.workingDir,
+      },
+      config
+    );
 
     const completionOptions: CompletionOptions = {
       model,
@@ -90,7 +90,7 @@ export async function dependencies(
 
     if (completionResult.ok) {
       const dependencies = JSON.parse(
-        extractFromCodeBlock(completionResult.message).contents
+        extractFromCodeBlock(completionResult.message, true).contents
       ) as Dependency[];
 
       // Fix language specific quirks here.

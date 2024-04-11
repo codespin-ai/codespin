@@ -1,7 +1,11 @@
 import path from "path";
 import { DeclarationsTemplateArgs } from "./DeclarationsTemplateArgs.js";
+import { CodespinConfig } from "../settings/CodespinConfig.js";
 
-export default async function declarations(args: DeclarationsTemplateArgs) {
+export default async function declarations(
+  args: DeclarationsTemplateArgs,
+  config: CodespinConfig
+) {
   return (
     printLine(
       `I'd like you to extract the declarations/signatures of all classes, functions, methods, types, constants etc which are exported (or exposed to outside) from the following code. Ignore everything private.`,

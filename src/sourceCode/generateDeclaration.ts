@@ -4,20 +4,22 @@ import path from "path";
 import { CompletionOptions } from "../api/CompletionOptions.js";
 import { getCompletionAPI } from "../api/getCompletionAPI.js";
 import { exception } from "../exception.js";
-import { getDeclarationsDir } from "../settings/getDeclarationsDir.js";
 import { computeHash } from "../fs/computeHash.js";
 import { pathExists } from "../fs/pathExists.js";
+import { getDeclarationsDir } from "../settings/getDeclarationsDir.js";
 
+import { getProjectRootAndAssert } from "../fs/getProjectRootAndAssert.js";
 import { extractCode } from "../prompts/extractCode.js";
 import { getTemplate } from "../templating/getTemplate.js";
-import { getProjectRootAndAssert } from "../fs/getProjectRootAndAssert.js";
+import { CodespinConfig } from "../settings/CodespinConfig.js";
 
 export async function generateDeclaration(
   filePath: string,
   api: string,
   customConfigDir: string | undefined,
   completionOptions: CompletionOptions,
-  workingDir: string
+  workingDir: string,
+  config: CodespinConfig
 ): Promise<string> {
   // For declarations to work, you need to have initialized the project with codespin init.
   const projectRoot = await getProjectRootAndAssert(workingDir);
@@ -55,7 +57,8 @@ export async function generateDeclaration(
     api,
     customConfigDir,
     completionOptions,
-    workingDir
+    workingDir,
+    config
   );
 
   // 7. Write the hash and the latest declarations to the declarations file
@@ -73,7 +76,8 @@ async function callCompletion(
   api: string,
   customConfigDir: string | undefined,
   completionOptions: CompletionOptions,
-  workingDir: string
+  workingDir: string,
+  config: CodespinConfig
 ): Promise<string> {
   const sourceCode = await readFile(filePath, "utf-8");
 
@@ -84,11 +88,14 @@ async function callCompletion(
     workingDir
   );
 
-  const evaluatedPrompt = await templateFunc({
-    filePath,
-    sourceCode,
-    workingDir,
-  });
+  const evaluatedPrompt = await templateFunc(
+    {
+      filePath,
+      sourceCode,
+      workingDir,
+    },
+    config
+  );
 
   const completion = getCompletionAPI(api);
 
@@ -103,7 +110,8 @@ async function callCompletion(
     const files = await extractCode(
       completionResult.message,
       false,
-      workingDir
+      workingDir,
+      config
     );
     return files[0].contents;
   } else {

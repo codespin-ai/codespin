@@ -1,8 +1,13 @@
 import path from "path";
 import { TemplateArgs } from "./TemplateArgs.js";
 import { addLineNumbers } from "../text/addLineNumbers.js";
+import { CodespinConfig } from "../settings/CodespinConfig.js";
+import { getStartUpdatesMarker } from "../prompts/markers.js";
 
-export default async function generate(args: TemplateArgs): Promise<string> {
+export default async function generate(
+  args: TemplateArgs,
+  config: CodespinConfig
+): Promise<string> {
   return (
     (args.outPath
       ? printLine(
@@ -18,7 +23,7 @@ export default async function generate(args: TemplateArgs): Promise<string> {
     (args.outPath ? printLine("-----", true) : "") +
     printDeclarations(args) +
     printIncludeFiles(args, true) +
-    printFileTemplate(args)
+    printFileTemplate(args, config)
   );
 }
 
@@ -39,19 +44,18 @@ function relativePath(filePath: string, workingDir: string) {
   return "./" + path.relative(workingDir, filePath);
 }
 
-function printFileTemplate(args: TemplateArgs) {
-  const filePath = args.outPath
-    ? relativePath(args.outPath, args.workingDir)
-    : "./some/path/filename.ext";
+function printFileTemplate(args: TemplateArgs, config: CodespinConfig) {
+  const START_UPDATES_MARKER = getStartUpdatesMarker(config);
+  const END_UPDATES_MARKER = getStartUpdatesMarker(config);
 
   const tmpl = `
   I want you to respond in the following format:
 
-  - $START_UPDATES:file_path$: Marks the beginning of updates for the file specified by file_path.
+  - $${START_UPDATES_MARKER}:file_path$: Marks the beginning of updates for the file specified by file_path.
   - $INSERT_LINES:line_number$: Indicates the start of a block of lines to be inserted at the specified line_number. The line number is based on the file's original state.
   - $END_INSERT_LINES$: Marks the end of the insertion block.
   - $DELETE_LINES:from_line_num-to_line_num$: Specifies a range of lines to be deleted, inclusive of both from_line_num and to_line_num.
-  - $END_UPDATES:file_path$: Marks the end of updates for the file specified by file_path.
+  - $${END_UPDATES_MARKER}:file_path$: Marks the end of updates for the file specified by file_path.
   - line numbers always reference the original line numbers.
   - Do not worry about line numbers changing as content is added. The references always point to the original line numbers.
   - To replace a line, you'll have to delete a line and insert it again.
@@ -73,7 +77,7 @@ function printFileTemplate(args: TemplateArgs) {
   You should produce the following result:
 
   \`\`\`
-  $START_UPDATES:math_operations.ts$
+  $${START_UPDATES_MARKER}:math_operations.ts$
 
   $DELETE_LINES:1-1$
   $INSERT_LINES:1$
@@ -85,7 +89,7 @@ function printFileTemplate(args: TemplateArgs) {
     if (logMessage) console.log(logMessage + result);
   $END_INSERT_LINES$
   
-  $END_UPDATES:math_operations.ts$
+  $${END_UPDATES_MARKER}:math_operations.ts$
 
   If the modified artefact (such as a code block, function, class, interface etc) is small (that is, say less than 10 lines), consider replacing the entire artefact rather than individual lines.
   When doing this, make sure you delete the entire artefect (ie, the entire function or code-block or class or other, including any trailing/concluding braces etc), and then regenerated that entire block.

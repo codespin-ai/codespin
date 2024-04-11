@@ -31,6 +31,7 @@ import { evalSpec } from "../specs/evalSpec.js";
 import { TemplateArgs } from "../templates/TemplateArgs.js";
 import { getTemplate } from "../templating/getTemplate.js";
 import { addLineNumbers } from "../text/addLineNumbers.js";
+import { CodespinConfig } from "../settings/CodespinConfig.js";
 
 export type GenerateArgs = {
   promptFile?: string;
@@ -168,7 +169,8 @@ export async function generate(
     completionOptions,
     maxDeclare,
     args.config,
-    context.workingDir
+    context.workingDir,
+    config
   );
 
   const templateFunc = await getTemplate<TemplateArgs>(
@@ -210,7 +212,7 @@ export async function generate(
     debug: args.debug,
   };
 
-  const evaluatedPrompt = await templateFunc(generateCodeTemplateArgs);
+  const evaluatedPrompt = await templateFunc(generateCodeTemplateArgs, config);
 
   if (args.promptCallback) {
     args.promptCallback(evaluatedPrompt);
@@ -397,7 +399,8 @@ async function getIncludedDeclarations(
   completionOptions: CompletionOptions,
   maxDeclare: number,
   customConfigDir: string | undefined,
-  workingDir: string
+  workingDir: string,
+  config: CodespinConfig
 ): Promise<BasicFileInfo[]> {
   const declarationsFromPrompt = promptFilePath
     ? await Promise.all(
@@ -431,7 +434,8 @@ async function getIncludedDeclarations(
       api,
       customConfigDir,
       completionOptions,
-      workingDir
+      workingDir,
+      config
     );
   } else {
     return [];

@@ -5,6 +5,7 @@ import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
 import { extractCode } from "../prompts/extractCode.js";
 import { SourceFile } from "../sourceCode/SourceFile.js";
 import { FilesResult, SavedFilesResult } from "./generate.js";
+import { readCodespinConfig } from "../settings/readCodespinConfig.js";
 
 export type ParseArgs = {
   file: string;
@@ -26,8 +27,15 @@ export async function parse(
     setDebugFlag();
   }
 
+  const config = await readCodespinConfig(args.config, context.workingDir);
+
   const llmResponse = await fs.readFile(args.file, "utf-8");
-  const files = await extractCode(llmResponse, args.diff, context.workingDir);
+  const files = await extractCode(
+    llmResponse,
+    args.diff,
+    context.workingDir,
+    config
+  );
 
   if (args.write) {
     const extractResult = await writeFilesToDisk(

@@ -1,3 +1,4 @@
+import { CodespinConfig } from "../settings/CodespinConfig.js";
 import { DependenciesTemplateArgs } from "./DependenciesTemplateArgs.js";
 
 function makePrompt(filePath: string, sourceCode: string) {
@@ -72,6 +73,9 @@ Print only the JSON and no other text. Enclose it in a JSON codeblock.
 `;
 }
 
-export default async function declarations(args: DependenciesTemplateArgs) {
+export default async function declarations(
+  args: DependenciesTemplateArgs,
+  config: CodespinConfig
+) {
   return makePrompt(args.filePath, args.sourceCode);
 }
