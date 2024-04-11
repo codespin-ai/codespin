@@ -31,6 +31,12 @@ const DEFAULT_JSON_CONTENT = {
     "claude-3-sonnet": "anthropic:claude-3-sonnet-20240229",
     "claude-3-opus": "anthropic:claude-3-opus-20240229",
   },
+  markers: {
+    START_UPDATES: "START_UPDATES",
+    END_UPDATES: "END_UPDATES",
+    START_FILE_CONTENTS: "START_FILE_CONTENTS",
+    END_FILE_CONTENTS: "END_FILE_CONTENTS",
+  },
 };
 
 const DEFAULT_OPENAI_CONFIG = {
@@ -61,7 +67,7 @@ export async function init(
         `${configDir} already exists. Use the --force option to overwrite.`
       );
     }
-    
+
     // Create the config dir at root
     await createDirIfMissing(configDir);
 
