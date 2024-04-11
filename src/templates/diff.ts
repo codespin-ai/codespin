@@ -90,7 +90,17 @@ function printFileTemplate(args: TemplateArgs) {
   If the modified artefact (such as a code block, function, class, interface etc) is small (that is, say less than 10 lines), consider replacing the entire artefact rather than individual lines.
   When doing this, make sure you delete the entire artefect (ie, the entire function or code-block or class or other, including any trailing/concluding braces etc), and then regenerated that entire block.
 
-  If the content to be generated (across all files) is less than a hundred lines, you can consider deleting all lines in a file at once (with DELETE_LINES) and then re-inserting the desired content for that file (with INSERT_LINES) at once.
+  For example, if you decide to replace the following function:
+  \`\`\`
+  133: function multiply(a: number, b: number) {
+  134:   let result = a * b;
+  135:   return result;
+  136: }
+  \`\`\`
+
+  You must do '$DELETE_LINES:133-136$'. Make sure you include 136 as well, since it's part of the function.
+
+  If the content to be generated (across all files) is less than a hundred lines, you can consider deleting all lines in the file at once (by specifying 1 and last line number in DELETE_LINES) and then re-inserting the entire content for that file with a single INSERT_LINES directive.
   
   \`\`\`
   `;
