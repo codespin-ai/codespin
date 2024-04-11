@@ -50,63 +50,71 @@ function printFileTemplate(args: TemplateArgs, config: CodespinConfig) {
 
   const tmpl = `
   I want you to respond in the following format:
-
   - $${START_UPDATES_MARKER}:file_path$: Marks the beginning of updates for the file specified by file_path.
+  - $${END_UPDATES_MARKER}:file_path$: Marks the end of updates for the file specified by file_path.
+  - Multiple files can be updated by repeating "$${START_UPDATES_MARKER}:file_path$ and $${END_UPDATES_MARKER}:file_path$ blocks
+  
+  Within a block:
   - $INSERT_LINES:line_number$: Indicates the start of a block of lines to be inserted at the specified line_number. The line number is based on the file's original state.
   - $END_INSERT_LINES$: Marks the end of the insertion block.
-  - $DELETE_LINES:from_line_num-to_line_num$: Specifies a range of lines to be deleted, inclusive of both from_line_num and to_line_num.
-  - $${END_UPDATES_MARKER}:file_path$: Marks the end of updates for the file specified by file_path.
+  - $DELETE_LINES:start_line_num-end_line_num$: Specifies a range of lines to be deleted, inclusive of both start_line_num and end_line_num.
   - line numbers always reference the original line numbers.
   - Do not worry about line numbers changing as content is added. The references always point to the original line numbers.
   - To replace a line, you'll have to delete a line and insert it again.
   
-  Example:
+  Let's look at some examples:
 
-  Suppose you have a file named math_operations.ts (with line numbers added) with the following content:
+  Suppose you have a file named ./src/math_operations.ts (with line numbers added) with the following content:
 
-  \`\`\`
-  1: function addNumbers(a: number, b: number) {
-  2:   let result = a + b;
-  3:   console.log("The result is: " + result);
-  4:   return result;
-  5: }
-  \`\`\`
+      \`\`\`
+      1: function addNumbers(a: number, b: number) {
+      2:   let result = a + b;
+      3:   console.log("The result is: " + result);
+      4:   return result;
+      5: }
+      \`\`\`
 
-  And your instruction is - "Change the function name to sumNumbers, add a parameter for an optional logging message, and replace the console log line with a conditional one that only logs the result if the logging message is provided."
+  And your instructions are: "Change the function name to sumNumbers, add a parameter for an optional logging message, and replace the console log line with a conditional one that only logs the result if the logging message is provided."
 
-  You should produce the following result:
+  Then your response should be as follows:
+      $${START_UPDATES_MARKER}:./src/math_operations.ts$
 
-  \`\`\`
-  $${START_UPDATES_MARKER}:math_operations.ts$
+      $DELETE_LINES:1-1$
+      $INSERT_LINES:1$
+      function sumNumbers(a: number, b: number, logMessage?: string) {
+      $END_INSERT_LINES$
+      
+      $DELETE_LINES:3-3$
+      $INSERT_LINES:3$
+        if (logMessage) console.log(logMessage + result);
+      $END_INSERT_LINES$
+      
+      $${END_UPDATES_MARKER}:./src/math_operations.ts$
+      
+  The above response updates only a single file. For multiple updates, repeat the $${START_UPDATES_MARKER}:..$ and $${END_UPDATES_MARKER}:..$ blocks.
 
-  $DELETE_LINES:1-1$
-  $INSERT_LINES:1$
-  function sumNumbers(a: number, b: number, logMessage?: string) {
-  $END_INSERT_LINES$
+  If you're updating more than 50% of a "code artefact" (a "code artefact" being a code block, function, class, interface etc), consider replacing the entire artefact rather than individual lines.
+  If you decide to do this, make sure you delete the entire "code artefect", and then regenerate the artefact.
+
+  For example, if you decide to modify a large part of the following function:
+      \`\`\`
+      133: function multiply(a: number, b: number) {
+      134:   let result = a * b;
+      135:   return result;
+      136: }
+      \`\`\`
+
+  You must respond with:
+      $${START_UPDATES_MARKER}:./src/math_operations.ts$
+
+      $DELETE_LINES:133-136$
+      $INSERT_LINES:133$
+      /// whatever you want to insert...
+      $END_INSERT_LINES$
+      
+      $${END_UPDATES_MARKER}:./src/math_operations.ts$
   
-  $DELETE_LINES:3-3$
-  $INSERT_LINES:3$
-    if (logMessage) console.log(logMessage + result);
-  $END_INSERT_LINES$
-  
-  $${END_UPDATES_MARKER}:math_operations.ts$
-
-  If the modified artefact (such as a code block, function, class, interface etc) is small (that is, say less than 10 lines), consider replacing the entire artefact rather than individual lines.
-  When doing this, make sure you delete the entire artefect (ie, the entire function or code-block or class or other, including any trailing/concluding braces etc), and then regenerated that entire block.
-
-  For example, if you decide to replace the following function:
-  \`\`\`
-  133: function multiply(a: number, b: number) {
-  134:   let result = a * b;
-  135:   return result;
-  136: }
-  \`\`\`
-
-  You must do '$DELETE_LINES:133-136$'. Make sure you include 136 as well, since it's part of the function.
-
-  If the content to be generated (across all files) is less than a hundred lines, you can consider deleting all lines in the file at once (by specifying 1 and last line number in DELETE_LINES) and then re-inserting the entire content for that file with a single INSERT_LINES directive.
-  
-  \`\`\`
+  Make sure you include line 136 as well in the deletion, since it's part of the function (the "artefact" in this case).
   `;
 
   return printLine(fixTemplateWhitespace(tmpl), true);
