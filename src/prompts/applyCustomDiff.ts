@@ -172,6 +172,8 @@ export async function applyCustomDiff(
       });
 
       // Compile final content
+      const deleted = Symbol("DELETED");
+
       const finalContent = withInsertions
         .map((line) => {
           switch (line.type) {
@@ -182,11 +184,12 @@ export async function applyCustomDiff(
             case "contentWithInsertion":
               return `${line.content}\n${line.inserted}`;
             case "deleted":
-              return "";
+              return deleted;
             default:
-              return "";
+              return deleted;
           }
         })
+        .filter((x) => x !== deleted)
         .join("\n");
 
       return { path: filePath, contents: finalContent };
