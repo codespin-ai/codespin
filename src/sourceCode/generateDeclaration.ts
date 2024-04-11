@@ -100,7 +100,7 @@ async function callCompletion(
   );
 
   if (completionResult.ok) {
-    const files = extractCode(completionResult.message);
+    const files = await extractCode(completionResult.message, false);
     return files[0].contents;
   } else {
     exception(`Unable to generate declarations for ${filePath}`);

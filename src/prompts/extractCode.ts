@@ -1,13 +1,22 @@
 import { SourceFile } from "../sourceCode/SourceFile.js";
+import { applyCustomDiff } from "./applyCustomDiff.js";
+import { extractFromCodeBlock } from "./extractFromCodeBlock.js";
 
 type FileInfo = {
   path: string;
   contents: string;
 };
 
-export function extractCode(response: string): SourceFile[] {
-  const result = parseFileContents(response);
-  return result;
+export type ParseFunc = (
+  response: string,
+  isDiff: boolean | undefined
+) => Promise<SourceFile[]>;
+
+export async function extractCode(
+  response: string,
+  isDiff: boolean | undefined
+): Promise<SourceFile[]> {
+  return isDiff ? await applyCustomDiff(response) : parseFileContents(response);
 }
 
 const parseFileContents = (input: string): FileInfo[] => {

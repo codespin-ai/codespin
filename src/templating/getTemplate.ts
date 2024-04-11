@@ -5,11 +5,12 @@ import { getTemplatesDir } from "../settings/getTemplatesDir.js";
 import declarationsTemplate from "../templates/declarations.js";
 import defaultTemplate from "../templates/default.js";
 import dependenciesTemplate from "../templates/dependencies.js";
+import diffTemplate from "../templates/diff.js";
 import plainTemplate from "../templates/plain.js";
 
 export async function getTemplate<T>(
   template: string | undefined,
-  templateType: "plain" | "default" | "declarations" | "dependencies",
+  templateType: "plain" | "declarations" | "default" | "dependencies" | "diff",
   customConfigDir: string | undefined,
   workingDir: string
 ): Promise<(args: T) => Promise<string>> {
@@ -37,6 +38,8 @@ export async function getTemplate<T>(
       ? (declarationsTemplate as (args: T) => Promise<string>)
       : templateType === "dependencies"
       ? (dependenciesTemplate as (args: T) => Promise<string>)
+      : templateType === "diff"
+      ? (diffTemplate as (args: T) => Promise<string>)
       : exception(
           `The template ${template || `${templateType}.mjs`} was not found.`
         );

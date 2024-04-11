@@ -13,6 +13,7 @@ export type ParseArgs = {
   config?: string;
   outDir?: string;
   debug?: boolean;
+  diff?: boolean;
 };
 
 export type ParseResult = SavedFilesResult | FilesResult;
@@ -26,7 +27,7 @@ export async function parse(
   }
 
   const llmResponse = await fs.readFile(args.file, "utf-8");
-  const files = extractCode(llmResponse);
+  const files = await extractCode(llmResponse, args.diff);
 
   if (args.write) {
     const extractResult = await writeFilesToDisk(

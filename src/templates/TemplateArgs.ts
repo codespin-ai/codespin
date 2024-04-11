@@ -6,9 +6,9 @@ export type TemplateArgs = {
   promptWithLineNumbers: string;
   include: VersionedFileInfo[];
   declare: BasicFileInfo[];
-  outPath: string | undefined;  
+  outPath: string | undefined;
   promptSettings: unknown;
   templateArgs: string[] | undefined;
   workingDir: string;
+  debug: boolean | undefined;
 };
-

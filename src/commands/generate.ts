@@ -16,7 +16,7 @@ import { resolvePathInProject } from "../fs/resolvePath.js";
 import { resolveWildcardPaths } from "../fs/resolveWildcards.js";
 import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
 import { writeToFile } from "../fs/writeToFile.js";
-import { extractCode } from "../prompts/extractCode.js";
+import { ParseFunc, extractCode } from "../prompts/extractCode.js";
 import { readPrompt } from "../prompts/readPrompt.js";
 import {
   PromptSettings,
@@ -55,6 +55,7 @@ export type GenerateArgs = {
   go?: boolean;
   maxDeclare?: number;
   spec?: string;
+  diff?: boolean;
   responseCallback?: (text: string) => void;
   responseStreamCallback?: (text: string) => void;
   promptCallback?: (prompt: string) => void;
@@ -172,7 +173,7 @@ export async function generate(
 
   const templateFunc = await getTemplate<TemplateArgs>(
     args.template,
-    args.go ? "plain" : "default",
+    args.go ? "plain" : args.diff ? "diff" : "default",
     args.config,
     context.workingDir
   );
@@ -206,6 +207,7 @@ export async function generate(
     promptSettings,
     templateArgs: args.templateArgs,
     workingDir: context.workingDir,
+    debug: args.debug,
   };
 
   const evaluatedPrompt = await templateFunc(generateCodeTemplateArgs);
@@ -258,11 +260,14 @@ export async function generate(
     if (mustParse) {
       // Do we have a custom response parser?
       const customParser = args.parser || promptSettings?.parser;
-      const parseFunc = customParser
+      const parseFunc: ParseFunc = customParser
         ? (await import(customParser)).default
         : extractCode;
 
-      const files: SourceFile[] = parseFunc(completionResult.message);
+      const files: SourceFile[] = await parseFunc(
+        completionResult.message,
+        args.diff
+      );
 
       if (args.parseCallback) {
         args.parseCallback(
