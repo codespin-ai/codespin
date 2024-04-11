@@ -10,10 +10,10 @@ import plainTemplate from "../templates/plain.js";
 export async function getTemplate<T>(
   template: string | undefined,
   templateType: "plain" | "default" | "declarations" | "dependencies",
-  codespinDir: string | undefined,
+  customConfigDir: string | undefined,
   workingDir: string
 ): Promise<(args: T) => Promise<string>> {
-  const projectTemplateDir = await getTemplatesDir(codespinDir, workingDir);
+  const projectTemplateDir = await getTemplatesDir(customConfigDir, workingDir);
 
   const templatePath =
     template && (await pathExists(template))
