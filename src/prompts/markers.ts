@@ -6,7 +6,7 @@ export function getStartUpdatesMarker(config: CodespinConfig) {
 
 export function getStartUpdatesRegex(config: CodespinConfig) {
   const marker = getStartUpdatesMarker(config);
-  return new RegExp(`\\$${marker}:(.*?)\\$\\s*`, "s");
+  return new RegExp(`\\$${marker}:(.*?)\\$(.*)`, "s");
 }
 
 export function getEndUpdatesMarker(config: CodespinConfig) {
@@ -24,7 +24,7 @@ export function getStartFileContentsMarker(config: CodespinConfig) {
 
 export function getStartFileContentsRegex(config: CodespinConfig) {
   const marker = getStartFileContentsMarker(config);
-  return new RegExp(`\\$${marker}:(.*?)\\$\\s*`, "s");
+  return new RegExp(`\\$${marker}:(.*?)\\$(.*)`, "s");
 }
 
 export function getEndFileContentsMarker(config: CodespinConfig) {
