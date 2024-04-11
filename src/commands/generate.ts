@@ -269,7 +269,8 @@ export async function generate(
       const files: SourceFile[] = await parseFunc(
         completionResult.message,
         args.diff,
-        context.workingDir
+        context.workingDir,
+        config
       );
 
       if (args.parseCallback) {

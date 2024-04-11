@@ -14,7 +14,8 @@ type FileInfo = {
 export type ParseFunc = (
   response: string,
   isDiff: boolean | undefined,
-  workingDir: string
+  workingDir: string,
+  config: CodespinConfig
 ) => Promise<SourceFile[]>;
 
 export async function extractCode(
