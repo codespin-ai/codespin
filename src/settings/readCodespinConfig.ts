@@ -11,10 +11,9 @@ export async function readCodespinConfig(
     return config;
   } else {
     const defaultConfig: CodespinConfig = {
-      api: "openai",
       maxDeclare: 20,
       maxTokens: 2000,
-      model: "gpt-3.5-turbo",
+      model: "openai:gpt-3.5-turbo",
       template: "default.mjs",
     };
 

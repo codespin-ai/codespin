@@ -62,6 +62,15 @@ codespin init
 This command creates a .codespin directory containing some default templates and configuration files.
 You may edit these templates are required, but the default template is fairly good.
 
+In addition, it is also recommended to do a global init, which stores the config files under $HOME/.codespin.
+The global init also creates openai.json and anthropic.json under $HOME/.codespin where you can save your api keys.
+
+```sh
+codespin init --global
+```
+
+💡: It is recommeded to store the api keys globally, to avoid accidentally committing the api keys to git.
+
 ### codespin generate
 
 Use the `codespin generate` command to produce source code.
@@ -134,11 +143,11 @@ With both `--include` and `--declare`, you can specify wildcards. The following 
 codespin gen main.py.md --out main.py -d "*.py" --write
 ```
 
-You can also define the `--include`, `--declare`, `--template`, `--parser`, `--api`, `--model`, and `--max-tokens` parameters in front-matter like this:
+You can also define the `--include`, `--declare`, `--template`, `--parser`, `--model`, and `--max-tokens` parameters in front-matter like this:
 
 ```markdown
 ---
-model: gpt-3.5-turbo-16k
+model: openai:gpt-3.5-turbo-16k
 maxTokens: 8000
 out: main.py
 include:
@@ -264,13 +273,12 @@ This command above will ignore the latest edits to main.py and use content from 
 - `-p, --prompt <some text>`: Specify the prompt directly on the command line.
 - `-t, --template <template path>`: Path to the template file.
 - `-w, --write`: Write generated code to source file(s).
-- `--api <api name>`: API to use, such as 'openai'. Only 'openai' is supported now.
 - `--debug`: Enable debug mode. Prints debug messages for every step.
 - `--declare <file path>`: Specify declaration files for additional context. Repeat for multiple files.
 - `--exclude <file path>`: List of files to exclude from the prompt. Used to override automatically included source files.
 - `--maxDeclare <count>`: The maximum number of declaration files allowed. Defaults to 10.
 - `--maxTokens`: Maximum number of tokens for generated code.
-- `--model <model name>`: Name of the model to use, such as 'gpt-4'.
+- `--model <model name>`: Name of the model to use, such as 'openai:gpt-4' or 'anthropic:claude-3-haiku-20240307'.
 - `--outDir <dir path>`: Path to directory relative to which files are generated. Defaults to the directory of the prompt file.
 - `--parse`: Whether the LLM response needs to be processed. Defaults to true. Use `--no-parse` to disable parsing.
 - `--parser <path to js file>`: Use a custom script to parse LLM response.
@@ -353,7 +361,7 @@ There are two ways to pass custom args to a custom template.
 
 ```markdown
 ---
-model: gpt-3.5-turbo-16k
+model: openai:gpt-3.5-turbo-16k
 maxTokens: 8000
 useJDK: true //custom arg
 out: main.py

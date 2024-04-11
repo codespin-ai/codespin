@@ -1,5 +1,5 @@
 export type CompletionOptions = {
-  model: string | undefined;
+  model: string;
   maxTokens: number | undefined;
   cancelCallback?: (cancel: () => void) => void;
   responseStreamCallback?: (data: string) => void;

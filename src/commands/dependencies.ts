@@ -16,7 +16,6 @@ import { Dependency } from "../sourceCode/Dependency.js";
 export type DependenciesArgs = {
   file: string;
   config?: string;
-  api?: string;
   model?: string;
   maxTokens?: number;
   debug?: boolean;
@@ -49,13 +48,11 @@ export async function dependencies(
   else {
     const config = await readCodespinConfig(args.config, context.workingDir);
 
-    const [apiFromAlias, modelFromAlias] = args.model
-      ? getApiAndModel(args.model, config)
-      : [undefined, undefined];
+    const [api, model] = getApiAndModel(
+      [args.model, config.model],
+      config
+    );
 
-    const api = args.api || apiFromAlias || "openai";
-
-    const model = modelFromAlias || args.model || config?.model;
     const sourceCode = await fs.readFile(
       path.resolve(context.workingDir, args.file),
       "utf-8"

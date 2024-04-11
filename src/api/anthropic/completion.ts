@@ -49,9 +49,7 @@ export async function completion(
     };
   }
 
-  const model = options.model || "claude-3-haiku";
-
-  writeDebug(`ANTHROPIC: model=${model}`);
+  writeDebug(`ANTHROPIC: model=${options.model}`);
   if (options.maxTokens) {
     writeDebug(`ANTHROPIC: maxTokens=${options.maxTokens}`);
   }
@@ -63,7 +61,7 @@ export async function completion(
   let responseText = "";
 
   const stream = anthropic.messages.stream({
-    model,
+    model: options.model,
     max_tokens: options.maxTokens || 4096,
     messages: [
       {

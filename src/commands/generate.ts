@@ -36,7 +36,6 @@ export type GenerateArgs = {
   promptFile?: string;
   out?: string;
   prompt?: string;
-  api?: string;
   model?: string;
   maxTokens?: number;
   write?: boolean;
@@ -126,18 +125,14 @@ export async function generate(
 
   const config = await readCodespinConfig(args.config, context.workingDir);
 
-  const [apiFromAlias, modelFromAlias] = args.model
-    ? getApiAndModel(args.model, config)
-    : [undefined, undefined];
-
   const promptSettings = promptFilePath
     ? await readPromptSettings(promptFilePath)
     : undefined;
 
-  const api = args.api || apiFromAlias || config.api || "openai";
-
-  const model =
-    modelFromAlias || args.model || promptSettings?.model || config?.model;
+  const [api, model] = getApiAndModel(
+    [args.model, promptSettings?.model, config.model],
+    config
+  );
 
   const maxTokens =
     args.maxTokens ?? promptSettings?.maxTokens ?? config?.maxTokens;

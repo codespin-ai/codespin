@@ -22,6 +22,12 @@ export async function main() {
             demandOption: false,
             describe: "Force overwrite the codespin.json config file",
           })
+          .option("global", {
+            type: "boolean",
+            alias: "g",
+            describe:
+              "Create codespin.json in the home directory (under $HOME/.codespin).",
+          })
           .option("debug", {
             type: "boolean",
             describe:
@@ -91,11 +97,6 @@ export async function main() {
             type: "string",
             describe:
               "Write the generated prompt out to the specified path. Does not call the API.",
-          })
-          .option("api", {
-            type: "string",
-            describe:
-              "API to use, such as 'openai'. Only 'openai' is supported now.",
           })
           .option("model", {
             type: "string",
@@ -265,12 +266,6 @@ export async function main() {
             describe: "Path to the source file.",
             demandOption: true,
             type: "string",
-          })
-          .option("api", {
-            type: "string",
-            default: "openai",
-            describe:
-              "API to use, such as 'openai'. Only 'openai' is supported now.",
           })
           .option("model", {
             type: "string",

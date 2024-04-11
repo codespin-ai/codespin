@@ -55,15 +55,13 @@ export async function completion(
     };
   }
 
-  const model = options.model || "gpt-3.5-turbo";
-
-  writeDebug(`OPENAI: model=${model}`);
+  writeDebug(`OPENAI: model=${options.model}`);
   if (options.maxTokens) {
     writeDebug(`OPENAI: maxTokens=${options.maxTokens}`);
   }
 
   const stream = await openaiClient.chat.completions.create({
-    model: model,
+    model: options.model,
     messages: [{ role: "user", content: prompt }],
     max_tokens: options.maxTokens,
     stream: true,

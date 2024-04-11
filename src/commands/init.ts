@@ -13,15 +13,16 @@ import { setDebugFlag } from "../debugMode.js";
 import { createDirIfMissing } from "../fs/createDirIfMissing.js";
 import { writeToFile } from "../fs/writeToFile.js";
 import { getGitRoot } from "../git/getGitRoot.js";
+import { homedir } from "os";
 
 export type InitArgs = {
   force?: boolean;
   debug?: boolean;
+  global?: boolean;
 };
 
 const DEFAULT_JSON_CONTENT = {
-  api: "openai",
-  model: "gpt-3.5-turbo",
+  model: "openai:gpt-3.5-turbo",
   models: {
     "gpt-3.5": "openai:gpt-3.5-turbo",
     "gpt-4": "openai:gpt-4",
@@ -32,6 +33,14 @@ const DEFAULT_JSON_CONTENT = {
   },
 };
 
+const DEFAULT_OPENAI_CONFIG = {
+  apiKey: "your-api-key",
+};
+
+const DEFAULT_ANTHROPIC_CONFIG = {
+  apiKey: "your-api-key",
+};
+
 export async function init(
   args: InitArgs,
   context: CodespinContext
@@ -40,50 +49,87 @@ export async function init(
     setDebugFlag();
   }
 
-  // If we are under a git directory, we'll make .codespin under the git dir root.
-  // Otherwise, we'll make .codespin under the current dir.
-  let gitDir = await getGitRoot(context.workingDir);
-  let rootDir = gitDir ?? context.workingDir;
+  if (args.global) {
+    const configDir = path.resolve(homedir(), CODESPIN_DIRNAME);
+    const configFile = path.resolve(configDir, CODESPIN_CONFIG_FILENAME);
+    const openaiConfigFile = path.resolve(configDir, "openai.json");
+    const anthropicConfigFile = path.resolve(configDir, "anthropic.json");
 
-  const configDir = path.resolve(rootDir, CODESPIN_DIRNAME);
-  const configFile = path.resolve(configDir, CODESPIN_CONFIG_FILENAME);
-  const templateDir = path.resolve(configDir, CODESPIN_TEMPLATES_DIRNAME);
-  const declarationsDir = path.resolve(
-    configDir,
-    CODESPIN_DECLARATIONS_DIRNAME
-  );
+    // Check if .codespin already exists
+    if (!args.force && (await pathExists(configDir))) {
+      throw new Error(
+        `${configDir} already exists. Use the --force option to overwrite.`
+      );
+    }
+    
+    // Create the config dir at root
+    await createDirIfMissing(configDir);
 
-  // Check if .codespin already exists
-  if (!args.force && (await pathExists(configDir))) {
-    throw new Error(
-      `${configDir} already exists. Use the --force option to overwrite.`
+    // Write the config file.
+    await fs.writeFile(
+      configFile,
+      JSON.stringify(DEFAULT_JSON_CONTENT, null, 2)
     );
-  }
 
-  // Create the config dir at root
-  await createDirIfMissing(configDir);
+    await fs.writeFile(
+      openaiConfigFile,
+      JSON.stringify(DEFAULT_OPENAI_CONFIG, null, 2)
+    );
 
-  // Create template dir
-  await createDirIfMissing(templateDir);
+    await fs.writeFile(
+      anthropicConfigFile,
+      JSON.stringify(DEFAULT_ANTHROPIC_CONFIG, null, 2)
+    );
+  } else {
+    // If we are under a git directory, we'll make .codespin under the git dir root.
+    // Otherwise, we'll make .codespin under the current dir.
+    let gitDir = await getGitRoot(context.workingDir);
+    let rootDir = gitDir ?? context.workingDir;
 
-  // Create codespin/declarations
-  await createDirIfMissing(declarationsDir);
+    const configDir = path.resolve(rootDir, CODESPIN_DIRNAME);
 
-  // Write the config file.
-  await fs.writeFile(configFile, JSON.stringify(DEFAULT_JSON_CONTENT, null, 2));
+    const configFile = path.resolve(configDir, CODESPIN_CONFIG_FILENAME);
+    const templateDir = path.resolve(configDir, CODESPIN_TEMPLATES_DIRNAME);
+    const declarationsDir = path.resolve(
+      configDir,
+      CODESPIN_DECLARATIONS_DIRNAME
+    );
 
-  // if the project is under git, exclude codespin/declarations in .gitignore
-  if (gitDir) {
-    const gitIgnorePath = path.resolve(gitDir, ".gitignore");
+    // Check if .codespin already exists
+    if (!args.force && (await pathExists(configDir))) {
+      throw new Error(
+        `${configDir} already exists. Use the --force option to overwrite.`
+      );
+    }
 
-    if (await pathExists(gitIgnorePath)) {
-      const content = await fs.readFile(gitIgnorePath, "utf8");
+    // Create the config dir at root
+    await createDirIfMissing(configDir);
 
-      if (!content.includes(`${CODESPIN_DIRNAME}/`)) {
-        await writeToFile(gitIgnorePath, `\n${CODESPIN_DIRNAME}/`, true);
+    // Create template dir
+    await createDirIfMissing(templateDir);
+
+    // Create codespin/declarations
+    await createDirIfMissing(declarationsDir);
+
+    // Write the config file.
+    await fs.writeFile(
+      configFile,
+      JSON.stringify(DEFAULT_JSON_CONTENT, null, 2)
+    );
+
+    // if the project is under git, exclude codespin/declarations in .gitignore
+    if (gitDir) {
+      const gitIgnorePath = path.resolve(gitDir, ".gitignore");
+
+      if (await pathExists(gitIgnorePath)) {
+        const content = await fs.readFile(gitIgnorePath, "utf8");
+
+        if (!content.includes(`${CODESPIN_DIRNAME}/`)) {
+          await writeToFile(gitIgnorePath, `\n${CODESPIN_DIRNAME}/`, true);
+        }
+      } else {
+        await writeToFile(gitIgnorePath, `${CODESPIN_DIRNAME}/`, true);
       }
-    } else {
-      await writeToFile(gitIgnorePath, `${CODESPIN_DIRNAME}/`, true);
     }
   }
 }
