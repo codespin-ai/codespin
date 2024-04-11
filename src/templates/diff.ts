@@ -88,6 +88,10 @@ function printFileTemplate(args: TemplateArgs) {
   $END_UPDATES:math_operations.ts$
 
   If the modified artefact (such as a code block, function, class, interface etc) is small (that is, say less than 10 lines), consider replacing the entire artefact rather than individual lines.
+  When doing this, make sure you delete the entire artefect (ie, the entire function or code-block or class or other, including any trailing/concluding braces etc), and then regenerated that entire block.
+
+  If the content to be generated (across all files) is less than a hundred lines, you can consider deleting all lines in a file at once (with DELETE_LINES) and then re-inserting the desired content for that file (with INSERT_LINES) at once.
+  
   \`\`\`
   `;
 
