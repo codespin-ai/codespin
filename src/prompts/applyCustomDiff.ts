@@ -129,12 +129,10 @@ export async function applyCustomDiff(
         return isDeleted ? { type: "deleted" } : line;
       });
 
-      // Extract just the insert operations for efficiency
       const insertOperations = operations.filter(
         (op): op is InsertLinesOperation => op.type === "insert_lines"
       );
 
-      // Process insertions more directly
       const withInsertions: FileLine[] = withDeletions.map((line, index) => {
         const insertOperation = insertOperations.find(
           (op) => op.at === index + 1
@@ -158,12 +156,12 @@ export async function applyCustomDiff(
               return {
                 type: "contentWithInsertion",
                 content: line.content,
-                inserted: line.inserted + "\n" + insertedContent,
+                inserted: `${line.inserted}\n${insertedContent}`,
               };
             case "deletedWithInsertion":
               return {
                 type: "deletedWithInsertion",
-                inserted: line.inserted + "\n" + insertedContent,
+                inserted: `${line.inserted}\n${insertedContent}`,
               };
             default:
               return line;
@@ -175,18 +173,18 @@ export async function applyCustomDiff(
 
       // Compile final content
       const finalContent = withInsertions
-        .flatMap((line) => {
+        .map((line) => {
           switch (line.type) {
             case "content":
-              return [line.content];
+              return line.content;
             case "deletedWithInsertion":
-              return [line.inserted];
+              return line.inserted;
             case "contentWithInsertion":
-              return [`${line.content}\n${line.inserted}`];
+              return `${line.content}\n${line.inserted}`;
             case "deleted":
-              return [];
+              return "";
             default:
-              return [];
+              return "";
           }
         })
         .join("\n");
