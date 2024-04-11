@@ -13,13 +13,13 @@ let openaiClient: OpenAI | undefined;
 let configLoaded = false;
 
 async function loadConfigIfRequired(
-  codespinDir: string | undefined,
+  customConfigDir: string | undefined,
   workingDir: string
 ) {
   if (!configLoaded) {
     const openaiConfig = await readConfig<OpenAIConfig>(
       "openai.json",
-      codespinDir,
+      customConfigDir,
       workingDir
     );
 
@@ -39,11 +39,11 @@ async function loadConfigIfRequired(
 
 export async function completion(
   prompt: string,
-  codespinDir: string | undefined,
+  customConfigDir: string | undefined,
   options: CompletionOptions,
   workingDir: string
 ): Promise<CompletionResult> {
-  await loadConfigIfRequired(codespinDir, workingDir);
+  await loadConfigIfRequired(customConfigDir, workingDir);
 
   if (!openaiClient) {
     return {

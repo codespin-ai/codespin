@@ -8,11 +8,11 @@ import { homedir } from "os";
 
 export async function getConfigFilePath(
   pathFragment: string,
-  codespinDir: string | undefined,
+  customConfigDir: string | undefined,
   workingDir: string
 ): Promise<string | undefined> {
-  if (codespinDir && (await pathExists(path.join(codespinDir, pathFragment)))) {
-    return path.join(codespinDir, pathFragment);
+  if (customConfigDir && (await pathExists(path.join(customConfigDir, pathFragment)))) {
+    return path.join(customConfigDir, pathFragment);
   }
 
   // First, try to find the Git project root and check there
@@ -41,12 +41,12 @@ export async function getConfigFilePath(
 
 export async function readConfig<T>(
   pathFragment: string,
-  codespinDir: string | undefined,
+  customConfigDir: string | undefined,
   workingDir: string
 ): Promise<T | undefined> {
   const filePath = await getConfigFilePath(
     pathFragment,
-    codespinDir,
+    customConfigDir,
     workingDir
   );
   if (filePath) {

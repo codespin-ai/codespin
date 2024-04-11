@@ -8,14 +8,14 @@ import {
 } from "../fs/pathNames.js";
 
 export async function getDeclarationsDir(
-  codespinDir: string | undefined,
+  customConfigDir: string | undefined,
   workingDir: string
 ): Promise<string> {
   if (
-    codespinDir &&
-    (await pathExists(join(codespinDir, CODESPIN_DECLARATIONS_DIRNAME)))
+    customConfigDir &&
+    (await pathExists(join(customConfigDir, CODESPIN_DECLARATIONS_DIRNAME)))
   ) {
-    return join(codespinDir, CODESPIN_DECLARATIONS_DIRNAME);
+    return join(customConfigDir, CODESPIN_DECLARATIONS_DIRNAME);
   }
 
   const projectDir = await getProjectRootAndAssert(workingDir);

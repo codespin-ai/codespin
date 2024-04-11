@@ -6,7 +6,7 @@ import { BasicFileInfo } from "../fs/BasicFileInfo.js";
 export async function getDeclarations(
   filePaths: string[],
   api: string,
-  codespinDir: string | undefined,
+  customConfigDir: string | undefined,
   completionOptions: CompletionOptions,
   workingDir: string
 ): Promise<BasicFileInfo[]> {
@@ -15,7 +15,7 @@ export async function getDeclarations(
       const contents = await generateDeclaration(
         filePath,
         api,
-        codespinDir,
+        customConfigDir,
         completionOptions,
         workingDir
       );

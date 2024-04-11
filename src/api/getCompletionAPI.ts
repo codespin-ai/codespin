@@ -6,7 +6,7 @@ import { CompletionResult } from "./CompletionResult.js";
 
 export type CompletionFunc = (
   prompt: string,
-  codespinDir: string | undefined,
+  customConfigDir: string | undefined,
   options: CompletionOptions,
   workingDir: string
 ) => Promise<CompletionResult>;

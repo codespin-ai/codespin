@@ -15,7 +15,7 @@ import { getProjectRootAndAssert } from "../fs/getProjectRootAndAssert.js";
 export async function generateDeclaration(
   filePath: string,
   api: string,
-  codespinDir: string | undefined,
+  customConfigDir: string | undefined,
   completionOptions: CompletionOptions,
   workingDir: string
 ): Promise<string> {
@@ -25,7 +25,7 @@ export async function generateDeclaration(
   const relativePath = path.relative(projectRoot, filePath);
 
   const declarationsPath = path.join(
-    await getDeclarationsDir(codespinDir, workingDir),
+    await getDeclarationsDir(customConfigDir, workingDir),
     `${relativePath}.txt`
   );
 
@@ -53,7 +53,7 @@ export async function generateDeclaration(
   const latestDeclarations = await callCompletion(
     filePath,
     api,
-    codespinDir,
+    customConfigDir,
     completionOptions,
     workingDir
   );
@@ -71,7 +71,7 @@ export async function generateDeclaration(
 async function callCompletion(
   filePath: string,
   api: string,
-  codespinDir: string | undefined,
+  customConfigDir: string | undefined,
   completionOptions: CompletionOptions,
   workingDir: string
 ): Promise<string> {
@@ -80,7 +80,7 @@ async function callCompletion(
   const templateFunc = await getTemplate(
     undefined,
     "declarations",
-    codespinDir,
+    customConfigDir,
     workingDir
   );
 
@@ -94,7 +94,7 @@ async function callCompletion(
 
   const completionResult = await completion(
     evaluatedPrompt,
-    codespinDir,
+    customConfigDir,
     completionOptions,
     workingDir
   );
