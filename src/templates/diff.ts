@@ -2,7 +2,7 @@ import path from "path";
 import { TemplateArgs } from "./TemplateArgs.js";
 import { addLineNumbers } from "../text/addLineNumbers.js";
 import { CodespinConfig } from "../settings/CodespinConfig.js";
-import { getStartUpdatesMarker } from "../prompts/markers.js";
+import { getEndUpdatesMarker, getStartUpdatesMarker } from "../prompts/markers.js";
 
 export default async function generate(
   args: TemplateArgs,
@@ -46,7 +46,7 @@ function relativePath(filePath: string, workingDir: string) {
 
 function printFileTemplate(args: TemplateArgs, config: CodespinConfig) {
   const START_UPDATES_MARKER = getStartUpdatesMarker(config);
-  const END_UPDATES_MARKER = getStartUpdatesMarker(config);
+  const END_UPDATES_MARKER = getEndUpdatesMarker(config);
 
   const tmpl = `
   I want you to respond in the following format:
