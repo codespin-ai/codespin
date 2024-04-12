@@ -7,7 +7,7 @@ import {
   getEndUpdatesMarker,
   getStartReplaceLinesMarker,
   getStartUpdatesMarker,
-} from "../prompts/markers.js";
+} from "../responseParsing/markers.js";
 
 export default async function generate(
   args: TemplateArgs,

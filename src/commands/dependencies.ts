@@ -7,7 +7,7 @@ import { writeDebug } from "../console.js";
 import { setDebugFlag } from "../debugMode.js";
 import { pathExists } from "../fs/pathExists.js";
 import { getLanguageService } from "../languageServices/getLanguageService.js";
-import { extractFromCodeBlock } from "../prompts/extractFromCodeBlock.js";
+import { extractFromMarkdownCodeBlock } from "../responseParsing/codeblocks.js";
 import { getApiAndModel } from "../settings/getApiAndModel.js";
 import { readCodespinConfig } from "../settings/readCodespinConfig.js";
 import { getTemplate } from "../templating/getTemplate.js";
@@ -90,7 +90,7 @@ export async function dependencies(
 
     if (completionResult.ok) {
       const dependencies = JSON.parse(
-        extractFromCodeBlock(completionResult.message, true).contents
+        extractFromMarkdownCodeBlock(completionResult.message, true).contents
       ) as Dependency[];
 
       // Fix language specific quirks here.

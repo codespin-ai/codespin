@@ -6,7 +6,7 @@ import {
   getEndUpdatesRegex,
   getStartReplaceLinesRegex,
   getStartUpdatesRegex,
-} from "./markers.js";
+} from "../responseParsing/markers.js";
 
 type ContentLine = {
   type: "content";

@@ -16,7 +16,7 @@ import { resolvePathInProject } from "../fs/resolvePath.js";
 import { resolveWildcardPaths } from "../fs/resolveWildcards.js";
 import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
 import { writeToFile } from "../fs/writeToFile.js";
-import { ParseFunc, extractCode } from "../prompts/extractCode.js";
+import { ParseFunc, extractCode } from "../responseParsing/extractCode.js";
 import { readPrompt } from "../prompts/readPrompt.js";
 import {
   PromptSettings,

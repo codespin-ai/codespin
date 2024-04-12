@@ -5,7 +5,7 @@ import { CodespinConfig } from "../settings/CodespinConfig.js";
 import {
   getEndFileContentsMarker,
   getStartFileContentsMarker,
-} from "../prompts/markers.js";
+} from "../responseParsing/markers.js";
 
 export default async function generate(
   args: TemplateArgs,
@@ -57,13 +57,32 @@ function printFileTemplate(args: TemplateArgs, config: CodespinConfig) {
   Respond with just the code (but exclude invocation examples etc) in the following format:
 
   $${START_FILE_CONTENTS_MARKER}:${filePath}$
-  import a from "./a";
-  function somethingSomething() {
-    //....
-  }
+  <generated code for ${filePath} goes here...>
   $${END_FILE_CONTENTS_MARKER}:${filePath}$
 
-  DO NOT omit any code when printing the file. Don't include placeholders, "omitted for brevity" etc. You should print the complete file.  
+  For example, like this:
+
+  $${START_FILE_CONTENTS_MARKER}:./greet.ts$
+  export function greet() {
+    console.log("hello, world!");
+  }
+  $${END_FILE_CONTENTS_MARKER}:./greet.ts$
+
+  If there are multiple files to be generated (as in "lorem.ts" and "ipsum.ts" in the example below), you may repeat blocks like this:
+
+  $${START_FILE_CONTENTS_MARKER}:./lorem.ts$
+  export function printLorem() {
+    console.log("lorem!");
+  }
+  $${END_FILE_CONTENTS_MARKER}:./lorem.ts$
+
+  $${START_FILE_CONTENTS_MARKER}:./ipsum.ts$
+  export function printIpsum() {
+    console.log("ipsum!");
+  }
+  $${END_FILE_CONTENTS_MARKER}:./ipsum.ts$
+
+  DO NOT omit any code when printing a file. Don't include placeholders, "omitted for brevity" etc. You should print the complete file.
   `;
 
   return printLine(fixTemplateWhitespace(tmpl), true);

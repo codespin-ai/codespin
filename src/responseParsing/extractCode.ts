@@ -1,10 +1,11 @@
 import { CodespinConfig } from "../settings/CodespinConfig.js";
 import { SourceFile } from "../sourceCode/SourceFile.js";
-import { applyCustomDiff } from "./applyCustomDiff.js";
+import { applyCustomDiff } from "../prompts/applyCustomDiff.js";
 import {
   getEndFileContentsRegex,
   getStartFileContentsRegex,
 } from "./markers.js";
+import { extractFromMarkdownCodeBlock } from "./codeblocks.js";
 
 type FileInfo = {
   path: string;
@@ -38,9 +39,11 @@ function parseFileContents(input: string, config: CodespinConfig): FileInfo[] {
       // Extract file name and contents using regex
       const match = content.match(getStartFileContentsRegex(config));
       if (match && match.length === 3) {
+        const contents = match[2].trim();
+
         return {
           path: match[1].trim(),
-          contents: match[2].trim(),
+          contents: extractFromMarkdownCodeBlock(contents, true).contents,
         };
       }
       return null;

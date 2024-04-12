@@ -9,7 +9,7 @@ import { pathExists } from "../fs/pathExists.js";
 import { getDeclarationsDir } from "../settings/getDeclarationsDir.js";
 
 import { getProjectRootAndAssert } from "../fs/getProjectRootAndAssert.js";
-import { extractCode } from "../prompts/extractCode.js";
+import { extractCode } from "../responseParsing/extractCode.js";
 import { getTemplate } from "../templating/getTemplate.js";
 import { CodespinConfig } from "../settings/CodespinConfig.js";
 

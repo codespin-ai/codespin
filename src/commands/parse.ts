@@ -2,10 +2,9 @@ import { promises as fs } from "fs";
 import { CodespinContext } from "../CodeSpinContext.js";
 import { setDebugFlag } from "../debugMode.js";
 import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
-import { extractCode } from "../prompts/extractCode.js";
-import { SourceFile } from "../sourceCode/SourceFile.js";
-import { FilesResult, SavedFilesResult } from "./generate.js";
+import { extractCode } from "../responseParsing/extractCode.js";
 import { readCodespinConfig } from "../settings/readCodespinConfig.js";
+import { FilesResult, SavedFilesResult } from "./generate.js";
 
 export type ParseArgs = {
   file: string;
