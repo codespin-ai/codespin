@@ -88,11 +88,15 @@ const parseUpdates = (
               to: currentReplaceAt + replaceLineCount - 1,
             });
           }
-          operations.push({
-            type: "insert_lines",
-            at: currentReplaceAt,
-            content: currentReplaceContent,
-          });
+
+          if (currentReplaceContent.length > 0) {
+            operations.push({
+              type: "insert_lines",
+              at: currentReplaceAt,
+              content: currentReplaceContent,
+            });
+          }
+
           currentReplaceAt = null;
           currentReplaceContent = [];
           replaceLineCount = 0;
@@ -112,8 +116,6 @@ export async function applyCustomDiff(
   config: CodespinConfig
 ): Promise<SourceFile[]> {
   const updates = parseUpdates(updateString, config);
-
-  console.log("PRIOR", JSON.stringify(updates, null, 2));
 
   return Promise.all(
     updates.map(async ({ path: filePath, operations }) => {
@@ -181,8 +183,6 @@ export async function applyCustomDiff(
           return line; // No insertion for this line
         }
       });
-
-      console.log("POST!", JSON.stringify(withInsertions, null, 2));
 
       const finalContent = withInsertions
         .map((line) => {
