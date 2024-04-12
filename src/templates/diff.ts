@@ -2,7 +2,12 @@ import path from "path";
 import { TemplateArgs } from "./TemplateArgs.js";
 import { addLineNumbers } from "../text/addLineNumbers.js";
 import { CodespinConfig } from "../settings/CodespinConfig.js";
-import { getEndUpdatesMarker, getStartUpdatesMarker } from "../prompts/markers.js";
+import {
+  getEndReplaceLinesMarker,
+  getEndUpdatesMarker,
+  getStartReplaceLinesMarker,
+  getStartUpdatesMarker,
+} from "../prompts/markers.js";
 
 export default async function generate(
   args: TemplateArgs,
@@ -47,94 +52,188 @@ function relativePath(filePath: string, workingDir: string) {
 function printFileTemplate(args: TemplateArgs, config: CodespinConfig) {
   const START_UPDATES_MARKER = getStartUpdatesMarker(config);
   const END_UPDATES_MARKER = getEndUpdatesMarker(config);
+  const START_REPLACE_LINES_MARKER = getStartReplaceLinesMarker(config);
+  const END_REPLACE_LINES_MARKER = getEndReplaceLinesMarker(config);
 
   const tmpl = `
-  I want you to respond in the following format:
+  I want you to suggest modifications to the files in the following format:
   - $${START_UPDATES_MARKER}:file_path$: Marks the beginning of updates for the file specified by file_path.
   - $${END_UPDATES_MARKER}:file_path$: Marks the end of updates for the file specified by file_path.
   - Multiple files can be updated by repeating "$${START_UPDATES_MARKER}:file_path$ and $${END_UPDATES_MARKER}:file_path$ blocks
-  
+
   Within a block:
-  - $INSERT_LINES:line_number$: Indicates the start of a block of lines to be inserted at the specified line_number. The line number is based on the file's original state.
-  - $END_INSERT_LINES$: Marks the end of the insertion block.
-  - $DELETE_LINES:start_line_num-end_line_num$: Specifies a range of lines to be deleted, inclusive of both start_line_num and end_line_num.
-  - line numbers always reference the original line numbers.
+  - $${START_REPLACE_LINES_MARKER}:start_line_num-line_count$: Indicates the start of a block of lines to be replaced starting at the specified line number with line_count indicating how many lines to replace. Line numbers are based on the file's original state.
+  - $${END_REPLACE_LINES_MARKER}$: Marks the end of the replace block.
+  - To delete lines, simply don't include any lines between the $${START_REPLACE_LINES_MARKER}$ and $${END_REPLACE_LINES_MARKER}$ markers.
+  - To add lines, include the new lines between the $${START_REPLACE_LINES_MARKER}$ and $${END_REPLACE_LINES_MARKER}$ markers without a corresponding original line number range.
+  - Line numbers always reference the original line numbers.
   - Do not worry about line numbers changing as content is added. The references always point to the original line numbers.
-  - To replace a line, you'll have to delete a line and insert it again.
-  
+  - You can add comments after the last $ of each marker, on the same line.
+
   Let's look at some examples:
 
-  Suppose you have a file named ./src/math_operations.ts (with line numbers added) with the following content:
+  Case 1 (Updating Multiple Files):
+  Suppose you have the following files:
 
+  ./src/math_operations.ts:
       \`\`\`
-      1: function addNumbers(a: number, b: number) {
-      2:   let result = a + b;
-      3:   console.log("The result is: " + result);
-      4:   return result;
-      5: }
+      1: export function addNumbers(a: number, b: number) {
+      2:   return a + b;
+      3: }
+      4:
+      5: export function subtractNumbers(a: number, b: number) {
+      6:   return a - b;
+      7: }
       \`\`\`
 
-  And your instructions are: "Change the function name to sumNumbers, add a parameter for an optional logging message, and replace the console log line with a conditional one that only logs the result if the logging message is provided."
+  ./src/app.ts:
+      \`\`\`
+      1: import { addNumbers, subtractNumbers } from './math_operations';
+      2:
+      3: const result1 = addNumbers(5, 3);
+      4: console.log('Result 1:', result1);
+      5:
+      6: const result2 = subtractNumbers(10, 7);
+      7: console.log('Result 2:', result2);
+      \`\`\`
 
-  Then your response should be as follows:
+  Modifications Required:
+  - In math_operations.ts, add a new function to multiply numbers
+  - In app.ts, use the new multiplyNumbers function and log the result
+
+  Output diff:
       $${START_UPDATES_MARKER}:./src/math_operations.ts$
 
-      $DELETE_LINES:1-1$
-      $INSERT_LINES:1$
-      function sumNumbers(a: number, b: number, logMessage?: string) {
-      $END_INSERT_LINES$
-      
-      $DELETE_LINES:3-3$
-      $INSERT_LINES:3$
-        if (logMessage) console.log(logMessage + result);
-      $END_INSERT_LINES$
-      
+      $${START_REPLACE_LINES_MARKER}:8-0$ // Add multiplyNumbers function
+      export function multiplyNumbers(a: number, b: number) {
+        return a * b;
+      }
+      $${END_REPLACE_LINES_MARKER}$
+
       $${END_UPDATES_MARKER}:./src/math_operations.ts$
-      
-  The above response updates only a single file. For multiple updates, repeat the $${START_UPDATES_MARKER}:..$ and $${END_UPDATES_MARKER}:..$ blocks.
 
-  If you're updating more than 50% of a "code artefact" (a "code artefact" being a code block, function, class, interface etc), consider replacing the entire artefact rather than individual lines.
-  If you decide to do this, make sure you delete the entire "code artefect", and then regenerate the artefact.
+      $${START_UPDATES_MARKER}:./src/app.ts$
 
-  For example, if you decide to modify a large part of the following function:
+      $${START_REPLACE_LINES_MARKER}:1-1$ // Update import statement
+      import { addNumbers, subtractNumbers, multiplyNumbers } from './math_operations';
+      $${END_REPLACE_LINES_MARKER}$
+
+      $${START_REPLACE_LINES_MARKER}:8-0$ // Use multiplyNumbers function
+      const result3 = multiplyNumbers(4, 5);
+      console.log('Result 3:', result3);
+      $${END_REPLACE_LINES_MARKER}$
+
+      $${END_UPDATES_MARKER}:./src/app.ts$
+
+  Case 2 (Deleting Across Multiple Files):
+  Suppose you have the following files:
+
+  ./src/math_operations.ts:
       \`\`\`
-      133: function multiply(a: number, b: number) {
-      134:   let result = a * b;
-      135:   return result;
-      136: }
+      1: export function addNumbers(a: number, b: number) {
+      2:   return a + b;
+      3: }
+      4:
+      5: export function subtractNumbers(a: number, b: number) {
+      6:   return a - b;
+      7: }
       \`\`\`
 
-  You must respond with:
+  ./src/app.ts:
+      \`\`\`
+      1: import { addNumbers, subtractNumbers } from './math_operations';
+      2:
+      3: const result1 = addNumbers(5, 3);
+      4: console.log('Result 1:', result1);
+      5:
+      6: const result2 = subtractNumbers(10, 7);
+      7: console.log('Result 2:', result2);
+      \`\`\`
+
+  Modifications Required:
+  - Delete the subtractNumbers function from math_operations.ts
+  - Remove the usage of subtractNumbers from app.ts
+
+  Output diff:
       $${START_UPDATES_MARKER}:./src/math_operations.ts$
 
-      $DELETE_LINES:133-136$
-      $INSERT_LINES:133$
-      /// whatever you want to insert...
-      $END_INSERT_LINES$
-      
+      $${START_REPLACE_LINES_MARKER}:5-3$ // Delete subtractNumbers function
+      $${END_REPLACE_LINES_MARKER}$
+
       $${END_UPDATES_MARKER}:./src/math_operations.ts$
-  
-  In this case, make sure you include line 136 as well in the deletion, since it's a part of the function (the "artefact" in this case).
 
-  If files are lengthy or if there are many files, you must reduce the size of the output by printing only the edits which are necessary (instead of reprinting the entire file).
+      $${START_UPDATES_MARKER}:./src/app.ts$
 
-  For example, if the task is to say remove comments across a bunch of files, you could respond with something like:
-      $${START_UPDATES_MARKER}:./src/some/file.ts$
-      $DELETE_LINES:43-44$
-      $${END_UPDATES_MARKER}:./src/some/file.ts$
+      $${START_REPLACE_LINES_MARKER}:1-1$ // Update import statement
+      import { addNumbers } from './math_operations';
+      $${END_REPLACE_LINES_MARKER}$
 
-      $${START_UPDATES_MARKER}:./src/other/file.ts$
-      $DELETE_LINES:66-66$
-      $DELETE_LINES:122-124$
-      $DELETE_LINES:211-211$
-      $${END_UPDATES_MARKER}:./src/other/file.ts$
+      $${START_REPLACE_LINES_MARKER}:6-2$ // Remove usage of subtractNumbers
+      $${END_REPLACE_LINES_MARKER}$
 
-      $${START_UPDATES_MARKER}:./src/another/file.ts$
-      $DELETE_LINES:1-1$
-      $DELETE_LINES:11-11$
-      $${END_UPDATES_MARKER}:./src/another/file.ts$
+      $${END_UPDATES_MARKER}:./src/app.ts$
 
-  In the above example, you were able to edit three files while keeping the response size very small. In the same way, wherever possible print only the changes which need to be made.
+  Case 3 (Adding and Replacing Across Multiple Files):
+  Suppose you have the following files:
+
+  ./src/math_operations.ts:
+      \`\`\`
+      1: export function addNumbers(a: number, b: number) {
+      2:   return a + b;
+      3: }
+      \`\`\`
+
+  ./src/app.ts:
+      \`\`\`
+      1: import { addNumbers } from './math_operations';
+      2:
+      3: const result1 = addNumbers(5, 3);
+      4: console.log('Result 1:', result1);
+      \`\`\`
+
+  Modifications Required:
+  - In math_operations.ts, add a new function to calculate the square of a number
+  - In app.ts, replace the addNumbers usage with the new square function
+
+  Output diff:
+      $${START_UPDATES_MARKER}:./src/math_operations.ts$
+
+      $${START_REPLACE_LINES_MARKER}:4-0$ // Add square function
+      export function square(num: number) {
+        return num * num;
+      }
+      $${END_REPLACE_LINES_MARKER}$
+
+      $${END_UPDATES_MARKER}:./src/math_operations.ts$
+
+      $${START_UPDATES_MARKER}:./src/app.ts$
+
+      $${START_REPLACE_LINES_MARKER}:1-1$ // Update import statement
+      import { square } from './math_operations';
+      $${END_REPLACE_LINES_MARKER}$
+
+      $${START_REPLACE_LINES_MARKER}:3-1$ // Replace addNumbers usage with square
+      const result1 = square(5);
+      $${END_REPLACE_LINES_MARKER}$
+
+      $${END_UPDATES_MARKER}:./src/app.ts$
+
+  Other instructions: make sure you correctly identify line numbers while replacing.
+
+  For example, in ./src/math_operations.ts:
+      \`\`\`
+      1: export function addNumbers(a: number, b: number) {
+      2:   return a + b;
+      3: }
+      4:
+      5: export function subtractNumbers(a: number, b: number) {
+      6:   return a - b;
+      7: }
+      \`\`\`
+
+  If your intent is to fully replace the function subtractNumbers(), you must mention the line number as 5, and count as 3 to include the trailing curly braces.
+
+  Be methodical and precise.
   `;
 
   return printLine(fixTemplateWhitespace(tmpl), true);

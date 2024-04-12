@@ -6,7 +6,7 @@ export function getStartUpdatesMarker(config: CodespinConfig) {
 
 export function getStartUpdatesRegex(config: CodespinConfig) {
   const marker = getStartUpdatesMarker(config);
-  return new RegExp(`\\$${marker}:(.*?)\\$(.*)`, "s");
+  return new RegExp(`\\$${marker}:(.+?)\\$(?:\\s*\\/\\/.*)?`, "s");
 }
 
 export function getEndUpdatesMarker(config: CodespinConfig) {
@@ -15,7 +15,7 @@ export function getEndUpdatesMarker(config: CodespinConfig) {
 
 export function getEndUpdatesRegex(config: CodespinConfig) {
   const marker = getEndUpdatesMarker(config);
-  return new RegExp(`\\$${marker}:.+?\\$`);
+  return new RegExp(`\\$${marker}:.+?\\$(?:\\s*\\/\\/.*)?`);
 }
 
 export function getStartFileContentsMarker(config: CodespinConfig) {
@@ -24,7 +24,7 @@ export function getStartFileContentsMarker(config: CodespinConfig) {
 
 export function getStartFileContentsRegex(config: CodespinConfig) {
   const marker = getStartFileContentsMarker(config);
-  return new RegExp(`\\$${marker}:(.*?)\\$(.*)`, "s");
+  return new RegExp(`\\$${marker}:(.+?)\\$(?:\\s*\\/\\/.*)?(.*)`, "s");
 }
 
 export function getEndFileContentsMarker(config: CodespinConfig) {
@@ -33,5 +33,23 @@ export function getEndFileContentsMarker(config: CodespinConfig) {
 
 export function getEndFileContentsRegex(config: CodespinConfig) {
   const marker = getEndFileContentsMarker(config);
-  return new RegExp(`\\$${marker}:.+?\\$`);
+  return new RegExp(`\\$${marker}:.+?\\$(?:\\s*\\/\\/.*)?`);
+}
+
+export function getStartReplaceLinesMarker(config: CodespinConfig) {
+  return config.markers?.START_REPLACE_LINES || "START_REPLACE_LINES";
+}
+
+export function getStartReplaceLinesRegex(config: CodespinConfig) {
+  const marker = getStartReplaceLinesMarker(config);
+  return new RegExp(`\\$${marker}:(\\d+-\\d+)\\$(?:\\s*\\/\\/.*)?`, "s");
+}
+
+export function getEndReplaceLinesMarker(config: CodespinConfig) {
+  return config.markers?.END_REPLACE_LINES || "END_REPLACE_LINES";
+}
+
+export function getEndReplaceLinesRegex(config: CodespinConfig) {
+  const marker = getEndReplaceLinesMarker(config);
+  return new RegExp(`\\$${marker}\\$(?:\\s*\\/\\/.*)?`);
 }

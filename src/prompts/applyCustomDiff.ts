@@ -1,7 +1,12 @@
 import { promises as fs } from "fs";
 import * as path from "path";
 import { CodespinConfig } from "../settings/CodespinConfig.js";
-import { getEndUpdatesRegex, getStartUpdatesRegex } from "./markers.js";
+import {
+  getEndReplaceLinesRegex,
+  getEndUpdatesRegex,
+  getStartReplaceLinesRegex,
+  getStartUpdatesRegex,
+} from "./markers.js";
 
 type ContentLine = {
   type: "content";
@@ -49,51 +54,51 @@ const parseUpdates = (
   updates: string,
   config: CodespinConfig
 ): { path: string; operations: Operation[] }[] => {
-  // Split updates for multiple files
   const fileUpdates = updates
     .split(getEndUpdatesRegex(config))
     .filter((update) => update.trim())
     .map((update) => update.trim());
 
   return fileUpdates.map((update) => {
-    // Extract file path
     const filePathMatch = update.match(getStartUpdatesRegex(config));
     const path = filePathMatch ? filePathMatch[1].trim() : "";
 
     const operations: Operation[] = [];
-    let currentInsertAt: number | null = null;
-    let currentInsertContent: string[] = [];
+    let currentReplaceAt: number | null = null;
+    let currentReplaceContent: string[] = [];
+    let replaceLineCount: number = 0;
+
+    const startReplaceRegex = getStartReplaceLinesRegex(config);
+    const endReplaceRegex = getEndReplaceLinesRegex(config);
 
     const lines = update.split("\n");
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
-      if (line.startsWith("$INSERT_LINES:")) {
-        currentInsertAt = parseInt(line.split(":")[1].replace(/\$$/, ""), 10);
-      } else if (line === "$END_INSERT_LINES$") {
-        if (currentInsertAt !== null) {
+      if (startReplaceRegex.test(line)) {
+        const [start, count] = line.split(":")[1].replace(/\$$/, "").split("-");
+        currentReplaceAt = parseInt(start, 10);
+        replaceLineCount = parseInt(count, 10);
+      } else if (endReplaceRegex.test(line)) {
+        if (currentReplaceAt !== null) {
+          if (replaceLineCount > 0) {
+            operations.push({
+              type: "delete_lines",
+              from: currentReplaceAt,
+              to: currentReplaceAt + replaceLineCount - 1,
+            });
+          }
           operations.push({
             type: "insert_lines",
-            at: currentInsertAt,
-            content: currentInsertContent,
+            at: currentReplaceAt,
+            content: currentReplaceContent,
           });
-          currentInsertAt = null;
-          currentInsertContent = [];
+          currentReplaceAt = null;
+          currentReplaceContent = [];
+          replaceLineCount = 0;
         }
-      } else if (line.startsWith("$DELETE_LINES:")) {
-        const [from, to] = line
-          .split(":")[1]
-          .replace(/\$$/, "")
-          .split("-")
-          .map(Number);
-        operations.push({
-          type: "delete_lines",
-          from,
-          to,
-        });
-      } else if (currentInsertAt !== null) {
-        // We're inside an insert block
-        currentInsertContent.push(line);
+      } else if (currentReplaceAt !== null) {
+        currentReplaceContent.push(line);
       }
     }
 
@@ -107,6 +112,8 @@ export async function applyCustomDiff(
   config: CodespinConfig
 ): Promise<SourceFile[]> {
   const updates = parseUpdates(updateString, config);
+
+  console.log("PRIOR", JSON.stringify(updates, null, 2));
 
   return Promise.all(
     updates.map(async ({ path: filePath, operations }) => {
@@ -175,8 +182,7 @@ export async function applyCustomDiff(
         }
       });
 
-      // Compile final content
-      const deleted = Symbol("DELETED");
+      console.log("POST!", JSON.stringify(withInsertions, null, 2));
 
       const finalContent = withInsertions
         .map((line) => {
@@ -188,12 +194,12 @@ export async function applyCustomDiff(
             case "contentWithInsertion":
               return `${line.content}\n${line.inserted}`;
             case "deleted":
-              return deleted;
+              return null;
             default:
-              return deleted;
+              return null;
           }
         })
-        .filter((x) => x !== deleted)
+        .filter((x) => x !== null)
         .join("\n");
 
       return { path: filePath, contents: finalContent };
