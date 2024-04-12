@@ -6,6 +6,7 @@ import {
   getStartFileContentsRegex,
 } from "./markers.js";
 import { extractFromMarkdownCodeBlock } from "./codeblocks.js";
+import { isDefined } from "../langTools/isDefined.js";
 
 type FileInfo = {
   path: string;
@@ -31,12 +32,10 @@ export async function extractCode(
 }
 
 function parseFileContents(input: string, config: CodespinConfig): FileInfo[] {
-  // Split by '$END_FILE_CONTENTS' to get each file's content
   return input
     .split(getEndFileContentsRegex(config))
     .filter((content) => content.trim() !== "") // Remove any empty splits
     .map((content) => {
-      // Extract file name and contents using regex
       const match = content.match(getStartFileContentsRegex(config));
       if (match && match.length === 3) {
         const contents = match[2].trim();
@@ -48,5 +47,5 @@ function parseFileContents(input: string, config: CodespinConfig): FileInfo[] {
       }
       return null;
     })
-    .filter(Boolean) as FileInfo[]; // Remove any null results
+    .filter(isDefined);
 }

@@ -7,6 +7,7 @@ import {
   getStartReplaceLinesRegex,
   getStartUpdatesRegex,
 } from "../responseParsing/markers.js";
+import { isDefined } from "../langTools/isDefined.js";
 
 type ContentLine = {
   type: "content";
@@ -59,55 +60,63 @@ const parseUpdates = (
     .filter((update) => update.trim())
     .map((update) => update.trim());
 
-  return fileUpdates.map((update) => {
+  const operations = fileUpdates.map((update) => {
     const filePathMatch = update.match(getStartUpdatesRegex(config));
-    const path = filePathMatch ? filePathMatch[1].trim() : "";
 
-    const operations: Operation[] = [];
-    let currentReplaceAt: number | null = null;
-    let currentReplaceContent: string[] = [];
-    let replaceLineCount: number = 0;
+    if (filePathMatch) {
+      const path = filePathMatch ? filePathMatch[1].trim() : "";
 
-    const startReplaceRegex = getStartReplaceLinesRegex(config);
-    const endReplaceRegex = getEndReplaceLinesRegex(config);
+      const operations: Operation[] = [];
+      let currentReplaceAt: number | null = null;
+      let currentReplaceContent: string[] = [];
+      let replaceLineCount: number = 0;
 
-    const lines = update.split("\n");
+      const startReplaceRegex = getStartReplaceLinesRegex(config);
+      const endReplaceRegex = getEndReplaceLinesRegex(config);
 
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      if (startReplaceRegex.test(line)) {
-        const [start, count] = line.split(":")[1].replace(/\$$/, "").split("-");
-        currentReplaceAt = parseInt(start, 10);
-        replaceLineCount = parseInt(count, 10);
-      } else if (endReplaceRegex.test(line)) {
-        if (currentReplaceAt !== null) {
-          if (replaceLineCount > 0) {
-            operations.push({
-              type: "delete_lines",
-              from: currentReplaceAt,
-              to: currentReplaceAt + replaceLineCount - 1,
-            });
+      const lines = update.split("\n");
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (startReplaceRegex.test(line)) {
+          const [start, count] = line
+            .split(":")[1]
+            .replace(/\$$/, "")
+            .split("-");
+          currentReplaceAt = parseInt(start, 10);
+          replaceLineCount = parseInt(count, 10);
+        } else if (endReplaceRegex.test(line)) {
+          if (currentReplaceAt !== null) {
+            if (replaceLineCount > 0) {
+              operations.push({
+                type: "delete_lines",
+                from: currentReplaceAt,
+                to: currentReplaceAt + replaceLineCount - 1,
+              });
+            }
+
+            if (currentReplaceContent.length > 0) {
+              operations.push({
+                type: "insert_lines",
+                at: currentReplaceAt,
+                content: currentReplaceContent,
+              });
+            }
+
+            currentReplaceAt = null;
+            currentReplaceContent = [];
+            replaceLineCount = 0;
           }
-
-          if (currentReplaceContent.length > 0) {
-            operations.push({
-              type: "insert_lines",
-              at: currentReplaceAt,
-              content: currentReplaceContent,
-            });
-          }
-
-          currentReplaceAt = null;
-          currentReplaceContent = [];
-          replaceLineCount = 0;
+        } else if (currentReplaceAt !== null) {
+          currentReplaceContent.push(line);
         }
-      } else if (currentReplaceAt !== null) {
-        currentReplaceContent.push(line);
       }
-    }
 
-    return { path, operations };
+      return { path, operations };
+    }
   });
+
+  return operations.filter(isDefined);
 };
 
 export async function applyCustomDiff(
