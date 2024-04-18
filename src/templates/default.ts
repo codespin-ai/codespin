@@ -50,39 +50,32 @@ function relativePath(filePath: string, workingDir: string) {
 function printFileTemplate(args: TemplateArgs, config: CodespinConfig) {
   const START_FILE_CONTENTS_MARKER = getStartFileContentsMarker(config);
   const END_FILE_CONTENTS_MARKER = getEndFileContentsMarker(config);
-  const filePath = args.outPath
-    ? relativePath(args.outPath, args.workingDir)
-    : "./some/path/filename.ext";
+
   const tmpl = `
   Respond with just the code (but exclude invocation examples etc) in the following format:
 
-  $${START_FILE_CONTENTS_MARKER}:${filePath}$
-  <print the full content for ${filePath}>
-  $${END_FILE_CONTENTS_MARKER}:${filePath}$
-
-  For example, like this:
-
-  $${START_FILE_CONTENTS_MARKER}:./greet.ts$
+  $${START_FILE_CONTENTS_MARKER}:./some/path/greet.ts$
   export function greet() {
     console.log("hello, world!");
   }
-  $${END_FILE_CONTENTS_MARKER}:./greet.ts$
+  $${END_FILE_CONTENTS_MARKER}:./some/path/greet.ts$
 
-  If there are multiple files to be generated (as in "lorem.ts" and "ipsum.ts" in the example below), you may repeat blocks like this:
+  If there are multiple files to be generated (as in "some/path/lorem.ts" and "some/path/ipsum.ts" in the example below), you should repeat blocks like this:
 
-  $${START_FILE_CONTENTS_MARKER}:./lorem.ts$
+  $${START_FILE_CONTENTS_MARKER}:./some/path/lorem.ts$
   export function printLorem() {
     console.log("lorem!");
   }
-  $${END_FILE_CONTENTS_MARKER}:./lorem.ts$
+  $${END_FILE_CONTENTS_MARKER}:./some/path/lorem.ts$
 
-  $${START_FILE_CONTENTS_MARKER}:./ipsum.ts$
+  $${START_FILE_CONTENTS_MARKER}:./some/path/ipsum.ts$
   export function printIpsum() {
     console.log("ipsum!");
   }
-  $${END_FILE_CONTENTS_MARKER}:./ipsum.ts$
+  $${END_FILE_CONTENTS_MARKER}:./some/path/ipsum.ts$
 
-  DO NOT omit any content when printing a file. Don't include placeholders, "omitted for brevity", "...goes here" etc. You should print the complete file.
+  File content will be extracted from your response by a program and updated on the disk. Therefore, you should respond with the complete contents of these files without missing or omitting any lines.
+  Do not include placeholders (such as "other code goes here...", "omitted for brevity..." etc) for any reason, as that will render the code invalid.
   `;
 
   return printLine(fixTemplateWhitespace(tmpl), true);
