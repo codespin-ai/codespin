@@ -20,10 +20,10 @@ export default async function declarations(
       `$START_FILE_CONTENTS:${relativePath(args.filePath, args.workingDir)}$`
     ) +
     printLine(
-      `....extracted declarations/signatures from ${relativePath(
+      `<extracted declarations/signatures from ${relativePath(
         args.filePath,
         args.workingDir
-      )}  go here....`
+      )}>`
     ) +
     printLine(
       `$END_FILE_CONTENTS:${relativePath(args.filePath, args.workingDir)}$`,

@@ -57,7 +57,7 @@ function printFileTemplate(args: TemplateArgs, config: CodespinConfig) {
   Respond with just the code (but exclude invocation examples etc) in the following format:
 
   $${START_FILE_CONTENTS_MARKER}:${filePath}$
-  <generated code for ${filePath} goes here...>
+  <print the full content for ${filePath}>
   $${END_FILE_CONTENTS_MARKER}:${filePath}$
 
   For example, like this:
@@ -82,7 +82,7 @@ function printFileTemplate(args: TemplateArgs, config: CodespinConfig) {
   }
   $${END_FILE_CONTENTS_MARKER}:./ipsum.ts$
 
-  DO NOT omit any code when printing a file. Don't include placeholders, "omitted for brevity" etc. You should print the complete file.
+  DO NOT omit any content when printing a file. Don't include placeholders, "omitted for brevity", "...goes here" etc. You should print the complete file.
   `;
 
   return printLine(fixTemplateWhitespace(tmpl), true);
