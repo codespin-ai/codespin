@@ -34,7 +34,8 @@ export async function extractCode(
 function parseFileContents(input: string, config: CodespinConfig): FileInfo[] {
   return input
     .split(getEndFileContentsRegex(config))
-    .filter((content) => content.trim() !== "") // Remove any empty splits
+    .slice(0, -1) // Remove the last
+    .filter((content) => content.trim() !== "")
     .map((content) => {
       const match = content.match(getStartFileContentsRegex(config));
       if (match && match.length === 3) {
