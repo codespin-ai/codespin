@@ -271,7 +271,7 @@ This command above will ignore the latest edits to main.py and use content from 
 - `-i, --include <file path>`: List of files to include in the prompt for additional context.
 - `-o, --out <output file path>`: Specify the output file name to generate.
 - `-p, --prompt <some text>`: Specify the prompt directly on the command line.
-- `-t, --template <template path>`: Path to the template file.
+- `-t, --template <template name or path>`: Path to the template file.
 - `-w, --write`: Write generated code to source file(s).
 - `--debug`: Enable debug mode. Prints debug messages for every step.
 - `--declare <file path>`: Specify declaration files for additional context. Repeat for multiple files.
@@ -304,14 +304,22 @@ A CodeSpin Template is a JS file (an ES6 Module) exporting a default function wi
 
 ```ts
 // The templating function that generates the LLM prompt.
-export default function generate(args: TemplateArgs): string {
+export default function generate(args: TemplateArgs): TemplateResult {
   // Return the prompt to send to the LLM.
 }
 ```
 
-where TemplateArgs is the following:
+where TemplateResult and TemplateArgs is the following:
 
 ```ts
+// Output of the template
+export type TemplateResult = {
+  // The generated prompt
+  prompt: string;
+  //Optional. Which type of parser should parse the response?
+  responseParser?: "file-block" | "diff" | undefined; 
+};
+
 // Arguments to the templating function
 export type TemplateArgs = {
   prompt: string;

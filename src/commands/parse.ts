@@ -2,9 +2,11 @@ import { promises as fs } from "fs";
 import { CodespinContext } from "../CodeSpinContext.js";
 import { setDebugFlag } from "../debugMode.js";
 import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
-import { extractCode } from "../responseParsing/extractCode.js";
 import { readCodespinConfig } from "../settings/readCodespinConfig.js";
 import { FilesResult, SavedFilesResult } from "./generate.js";
+import { ParseFunc } from "../responseParsing/ParseFunc.js";
+import { diffParser } from "../responseParsing/diffParser.js";
+import { fileBlockParser } from "../responseParsing/fileBlockParser.js";
 
 export type ParseArgs = {
   file: string;
@@ -29,12 +31,8 @@ export async function parse(
   const config = await readCodespinConfig(args.config, context.workingDir);
 
   const llmResponse = await fs.readFile(args.file, "utf-8");
-  const files = await extractCode(
-    llmResponse,
-    args.diff,
-    context.workingDir,
-    config
-  );
+  const parseFunc: ParseFunc = args.diff ? diffParser : fileBlockParser;
+  const files = await parseFunc(llmResponse, context.workingDir, config);
 
   if (args.write) {
     const extractResult = await writeFilesToDisk(

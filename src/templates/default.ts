@@ -6,12 +6,13 @@ import {
   getEndFileContentsMarker,
   getStartFileContentsMarker,
 } from "../responseParsing/markers.js";
+import { TemplateResult } from "../templating/getTemplate.js";
 
 export default async function generate(
   args: TemplateArgs,
   config: CodespinConfig
-): Promise<string> {
-  return (
+): Promise<TemplateResult> {
+  const prompt =
     (args.outPath
       ? printLine(
           `Generate source code for the file "${relativePath(
@@ -26,8 +27,9 @@ export default async function generate(
     (args.outPath ? printLine("-----", true) : "") +
     printDeclarations(args) +
     printIncludeFiles(args, false) +
-    printFileTemplate(args, config)
-  );
+    printFileTemplate(args, config);
+
+  return { prompt, responseParser: "file-block" };
 }
 
 function printLine(line: string | undefined, addBlankLine = false): string {
@@ -74,8 +76,7 @@ function printFileTemplate(args: TemplateArgs, config: CodespinConfig) {
   }
   $${END_FILE_CONTENTS_MARKER}:./some/path/ipsum.ts$
 
-  File content will be extracted from your response by a program and updated on the disk. Therefore, you should respond with the complete contents of these files without missing or omitting any lines.
-  Do not include placeholders (such as "other code goes here...", "omitted for brevity..." etc) for any reason, as that will render the code invalid.
+  You must respond with the complete contents of each file. DO NOT omit any line.
   `;
 
   return printLine(fixTemplateWhitespace(tmpl), true);

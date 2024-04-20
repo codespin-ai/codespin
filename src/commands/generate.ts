@@ -16,7 +16,6 @@ import { resolvePathInProject } from "../fs/resolvePath.js";
 import { resolveWildcardPaths } from "../fs/resolveWildcards.js";
 import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
 import { writeToFile } from "../fs/writeToFile.js";
-import { ParseFunc, extractCode } from "../responseParsing/extractCode.js";
 import { readPrompt } from "../prompts/readPrompt.js";
 import {
   PromptSettings,
@@ -32,6 +31,9 @@ import { TemplateArgs } from "../templates/TemplateArgs.js";
 import { getTemplate } from "../templating/getTemplate.js";
 import { addLineNumbers } from "../text/addLineNumbers.js";
 import { CodespinConfig } from "../settings/CodespinConfig.js";
+import { fileBlockParser } from "../responseParsing/fileBlockParser.js";
+import { diffParser } from "../responseParsing/diffParser.js";
+import { ParseFunc } from "../responseParsing/ParseFunc.js";
 
 export type GenerateArgs = {
   promptFile?: string;
@@ -56,7 +58,6 @@ export type GenerateArgs = {
   go?: boolean;
   maxDeclare?: number;
   spec?: string;
-  diff?: boolean;
   responseCallback?: (text: string) => void;
   responseStreamCallback?: (text: string) => void;
   promptCallback?: (prompt: string) => void;
@@ -174,8 +175,7 @@ export async function generate(
   );
 
   const templateFunc = await getTemplate<TemplateArgs>(
-    args.template,
-    args.go ? "plain" : args.diff ? "diff" : "default",
+    args.template ?? (args.go ? "plain" : "default"),
     args.config,
     context.workingDir
   );
@@ -188,7 +188,7 @@ export async function generate(
 
   // If the spec option is specified, evaluate the spec
   const prompt = args.spec
-    ? await evalSpec(basicPrompt, args.spec, context.workingDir)
+    ? await evalSpec(basicPrompt, args.spec, context.workingDir, config)
     : basicPrompt;
 
   const promptWithLineNumbers = addLineNumbers(prompt);
@@ -212,7 +212,10 @@ export async function generate(
     debug: args.debug,
   };
 
-  const evaluatedPrompt = await templateFunc(generateCodeTemplateArgs, config);
+  const { prompt: evaluatedPrompt, responseParser } = await templateFunc(
+    generateCodeTemplateArgs,
+    config
+  );
 
   if (args.promptCallback) {
     args.promptCallback(evaluatedPrompt);
@@ -264,11 +267,14 @@ export async function generate(
       const customParser = args.parser || promptSettings?.parser;
       const parseFunc: ParseFunc = customParser
         ? (await import(customParser)).default
-        : extractCode;
+        : responseParser === "file-block"
+        ? fileBlockParser
+        : responseParser === "diff"
+        ? diffParser
+        : exception(`Unknown response parser ${responseParser}.`);
 
       const files: SourceFile[] = await parseFunc(
         completionResult.message,
-        args.diff,
         context.workingDir,
         config
       );

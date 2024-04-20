@@ -53,3 +53,12 @@ export function getEndReplaceLinesRegex(config: CodespinConfig) {
   const marker = getEndReplaceLinesMarker(config);
   return new RegExp(`\\$${marker}\\$(?:\\s*\\/\\/.*)?`);
 }
+
+export function getPromptMarker(config: CodespinConfig) {
+  return config.markers?.PROMPT || "PROMPT";
+}
+
+export function getPromptRegex(config: CodespinConfig) {
+  const marker = getPromptMarker(config);
+  return new RegExp(`\\$${marker}\\$`);
+}

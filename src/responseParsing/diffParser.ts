@@ -8,6 +8,7 @@ import {
   getStartUpdatesRegex,
 } from "../responseParsing/markers.js";
 import { isDefined } from "../langTools/isDefined.js";
+import { SourceFile } from "../sourceCode/SourceFile.js";
 
 type ContentLine = {
   type: "content";
@@ -48,8 +49,6 @@ type InsertLinesOperation = {
 };
 
 type Operation = DeleteLinesOperation | InsertLinesOperation;
-
-export type SourceFile = { path: string; contents: string };
 
 const parseUpdates = (
   updates: string,
@@ -119,7 +118,7 @@ const parseUpdates = (
   return operations.filter(isDefined);
 };
 
-export async function applyCustomDiff(
+export async function diffParser(
   updateString: string,
   workingDir: string,
   config: CodespinConfig

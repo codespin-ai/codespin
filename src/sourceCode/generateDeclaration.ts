@@ -9,9 +9,9 @@ import { pathExists } from "../fs/pathExists.js";
 import { getDeclarationsDir } from "../settings/getDeclarationsDir.js";
 
 import { getProjectRootAndAssert } from "../fs/getProjectRootAndAssert.js";
-import { extractCode } from "../responseParsing/extractCode.js";
 import { getTemplate } from "../templating/getTemplate.js";
 import { CodespinConfig } from "../settings/CodespinConfig.js";
+import { fileBlockParser } from "../responseParsing/fileBlockParser.js";
 
 export async function generateDeclaration(
   filePath: string,
@@ -82,13 +82,12 @@ async function callCompletion(
   const sourceCode = await readFile(filePath, "utf-8");
 
   const templateFunc = await getTemplate(
-    undefined,
     "declarations",
     customConfigDir,
     workingDir
   );
 
-  const evaluatedPrompt = await templateFunc(
+  const { prompt } = await templateFunc(
     {
       filePath,
       sourceCode,
@@ -100,16 +99,15 @@ async function callCompletion(
   const completion = getCompletionAPI(api);
 
   const completionResult = await completion(
-    evaluatedPrompt,
+    prompt,
     customConfigDir,
     completionOptions,
     workingDir
   );
 
   if (completionResult.ok) {
-    const files = await extractCode(
+    const files = await fileBlockParser(
       completionResult.message,
-      false,
       workingDir,
       config
     );

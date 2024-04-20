@@ -22,6 +22,7 @@ export type InitArgs = {
 };
 
 const DEFAULT_JSON_CONTENT = {
+  version: "0.1",
   model: "openai:gpt-3.5-turbo",
   models: {
     "gpt-3.5": "openai:gpt-3.5-turbo",
@@ -38,6 +39,7 @@ const DEFAULT_JSON_CONTENT = {
     END_FILE_CONTENTS: "END_FILE_CONTENTS",
     START_REPLACE_LINES: "START_REPLACE_LINES",
     END_REPLACE_LINES: "END_REPLACE_LINES",
+    PROMPT: "PROMPT",
   },
 };
 

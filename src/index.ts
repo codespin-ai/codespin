@@ -106,10 +106,6 @@ export async function main() {
             type: "number",
             describe: "Maximum number of tokens for generated code.",
           })
-          .option("diff", {
-            type: "boolean",
-            describe: "Generate the output as a diff (custom format).",
-          })
           .option("template", {
             type: "string",
             alias: "t",

@@ -7,7 +7,7 @@ import { writeDebug } from "../console.js";
 import { setDebugFlag } from "../debugMode.js";
 import { pathExists } from "../fs/pathExists.js";
 import { getLanguageService } from "../languageServices/getLanguageService.js";
-import { extractFromMarkdownCodeBlock } from "../responseParsing/codeblocks.js";
+import { extractFromMarkdownCodeBlock } from "../responseParsing/codeBlocks.js";
 import { getApiAndModel } from "../settings/getApiAndModel.js";
 import { readCodespinConfig } from "../settings/readCodespinConfig.js";
 import { getTemplate } from "../templating/getTemplate.js";
@@ -56,13 +56,12 @@ export async function dependencies(
     );
 
     const templateFunc = await getTemplate(
-      undefined,
       "dependencies",
       args.config,
       context.workingDir
     );
 
-    const evaluatedPrompt = await templateFunc(
+    const { prompt } = await templateFunc(
       {
         filePath: args.file,
         sourceCode,
@@ -77,12 +76,12 @@ export async function dependencies(
     };
 
     writeDebug("--- PROMPT ---");
-    writeDebug(evaluatedPrompt);
+    writeDebug(prompt);
 
     const completion = getCompletionAPI(api);
 
     const completionResult = await completion(
-      evaluatedPrompt,
+      prompt,
       args.config,
       completionOptions,
       context.workingDir

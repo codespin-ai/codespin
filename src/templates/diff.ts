@@ -8,12 +8,13 @@ import {
   getStartReplaceLinesMarker,
   getStartUpdatesMarker,
 } from "../responseParsing/markers.js";
+import { TemplateResult } from "../templating/getTemplate.js";
 
 export default async function generate(
   args: TemplateArgs,
   config: CodespinConfig
-): Promise<string> {
-  return (
+): Promise<TemplateResult> {
+  const prompt =
     (args.outPath
       ? printLine(
           `Generate code for the file "${relativePath(
@@ -28,8 +29,9 @@ export default async function generate(
     (args.outPath ? printLine("-----", true) : "") +
     printDeclarations(args) +
     printIncludeFiles(args, true) +
-    printFileTemplate(args, config)
-  );
+    printFileTemplate(args, config);
+
+  return { prompt, responseParser: "diff" };
 }
 
 function printLine(line: string | undefined, addBlankLine = false): string {
@@ -61,6 +63,7 @@ function printFileTemplate(args: TemplateArgs, config: CodespinConfig) {
   - $${START_UPDATES_MARKER}:file_path$ // Marks the beginning of updates for the file specified by file_path.
   - $${END_UPDATES_MARKER}:file_path$ // Marks the end of updates for the file specified by file_path.
   - Multiple files can be updated by repeating "$${START_UPDATES_MARKER}:file_path$ and $${END_UPDATES_MARKER}:file_path$ blocks
+  - You must add one or more lines of comments before the $${START_REPLACE_LINES_MARKER}$ marker to explain what you're doing.
 
   Within a block:
   - $${START_REPLACE_LINES_MARKER}:start_line_num-line_count$ // Indicates the start of a block of lines to be replaced starting at the specified line number with line_count indicating how many lines to replace. Line numbers are based on the file's original state.
@@ -68,9 +71,7 @@ function printFileTemplate(args: TemplateArgs, config: CodespinConfig) {
   - To delete lines, simply don't include any lines between the $${START_REPLACE_LINES_MARKER}$ and $${END_REPLACE_LINES_MARKER}$ markers.
   - To add lines, include the new lines between the $${START_REPLACE_LINES_MARKER}$ and $${END_REPLACE_LINES_MARKER}$ markers without a corresponding original line number range.
   - Line numbers always reference the original line numbers. The first line number is One, and not Zero.
-  - Do not worry about line numbers changing as content gets added. The references always point to the original line numbers.
-  - You can add one or more lines of comments before a marker to explain what you're doing.
-
+  
   Let's look at some examples:
 
   Case 1 (Updating Multiple Files):
@@ -284,7 +285,9 @@ function printFileTemplate(args: TemplateArgs, config: CodespinConfig) {
 
   If your intent is to fully remove the function subtractNumbers(), you must mention "3" as the line count to remove the lines 5-7.
 
-  It's a good idea to include comments for each diff instruction you're emitting. Be methodical and precise.
+  IMPORTANT:
+  - Do not worry about line numbers changing as content gets updated or added. The line number references in your response should always point to the original line numbers.
+  - Be methodical and precise.
   `;
 
   return printLine(fixTemplateWhitespace(tmpl), true);
