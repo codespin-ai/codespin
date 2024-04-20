@@ -76,7 +76,7 @@ function printFileTemplate(args: TemplateArgs, config: CodespinConfig) {
 
   Deleting Lines:
   - ${DELETE_LINES_MARKER}:start_line:end_line // Indicates the lines to be deleted starting from start_line up to and including end_line.
-    Line numbers are based on the original, unmodified file content. The start_line and end_line are both included in the deletion range.
+    Line numbers are based on the original, unmodified file content.
 
   Inserting Lines:
   - ${START_INSERT_LINES_MARKER}:before_line // Indicates the start of lines to be inserted immediately before the line number specified by before_line.
@@ -85,19 +85,12 @@ function printFileTemplate(args: TemplateArgs, config: CodespinConfig) {
   - To insert at the end of the file, you can mention the last line number + 1 as the reference point.
 
   Rules:
-  - When deleting lines, use the ${DELETE_LINES_MARKER} marker followed by the start and end line numbers separated by a colon.
-    Always use the line numbers from the original, unmodified file content, ignoring any prior modifications.
-    Remember that both the start_line and end_line are included in the deletion range.
-    Provide a comment explaining the reason for deleting the specific range of lines, mentioning the line numbers.
-  - When inserting lines, use the ${START_INSERT_LINES_MARKER} marker followed by the line number before which the lines should be inserted,
-    then add the lines to be inserted, and finally use the ${END_INSERT_LINES_MARKER} to mark the end of the inserted lines.
-    Always use the line number from the original, unmodified file content, ignoring any prior modifications.
-    Provide a comment explaining the purpose and placement of the inserted lines, mentioning the line number.
+  - While deleting, provide a comment explaining the reason for deleting the specific range of lines, and mentioning the line numbers.
+  - While insertinng, provide a comment explaining the purpose and placement of the inserted lines, and mentioning the line number.
   - Do not attempt to calculate or adjust the line numbers based on previous delete or insert operations.
     Always reference the line numbers from the original, unmodified file content.
   - Be precise and methodical in your modifications.
-  - Double-check the line numbers to ensure they accurately represent the desired modifications based on the original, unmodified file content.
-  - Remember to provide clear comments for EACH delete and insert operation, always mentioning the relevant line numbers.
+  - Double-check the line numbers to ensure they accurately represent the desired modifications based on the original line numbers.
 
   Let's look at some examples to illustrate the format:
 
