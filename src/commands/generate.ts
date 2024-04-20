@@ -66,7 +66,7 @@ export type GenerateArgs = {
 
 export type PromptResult = {
   type: "prompt";
-  prompt: string | undefined;
+  prompt: string;
   filePath: string | undefined;
 };
 
@@ -234,7 +234,7 @@ export async function generate(
 
     return {
       type: "prompt",
-      prompt: args.printPrompt ? evaluatedPrompt : undefined,
+      prompt: evaluatedPrompt,
       filePath: args.writePrompt ? args.writePrompt : undefined,
     };
   }
