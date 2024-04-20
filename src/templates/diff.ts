@@ -69,22 +69,35 @@ function printFileTemplate(args: TemplateArgs, config: CodespinConfig) {
   - Multiple files can be updated by repeating "$${START_UPDATES_MARKER}:file_path$" and "$${END_UPDATES_MARKER}:file_path$" blocks.
 
   Comments:
-  - You must add one or more lines of comments before the ${DELETE_LINES_MARKER} or ${START_INSERT_LINES_MARKER} markers to explain what you're doing.
+  - You must add one or more lines of comments before EACH ${DELETE_LINES_MARKER} or ${START_INSERT_LINES_MARKER} marker to explain what you're doing and why.
+  - For delete operations, explain why the specific start and end lines were chosen for deletion, mentioning the line numbers in the comment.
+  - Comments should be provided for EVERY SINGLE delete and insert operation, always referencing the relevant line numbers.
+  - Keep the comments concise and focused on explaining the purpose and context of the requested modifications, without introducing additional instructions or reasoning.
 
   Deleting Lines:
-  - ${DELETE_LINES_MARKER}:start_line:end_line // Indicates the lines to be deleted starting from start_line up to and including end_line. Line numbers are based on the file's original state.
+  - ${DELETE_LINES_MARKER}:start_line:end_line // Indicates the lines to be deleted starting from start_line up to and including end_line.
+    Line numbers are based on the original, unmodified file content. The start_line and end_line are both included in the deletion range.
 
   Inserting Lines:
-  - ${START_INSERT_LINES_MARKER}:after_line // Indicates the start of lines to be inserted immediately after the line number specified by after_line.
+  - ${START_INSERT_LINES_MARKER}:before_line // Indicates the start of lines to be inserted immediately before the line number specified by before_line.
+    The before_line number is based on the original, unmodified file content.
   - ${END_INSERT_LINES_MARKER} // Marks the end of the lines to be inserted.
+  - To insert at the end of the file, you can mention the last line number + 1 as the reference point.
 
   Rules:
-  - To delete lines, use the ${DELETE_LINES_MARKER} marker followed by the start and end line numbers separated by a colon.
-  - To insert lines, use the ${START_INSERT_LINES_MARKER} marker followed by the line number after which the lines should be inserted, then add the lines to be inserted, 
-    and finally use the ${END_INSERT_LINES_MARKER} to mark the end of the inserted lines.
-  - Line numbers always refer to the line numbers in the original, unmodified file. The first line is line 1, not line 0.
-  - Do not worry about line numbers changing as content is updated or added. Always use the original line numbers in your markers.
+  - When deleting lines, use the ${DELETE_LINES_MARKER} marker followed by the start and end line numbers separated by a colon.
+    Always use the line numbers from the original, unmodified file content, ignoring any prior modifications.
+    Remember that both the start_line and end_line are included in the deletion range.
+    Provide a comment explaining the reason for deleting the specific range of lines, mentioning the line numbers.
+  - When inserting lines, use the ${START_INSERT_LINES_MARKER} marker followed by the line number before which the lines should be inserted,
+    then add the lines to be inserted, and finally use the ${END_INSERT_LINES_MARKER} to mark the end of the inserted lines.
+    Always use the line number from the original, unmodified file content, ignoring any prior modifications.
+    Provide a comment explaining the purpose and placement of the inserted lines, mentioning the line number.
+  - Do not attempt to calculate or adjust the line numbers based on previous delete or insert operations.
+    Always reference the line numbers from the original, unmodified file content.
   - Be precise and methodical in your modifications.
+  - Double-check the line numbers to ensure they accurately represent the desired modifications based on the original, unmodified file content.
+  - Remember to provide clear comments for EACH delete and insert operation, always mentioning the relevant line numbers.
 
   Let's look at some examples to illustrate the format:
 
@@ -94,12 +107,14 @@ function printFileTemplate(args: TemplateArgs, config: CodespinConfig) {
   ./src/utils.ts:
       \`\`\`
       1: export function formatDate(date: Date) {
-      2:   return date.toISOString().split('T')[0];
-      3: }
-      4:
-      5: export function capitalize(text: string) {
-      6:   return text.charAt(0).toUpperCase() + text.slice(1);
-      7: }
+      2:   // Remove the time portion from the date string
+      3:   return date.toISOString().split('T')[0];
+      4: }
+      5:
+      6: export function capitalize(text: string) {
+      7:   // Convert the first character to uppercase
+      8:   return text.charAt(0).toUpperCase() + text.slice(1);
+      9: }
       \`\`\`
 
   ./src/app.ts:
@@ -109,17 +124,24 @@ function printFileTemplate(args: TemplateArgs, config: CodespinConfig) {
       3: const today = new Date();
       4: const formattedDate = formatDate(today);
       5: console.log('Today is', formattedDate);
+      6: // TODO: Implement user login
+      7: // TODO: Fetch data from API
       \`\`\`
 
   Modifications Required:
+  - In utils.ts, remove the comment explaining the formatDate function.
   - In utils.ts, add a new function called 'truncate' to truncate a string to a specified length.
+  - In app.ts, remove the TODO comments.
   - In app.ts, import the 'capitalize' function from utils.ts and use it to capitalize the 'formattedDate' before logging.
 
   Output diff:
       $${START_UPDATES_MARKER}:./src/utils.ts$
 
-      // Add truncate function
-      ${START_INSERT_LINES_MARKER}:7
+      // Remove comment on line 2
+      ${DELETE_LINES_MARKER}:2:2
+
+      // Add truncate function before line 10
+      ${START_INSERT_LINES_MARKER}:10
       export function truncate(text: string, length: number) {
         if (text.length <= length) {
           return text;
@@ -132,16 +154,20 @@ function printFileTemplate(args: TemplateArgs, config: CodespinConfig) {
 
       $${START_UPDATES_MARKER}:./src/app.ts$
 
-      // Import capitalize function
+      // Remove TODO comments on lines 6-7
+      ${DELETE_LINES_MARKER}:6:7
+
+      // Update import statement before line 1
       ${DELETE_LINES_MARKER}:1:1
-      ${START_INSERT_LINES_MARKER}:0
+      ${START_INSERT_LINES_MARKER}:1
       import { formatDate, capitalize } from './utils';
       ${END_INSERT_LINES_MARKER}
 
-      // Capitalize formattedDate
-      ${DELETE_LINES_MARKER}:5:5
-      ${START_INSERT_LINES_MARKER}:4
+      // Use capitalize function on formattedDate before line 5
+      ${START_INSERT_LINES_MARKER}:5
       const capitalizedDate = capitalize(formattedDate);
+      ${END_INSERT_LINES_MARKER}
+      ${START_INSERT_LINES_MARKER}:6
       console.log('Today is', capitalizedDate);
       ${END_INSERT_LINES_MARKER}
 
@@ -154,39 +180,48 @@ function printFileTemplate(args: TemplateArgs, config: CodespinConfig) {
       \`\`\`
       1: export const API_URL = 'https://api.example.com';
       2: export const API_KEY = 'abcdefghijklmnop';
-      3:
+      3: // Set the number of retries for failed requests
       4: export const MAX_RETRIES = 3;
-      5: export const RETRY_DELAY = 1000;
-      6:
-      7: export const CACHE_SIZE = 100;
-      8: export const CACHE_EXPIRATION = 3600;
+      5: // Set the delay between retries in milliseconds
+      6: export const RETRY_DELAY = 1000;
+      7:
+      8: export const CACHE_SIZE = 100;
+      9: export const CACHE_EXPIRATION = 3600;
       \`\`\`
 
   Modifications Required:
   - Remove the 'API_KEY' constant.
+  - Remove the comments above 'MAX_RETRIES' and 'RETRY_DELAY'.
   - Add a new constant 'API_TIMEOUT' with a value of 5000.
   - Update the 'CACHE_EXPIRATION' value to 7200.
 
   Output diff:
       $${START_UPDATES_MARKER}:./src/config.ts$
 
-      // Remove API_KEY constant
+      // Remove API_KEY constant on line 2
       ${DELETE_LINES_MARKER}:2:2
 
-      // Add API_TIMEOUT constant
-      ${START_INSERT_LINES_MARKER}:5
+      // Remove comments on lines 3 and 5
+      ${DELETE_LINES_MARKER}:3:3
+      ${DELETE_LINES_MARKER}:5:5
+
+      // Add API_TIMEOUT constant before line 7
+      ${START_INSERT_LINES_MARKER}:7
       export const API_TIMEOUT = 5000;
       ${END_INSERT_LINES_MARKER}
 
-      // Update CACHE_EXPIRATION value
-      ${DELETE_LINES_MARKER}:8:8
-      ${START_INSERT_LINES_MARKER}:7
+      // Update CACHE_EXPIRATION value on line 9
+      ${DELETE_LINES_MARKER}:9:9
+      ${START_INSERT_LINES_MARKER}:9
       export const CACHE_EXPIRATION = 7200;
       ${END_INSERT_LINES_MARKER}
 
       $${END_UPDATES_MARKER}:./src/config.ts$
 
-  These examples demonstrate the format and usage of the markers for updating files, deleting lines, and inserting lines. Remember to follow the rules and be precise in your modifications.
+  These examples demonstrate the format and usage of the markers for updating files, deleting lines, and inserting lines.
+  Remember to always use the line numbers from the original, unmodified file content and avoid adjusting them based on prior modifications.
+  Please double-check the line numbers in your modifications to ensure they accurately represent the desired changes based on the original file content.
+  Provide a clear comment explaining the purpose and context for EACH delete and insert operation, always referencing the relevant line numbers.
   `;
 
   return printLine(fixTemplateWhitespace(tmpl), true);

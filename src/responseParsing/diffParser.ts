@@ -45,7 +45,7 @@ type DeleteLinesOperation = {
 
 type InsertLinesOperation = {
   type: "insert_lines";
-  after: number;
+  before: number; // Changed from 'after' to 'before'
   content: string[];
 };
 
@@ -81,7 +81,7 @@ const parseUpdates = (
 
         const insertMatch = line.match(getStartInsertLinesRegex(config));
         if (insertMatch) {
-          const after = parseInt(insertMatch[1], 10);
+          const before = parseInt(insertMatch[1], 10); // Changed variable name from 'after' to 'before'
           const content: string[] = [];
           i++;
           while (
@@ -91,7 +91,7 @@ const parseUpdates = (
             content.push(lines[i]);
             i++;
           }
-          operations.push({ type: "insert_lines", after, content });
+          operations.push({ type: "insert_lines", before, content });
         }
       }
 
@@ -116,7 +116,7 @@ export async function diffParser(
         "utf-8"
       );
 
-      const lines: FileLine[] = fileContent
+      const lines: FileLine[] = (fileContent + "\n")
         .split("\n")
         .map((content) => ({ type: "content", content }));
 
@@ -127,9 +127,11 @@ export async function diffParser(
 
       // Process deletions more directly
       const withDeletions: FileLine[] = lines.map((line, index) => {
+        const lineNumber = index + 1;
+
         // Check if the current line index falls within any of the delete operations' ranges
         const isDeleted = deleteOperations.some(
-          ({ from, to }) => index + 1 >= from && index + 1 <= to
+          ({ from, to }) => lineNumber >= from && lineNumber <= to
         );
         return isDeleted ? { type: "deleted" } : line;
       });
@@ -139,8 +141,10 @@ export async function diffParser(
       );
 
       const withInsertions: FileLine[] = withDeletions.map((line, index) => {
+        const lineNumber = index + 1;
+
         const insertOperation = insertOperations.find(
-          (op) => op.after === index + 1
+          (op) => op.before - 1 === lineNumber
         );
 
         if (insertOperation) {
