@@ -7,11 +7,6 @@ import {
   getStartFileContentsRegex,
 } from "./markers.js";
 
-type FileInfo = {
-  path: string;
-  contents: string;
-};
-
 export async function fileBlockParser(
   response: string,
   workingDir: string,
@@ -20,7 +15,7 @@ export async function fileBlockParser(
   return parseFileContents(response, config);
 }
 
-function parseFileContents(input: string, config: CodespinConfig): FileInfo[] {
+function parseFileContents(input: string, config: CodespinConfig): SourceFile[] {
   return input
     .split(getEndFileContentsRegex(config))
     .slice(0, -1) // Remove the last

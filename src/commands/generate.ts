@@ -34,6 +34,7 @@ import { CodespinConfig } from "../settings/CodespinConfig.js";
 import { fileBlockParser } from "../responseParsing/fileBlockParser.js";
 import { diffParser } from "../responseParsing/diffParser.js";
 import { ParseFunc } from "../responseParsing/ParseFunc.js";
+import { noOutputParser } from "../responseParsing/noOutputParser.js";
 
 export type GenerateArgs = {
   promptFile?: string;
@@ -271,6 +272,8 @@ export async function generate(
         ? fileBlockParser
         : responseParser === "diff"
         ? diffParser
+        : responseParser === "no-output"
+        ? noOutputParser
         : exception(`Unknown response parser ${responseParser}.`);
 
       const files: SourceFile[] = await parseFunc(

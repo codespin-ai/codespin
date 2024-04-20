@@ -7,11 +7,12 @@ import defaultTemplate from "../templates/default.js";
 import dependenciesTemplate from "../templates/dependencies.js";
 import diffTemplate from "../templates/diff.js";
 import plainTemplate from "../templates/plain.js";
+import filesTemplate from "../templates/files.js";
 import { exception } from "../exception.js";
 
 export type TemplateResult = {
   prompt: string;
-  responseParser?: "file-block" | "diff";
+  responseParser?: "file-block" | "diff" | "no-output";
 };
 
 export type TemplateFunc<T> = (
@@ -34,6 +35,8 @@ export async function getTemplate<T>(
     ? dependenciesTemplate
     : template === "diff"
     ? diffTemplate
+    : template === "files"
+    ? filesTemplate
     : await (async () => {
         const projectTemplateDir = await getTemplatesDir(
           customConfigDir,
