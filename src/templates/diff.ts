@@ -3,10 +3,11 @@ import { TemplateArgs } from "./TemplateArgs.js";
 import { addLineNumbers } from "../text/addLineNumbers.js";
 import { CodespinConfig } from "../settings/CodespinConfig.js";
 import {
-  getEndReplaceLinesMarker,
   getEndUpdatesMarker,
-  getStartReplaceLinesMarker,
   getStartUpdatesMarker,
+  getDeleteLinesMarker,
+  getStartInsertLinesMarker,
+  getEndInsertLinesMarker,
 } from "../responseParsing/markers.js";
 import { TemplateResult } from "../templating/getTemplate.js";
 
@@ -54,240 +55,138 @@ function relativePath(filePath: string, workingDir: string) {
 function printFileTemplate(args: TemplateArgs, config: CodespinConfig) {
   const START_UPDATES_MARKER = getStartUpdatesMarker(config);
   const END_UPDATES_MARKER = getEndUpdatesMarker(config);
-  const START_REPLACE_LINES_MARKER = getStartReplaceLinesMarker(config);
-  const END_REPLACE_LINES_MARKER = getEndReplaceLinesMarker(config);
+  const DELETE_LINES_MARKER = getDeleteLinesMarker(config);
+  const START_INSERT_LINES_MARKER = getStartInsertLinesMarker(config);
+  const END_INSERT_LINES_MARKER = getEndInsertLinesMarker(config);
 
   const tmpl = `
   I want you to suggest modifications to the files in the following format:
-  - ${START_UPDATES_MARKER}, ${END_UPDATES_MARKER}, ${START_REPLACE_LINES_MARKER} and ${END_REPLACE_LINES_MARKER} are called markers.
+
+  Markers:
+  - ${START_UPDATES_MARKER}, ${END_UPDATES_MARKER}, ${DELETE_LINES_MARKER}, ${START_INSERT_LINES_MARKER}, and ${END_INSERT_LINES_MARKER} are called markers.
   - $${START_UPDATES_MARKER}:file_path$ // Marks the beginning of updates for the file specified by file_path.
   - $${END_UPDATES_MARKER}:file_path$ // Marks the end of updates for the file specified by file_path.
-  - Multiple files can be updated by repeating "$${START_UPDATES_MARKER}:file_path$ and $${END_UPDATES_MARKER}:file_path$ blocks
-  - You must add one or more lines of comments before the $${START_REPLACE_LINES_MARKER}$ marker to explain what you're doing.
+  - Multiple files can be updated by repeating "$${START_UPDATES_MARKER}:file_path$" and "$${END_UPDATES_MARKER}:file_path$" blocks.
 
-  Within a block:
-  - $${START_REPLACE_LINES_MARKER}:start_line_num-line_count$ // Indicates the start of a block of lines to be replaced starting at the specified line number with line_count indicating how many lines to replace. Line numbers are based on the file's original state.
-  - $${END_REPLACE_LINES_MARKER}$ // Marks the end of the replace block.
-  - To delete lines, simply don't include any lines between the $${START_REPLACE_LINES_MARKER}$ and $${END_REPLACE_LINES_MARKER}$ markers.
-  - To add lines, include the new lines between the $${START_REPLACE_LINES_MARKER}$ and $${END_REPLACE_LINES_MARKER}$ markers without a corresponding original line number range.
-  - Line numbers always reference the original line numbers. The first line number is One, and not Zero.
-  
-  Let's look at some examples:
+  Comments:
+  - You must add one or more lines of comments before the ${DELETE_LINES_MARKER} or ${START_INSERT_LINES_MARKER} markers to explain what you're doing.
 
-  Case 1 (Updating Multiple Files):
+  Deleting Lines:
+  - ${DELETE_LINES_MARKER}:start_line:end_line // Indicates the lines to be deleted starting from start_line up to and including end_line. Line numbers are based on the file's original state.
+
+  Inserting Lines:
+  - ${START_INSERT_LINES_MARKER}:after_line // Indicates the start of lines to be inserted immediately after the line number specified by after_line.
+  - ${END_INSERT_LINES_MARKER} // Marks the end of the lines to be inserted.
+
+  Rules:
+  - To delete lines, use the ${DELETE_LINES_MARKER} marker followed by the start and end line numbers separated by a colon.
+  - To insert lines, use the ${START_INSERT_LINES_MARKER} marker followed by the line number after which the lines should be inserted, then add the lines to be inserted, 
+    and finally use the ${END_INSERT_LINES_MARKER} to mark the end of the inserted lines.
+  - Line numbers always refer to the line numbers in the original, unmodified file. The first line is line 1, not line 0.
+  - Do not worry about line numbers changing as content is updated or added. Always use the original line numbers in your markers.
+  - Be precise and methodical in your modifications.
+
+  Let's look at some examples to illustrate the format:
+
+  Example 1 (Updating Multiple Files):
   Suppose you have the following files:
 
-  ./src/math_operations.ts:
+  ./src/utils.ts:
       \`\`\`
-      1: export function addNumbers(a: number, b: number) {
-      2:   return a + b;
+      1: export function formatDate(date: Date) {
+      2:   return date.toISOString().split('T')[0];
       3: }
       4:
-      5: export function subtractNumbers(a: number, b: number) {
-      6:   return a - b;
+      5: export function capitalize(text: string) {
+      6:   return text.charAt(0).toUpperCase() + text.slice(1);
       7: }
       \`\`\`
 
   ./src/app.ts:
       \`\`\`
-      1: import { addNumbers, subtractNumbers } from './math_operations';
+      1: import { formatDate } from './utils';
       2:
-      3: const result1 = addNumbers(5, 3);
-      4: console.log('Result 1:', result1);
-      5:
-      6: const result2 = subtractNumbers(10, 7);
-      7: console.log('Result 2:', result2);
+      3: const today = new Date();
+      4: const formattedDate = formatDate(today);
+      5: console.log('Today is', formattedDate);
       \`\`\`
 
   Modifications Required:
-  - In math_operations.ts, add a new function to multiply numbers
-  - In app.ts, use the new multiplyNumbers function and log the result
+  - In utils.ts, add a new function called 'truncate' to truncate a string to a specified length.
+  - In app.ts, import the 'capitalize' function from utils.ts and use it to capitalize the 'formattedDate' before logging.
 
   Output diff:
-      $${START_UPDATES_MARKER}:./src/math_operations.ts$ // Update math_operations.ts
+      $${START_UPDATES_MARKER}:./src/utils.ts$
 
-      // Add multiplyNumbers function
-      $${START_REPLACE_LINES_MARKER}:8-0$
-      export function multiplyNumbers(a: number, b: number) {
-        return a * b;
+      // Add truncate function
+      ${START_INSERT_LINES_MARKER}:7
+      export function truncate(text: string, length: number) {
+        if (text.length <= length) {
+          return text;
+        }
+        return text.slice(0, length) + '...';
       }
-      $${END_REPLACE_LINES_MARKER}$
+      ${END_INSERT_LINES_MARKER}
 
-      $${END_UPDATES_MARKER}:./src/math_operations.ts$
+      $${END_UPDATES_MARKER}:./src/utils.ts$
 
-      // Update app.ts
-      $${START_UPDATES_MARKER}:./src/app.ts$ 
-
-      // Update import statement
-      // Delete the current line, and replace with new content.
-      $${START_REPLACE_LINES_MARKER}:1-1$ 
-      import { addNumbers, subtractNumbers, multiplyNumbers } from './math_operations';
-      $${END_REPLACE_LINES_MARKER}$
-
-      // Use multiplyNumbers function
-      $${START_REPLACE_LINES_MARKER}:8-0$ 
-      const result3 = multiplyNumbers(4, 5);
-      console.log('Result 3:', result3);
-      $${END_REPLACE_LINES_MARKER}$
-
-      $${END_UPDATES_MARKER}:./src/app.ts$
-
-  Case 2 (Deleting Across Multiple Files):
-  Suppose you have the following files:
-
-  ./src/math_operations.ts:
-      \`\`\`
-      1: export function addNumbers(a: number, b: number) {
-      2:   return a + b;
-      3: }
-      4:
-      5: export function subtractNumbers(a: number, b: number) {
-      6:   return a - b;
-      7: }
-      \`\`\`
-
-  ./src/app.ts:
-      \`\`\`
-      1: import { addNumbers, subtractNumbers } from './math_operations';
-      2:
-      3: const result1 = addNumbers(5, 3);
-      4: console.log('Result 1:', result1);
-      5:
-      6: const result2 = subtractNumbers(10, 7);
-      7: console.log('Result 2:', result2);
-      \`\`\`
-
-  Modifications Required:
-  - Delete the subtractNumbers function from math_operations.ts
-  - Remove the usage of subtractNumbers from app.ts
-
-  Output diff:
-      // Update math_operations.ts
-      $${START_UPDATES_MARKER}:./src/math_operations.ts$
-
-      // Delete subtractNumbers function
-      $${START_REPLACE_LINES_MARKER}:5-3$
-      $${END_REPLACE_LINES_MARKER}$
-
-      $${END_UPDATES_MARKER}:./src/math_operations.ts$
-
-      // Update app.ts
       $${START_UPDATES_MARKER}:./src/app.ts$
 
-      // Update import statement
-      $${START_REPLACE_LINES_MARKER}:1-1$
-      import { addNumbers } from './math_operations';
-      $${END_REPLACE_LINES_MARKER}$
+      // Import capitalize function
+      ${DELETE_LINES_MARKER}:1:1
+      ${START_INSERT_LINES_MARKER}:0
+      import { formatDate, capitalize } from './utils';
+      ${END_INSERT_LINES_MARKER}
 
-      // Remove usage of subtractNumbers
-      $${START_REPLACE_LINES_MARKER}:6-2$ 
-      $${END_REPLACE_LINES_MARKER}$
-
-      $${END_UPDATES_MARKER}:./src/app.ts$
-
-  Case 3 (Adding and Replacing Across Multiple Files):
-  Suppose you have the following files:
-
-  ./src/math_operations.ts:
-      \`\`\`
-      1: export function addNumbers(a: number, b: number) {
-      2:   return a + b;
-      3: }
-      \`\`\`
-
-  ./src/app.ts:
-      \`\`\`
-      1: import { addNumbers } from './math_operations';
-      2:
-      3: const result1 = addNumbers(5, 3);
-      4: console.log('Result 1:', result1);
-      \`\`\`
-
-  Modifications Required:
-  - In math_operations.ts, add a new function to calculate the square of a number
-  - In app.ts, replace the addNumbers usage with the new square function
-
-  Output diff:
-      // Update math_operations.ts
-      $${START_UPDATES_MARKER}:./src/math_operations.ts$
-
-      // Add square function
-      $${START_REPLACE_LINES_MARKER}:4-0$ 
-      export function square(num: number) {
-        return num * num;
-      }
-      $${END_REPLACE_LINES_MARKER}$
-
-      $${END_UPDATES_MARKER}:./src/math_operations.ts$
-
-      // Update app.ts
-      $${START_UPDATES_MARKER}:./src/app.ts$
-
-      // Update import statement
-      $${START_REPLACE_LINES_MARKER}:1-1$
-      import { square } from './math_operations';
-      $${END_REPLACE_LINES_MARKER}$
-
-      // Replace addNumbers usage with square
-      $${START_REPLACE_LINES_MARKER}:3-1$
-      const result1 = square(5);
-      $${END_REPLACE_LINES_MARKER}$
+      // Capitalize formattedDate
+      ${DELETE_LINES_MARKER}:5:5
+      ${START_INSERT_LINES_MARKER}:4
+      const capitalizedDate = capitalize(formattedDate);
+      console.log('Today is', capitalizedDate);
+      ${END_INSERT_LINES_MARKER}
 
       $${END_UPDATES_MARKER}:./src/app.ts$
 
-  Case 4 (Removing Comments):
+  Example 2 (Deleting and Inserting Lines):
   Suppose you have the following file:
 
-  ./src/app.ts:
+  ./src/config.ts:
       \`\`\`
-      1: import { addNumbers } from './math_operations';
-      2:
-      3: // This is a comment
-      4: const result1 = addNumbers(5, 3);
-      5: console.log('Result 1:', result1);
+      1: export const API_URL = 'https://api.example.com';
+      2: export const API_KEY = 'abcdefghijklmnop';
+      3:
+      4: export const MAX_RETRIES = 3;
+      5: export const RETRY_DELAY = 1000;
       6:
-      7: /*
-      8:  * This is a multiline comment
-      9:  * It spans multiple lines
-      10: */
-      11: console.log('End of file');
+      7: export const CACHE_SIZE = 100;
+      8: export const CACHE_EXPIRATION = 3600;
       \`\`\`
 
   Modifications Required:
-  - Remove all comments from the file
+  - Remove the 'API_KEY' constant.
+  - Add a new constant 'API_TIMEOUT' with a value of 5000.
+  - Update the 'CACHE_EXPIRATION' value to 7200.
 
   Output diff:
-      // Update app.ts
-      $${START_UPDATES_MARKER}:./src/app.ts$
+      $${START_UPDATES_MARKER}:./src/config.ts$
 
-      // Remove single-line comment
-      $${START_REPLACE_LINES_MARKER}:3-1$
-      $${END_REPLACE_LINES_MARKER}$
+      // Remove API_KEY constant
+      ${DELETE_LINES_MARKER}:2:2
 
-      // Remove multi-line comment
-      $${START_REPLACE_LINES_MARKER}:7-4$
-      $${END_REPLACE_LINES_MARKER}$
+      // Add API_TIMEOUT constant
+      ${START_INSERT_LINES_MARKER}:5
+      export const API_TIMEOUT = 5000;
+      ${END_INSERT_LINES_MARKER}
 
-      $${END_UPDATES_MARKER}:./src/app.ts$
+      // Update CACHE_EXPIRATION value
+      ${DELETE_LINES_MARKER}:8:8
+      ${START_INSERT_LINES_MARKER}:7
+      export const CACHE_EXPIRATION = 7200;
+      ${END_INSERT_LINES_MARKER}
 
-  Other instructions: when removing, always make sure that the line count is accurate (neither less nor more).
+      $${END_UPDATES_MARKER}:./src/config.ts$
 
-  For example, in ./src/math_operations.ts:
-      \`\`\`
-      1: export function addNumbers(a: number, b: number) {
-      2:   return a + b;
-      3: }
-      4:
-      5: export function subtractNumbers(a: number, b: number) {
-      6:   return a - b;
-      7: }
-      \`\`\`
-
-  If your intent is to fully remove the function subtractNumbers(), you must mention "3" as the line count to remove the lines 5-7.
-
-  IMPORTANT:
-  - Do not worry about line numbers changing as content gets updated or added. The line number references in your response should always point to the original line numbers.
-  - Be methodical and precise.
+  These examples demonstrate the format and usage of the markers for updating files, deleting lines, and inserting lines. Remember to follow the rules and be precise in your modifications.
   `;
 
   return printLine(fixTemplateWhitespace(tmpl), true);

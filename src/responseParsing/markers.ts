@@ -36,22 +36,31 @@ export function getEndFileContentsRegex(config: CodespinConfig) {
   return new RegExp(`\\$${marker}:.+?\\$(?:\\s*\\/\\/.*)?`);
 }
 
-export function getStartReplaceLinesMarker(config: CodespinConfig) {
-  return config.markers?.START_REPLACE_LINES || "START_REPLACE_LINES";
+export function getDeleteLinesMarker(config: CodespinConfig) {
+  return config.markers?.DELETE_LINES || "DELETE_LINES";
 }
 
-export function getStartReplaceLinesRegex(config: CodespinConfig) {
-  const marker = getStartReplaceLinesMarker(config);
-  return new RegExp(`\\$${marker}:(\\d+-\\d+)\\$(?:\\s*\\/\\/.*)?`, "s");
+export function getDeleteLinesRegex(config: CodespinConfig) {
+  const marker = getDeleteLinesMarker(config);
+  return new RegExp(`${marker}:(\\d+):(\\d+)(?:\\s*\\/\\/.*)?`, "s");
 }
 
-export function getEndReplaceLinesMarker(config: CodespinConfig) {
-  return config.markers?.END_REPLACE_LINES || "END_REPLACE_LINES";
+export function getStartInsertLinesMarker(config: CodespinConfig) {
+  return config.markers?.START_INSERT_LINES || "START_INSERT_LINES";
 }
 
-export function getEndReplaceLinesRegex(config: CodespinConfig) {
-  const marker = getEndReplaceLinesMarker(config);
-  return new RegExp(`\\$${marker}\\$(?:\\s*\\/\\/.*)?`);
+export function getStartInsertLinesRegex(config: CodespinConfig) {
+  const marker = getStartInsertLinesMarker(config);
+  return new RegExp(`${marker}:(\\d+)(?:\\s*\\/\\/.*)?`, "s");
+}
+
+export function getEndInsertLinesMarker(config: CodespinConfig) {
+  return config.markers?.END_INSERT_LINES || "END_INSERT_LINES";
+}
+
+export function getEndInsertLinesRegex(config: CodespinConfig) {
+  const marker = getEndInsertLinesMarker(config);
+  return new RegExp(`${marker}(?:\\s*\\/\\/.*)?`);
 }
 
 export function getPromptMarker(config: CodespinConfig) {

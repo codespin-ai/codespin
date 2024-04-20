@@ -14,6 +14,7 @@ import { createDirIfMissing } from "../fs/createDirIfMissing.js";
 import { writeToFile } from "../fs/writeToFile.js";
 import { getGitRoot } from "../git/getGitRoot.js";
 import { homedir } from "os";
+import { CodespinConfig } from "../settings/CodespinConfig.js";
 
 export type InitArgs = {
   force?: boolean;
@@ -21,7 +22,7 @@ export type InitArgs = {
   global?: boolean;
 };
 
-const DEFAULT_JSON_CONTENT = {
+const DEFAULT_JSON_CONTENT: CodespinConfig = {
   version: "0.0.1",
   model: "openai:gpt-3.5-turbo",
   models: {
@@ -37,8 +38,9 @@ const DEFAULT_JSON_CONTENT = {
     END_UPDATES: "END_UPDATES",
     START_FILE_CONTENTS: "START_FILE_CONTENTS",
     END_FILE_CONTENTS: "END_FILE_CONTENTS",
-    START_REPLACE_LINES: "START_REPLACE_LINES",
-    END_REPLACE_LINES: "END_REPLACE_LINES",
+    DELETE_LINES: "DELETE_LINES",
+    START_INSERT_LINES: "START_INSERT_LINES",
+    END_INSERT_LINES: "END_INSERT_LINES",
     PROMPT: "PROMPT",
   },
 };

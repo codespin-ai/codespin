@@ -2,9 +2,10 @@ import { promises as fs } from "fs";
 import * as path from "path";
 import { CodespinConfig } from "../settings/CodespinConfig.js";
 import {
-  getEndReplaceLinesRegex,
+  getDeleteLinesRegex,
+  getEndInsertLinesRegex,
   getEndUpdatesRegex,
-  getStartReplaceLinesRegex,
+  getStartInsertLinesRegex,
   getStartUpdatesRegex,
 } from "../responseParsing/markers.js";
 import { isDefined } from "../langTools/isDefined.js";
@@ -44,7 +45,7 @@ type DeleteLinesOperation = {
 
 type InsertLinesOperation = {
   type: "insert_lines";
-  at: number;
+  after: number;
   content: string[];
 };
 
@@ -66,48 +67,31 @@ const parseUpdates = (
       const path = filePathMatch ? filePathMatch[1].trim() : "";
 
       const operations: Operation[] = [];
-      let currentReplaceAt: number | null = null;
-      let currentReplaceContent: string[] = [];
-      let replaceLineCount: number = 0;
-
-      const startReplaceRegex = getStartReplaceLinesRegex(config);
-      const endReplaceRegex = getEndReplaceLinesRegex(config);
-
       const lines = update.split("\n");
 
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-        if (startReplaceRegex.test(line)) {
-          const [start, count] = line
-            .split(":")[1]
-            .replace(/\$$/, "")
-            .split("-");
-          currentReplaceAt = parseInt(start, 10);
-          replaceLineCount = parseInt(count, 10);
-        } else if (endReplaceRegex.test(line)) {
-          if (currentReplaceAt !== null) {
-            if (replaceLineCount > 0) {
-              operations.push({
-                type: "delete_lines",
-                from: currentReplaceAt,
-                to: currentReplaceAt + replaceLineCount - 1,
-              });
-            }
 
-            if (currentReplaceContent.length > 0) {
-              operations.push({
-                type: "insert_lines",
-                at: currentReplaceAt,
-                content: currentReplaceContent,
-              });
-            }
+        const deleteMatch = line.match(getDeleteLinesRegex(config));
+        if (deleteMatch) {
+          const from = parseInt(deleteMatch[1], 10);
+          const to = parseInt(deleteMatch[2], 10);
+          operations.push({ type: "delete_lines", from, to });
+        }
 
-            currentReplaceAt = null;
-            currentReplaceContent = [];
-            replaceLineCount = 0;
+        const insertMatch = line.match(getStartInsertLinesRegex(config));
+        if (insertMatch) {
+          const after = parseInt(insertMatch[1], 10);
+          const content: string[] = [];
+          i++;
+          while (
+            i < lines.length &&
+            !getEndInsertLinesRegex(config).test(lines[i])
+          ) {
+            content.push(lines[i]);
+            i++;
           }
-        } else if (currentReplaceAt !== null) {
-          currentReplaceContent.push(line);
+          operations.push({ type: "insert_lines", after, content });
         }
       }
 
@@ -156,7 +140,7 @@ export async function diffParser(
 
       const withInsertions: FileLine[] = withDeletions.map((line, index) => {
         const insertOperation = insertOperations.find(
-          (op) => op.at === index + 1
+          (op) => op.after === index + 1
         );
 
         if (insertOperation) {

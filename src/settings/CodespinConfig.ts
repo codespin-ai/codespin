@@ -13,8 +13,9 @@ export type CodespinConfig = {
     END_UPDATES?: string;
     START_FILE_CONTENTS?: string;
     END_FILE_CONTENTS?: string;
-    START_REPLACE_LINES?: string;
-    END_REPLACE_LINES?: string;
+    DELETE_LINES?: string;
+    START_INSERT_LINES?: string;
+    END_INSERT_LINES?: string;
     PROMPT?: string;
   };
 };
