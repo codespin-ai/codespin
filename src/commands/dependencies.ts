@@ -48,6 +48,10 @@ export async function dependencies(
   else {
     const config = await readCodespinConfig(args.config, context.workingDir);
 
+    if (config.debug) {
+      setDebugFlag();
+    }
+
     const [api, model] = getApiAndModel([args.model, config.model], config);
 
     const sourceCode = await fs.readFile(

@@ -31,6 +31,10 @@ export async function parse(
 
   const config = await readCodespinConfig(args.config, context.workingDir);
 
+  if (config.debug) {
+    setDebugFlag();
+  }
+
   const llmResponse = await fs.readFile(args.file, "utf-8");
   const parseFunc: ParseFunc =
     args.responseParser === "diff"
