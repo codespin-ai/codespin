@@ -54,54 +54,44 @@ function printIncludeFiles(args: TemplateArgs, useLineNumbers: boolean) {
   if (args.include.length === 0) {
     return "";
   } else {
-    const text =
-      printLine(
-        useLineNumbers
-          ? "Including relevant files below with line numbers added:"
-          : "Including relevant files below:",
-        true
-      ) +
-      args.include
-        .map((file) => {
-          if (file.type === "diff") {
-            if (file.diff.trim().length > 0) {
-              const text =
-                printLine(
-                  `Diff for the file ${relativePath(
-                    file.path,
-                    args.workingDir
-                  )}:`
-                ) +
-                printLine("```") +
-                printLine(file.diff) +
-                printLine("```", true);
+    const text = args.include
+      .map((file) => {
+        if (file.type === "diff") {
+          if (file.diff.trim().length > 0) {
+            const text =
+              printLine(
+                `Diff for the file ${relativePath(file.path, args.workingDir)}:`
+              ) +
+              printLine("```") +
+              printLine(file.diff) +
+              printLine("```", true);
 
-              return text;
-            } else {
-              return "";
-            }
+            return text;
           } else {
-            if (file.contents && file.contents.trim().length > 0) {
-              const text =
-                printLine(
-                  `Contents of the file ${relativePath(
-                    file.path,
-                    args.workingDir
-                  )}:`
-                ) +
-                printLine("```") +
-                printLine(
-                  useLineNumbers ? addLineNumbers(file.contents) : file.contents
-                ) +
-                printLine("```", true);
-
-              return text;
-            } else {
-              return "";
-            }
+            return "";
           }
-        })
-        .join("\n");
+        } else {
+          if (file.contents && file.contents.trim().length > 0) {
+            const text =
+              printLine(
+                `Contents of the file ${relativePath(
+                  file.path,
+                  args.workingDir
+                )}:`
+              ) +
+              printLine("```") +
+              printLine(
+                useLineNumbers ? addLineNumbers(file.contents) : file.contents
+              ) +
+              printLine("```", true);
+
+            return text;
+          } else {
+            return "";
+          }
+        }
+      })
+      .join("\n");
     return text;
   }
 }

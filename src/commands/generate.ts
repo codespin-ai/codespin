@@ -266,6 +266,7 @@ export async function generate(
     if (mustParse) {
       // Do we have a custom response parser?
       const customParser = args.parser || promptSettings?.parser;
+      
       const parseFunc: ParseFunc = customParser
         ? (await import(customParser)).default
         : responseParser === "file-block"

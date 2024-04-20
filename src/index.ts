@@ -210,9 +210,10 @@ export async function main() {
             alias: "w",
             describe: "Write generated code to source file(s).",
           })
-          .option("diff", {
-            type: "boolean",
-            describe: "Parse a custom diff format response.",
+          .option("responseParser", {
+            type: "string",
+            describe:
+              "Based on the response from the LLM. Defaults to 'file-block' but can be 'diff' if the prompt was generated with the 'diff' template.",
           })
           .option("exec", {
             type: "string",

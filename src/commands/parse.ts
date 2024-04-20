@@ -7,6 +7,7 @@ import { FilesResult, SavedFilesResult } from "./generate.js";
 import { ParseFunc } from "../responseParsing/ParseFunc.js";
 import { diffParser } from "../responseParsing/diffParser.js";
 import { fileBlockParser } from "../responseParsing/fileBlockParser.js";
+import { exception } from "../exception.js";
 
 export type ParseArgs = {
   file: string;
@@ -15,7 +16,7 @@ export type ParseArgs = {
   config?: string;
   outDir?: string;
   debug?: boolean;
-  diff?: boolean;
+  responseParser?: string;
 };
 
 export type ParseResult = SavedFilesResult | FilesResult;
@@ -31,7 +32,14 @@ export async function parse(
   const config = await readCodespinConfig(args.config, context.workingDir);
 
   const llmResponse = await fs.readFile(args.file, "utf-8");
-  const parseFunc: ParseFunc = args.diff ? diffParser : fileBlockParser;
+  const parseFunc: ParseFunc =
+    args.responseParser === "diff"
+      ? diffParser
+      : args.responseParser === "file-block" ||
+        args.responseParser === undefined
+      ? fileBlockParser
+      : exception(`Unknown response parser ${args.responseParser}`);
+
   const files = await parseFunc(llmResponse, context.workingDir, config);
 
   if (args.write) {
