@@ -70,7 +70,7 @@ function printFileTemplate(args: TemplateArgs, config: CodespinConfig) {
 
   Comments:
   - You must add one or more lines of comments before EACH ${DELETE_LINES_MARKER} or ${START_INSERT_LINES_MARKER} marker to explain what you're doing and why.
-  - For delete operations, explain why the specific start and end lines were chosen for deletion, mentioning the line numbers in the comment.
+  - For delete operations, explain why the specific start and end lines were chosen for deletion, and include the line numbers in the comment.
   - Comments should be provided for EVERY SINGLE delete and insert operation, always referencing the relevant line numbers.
   - Keep the comments concise and focused on explaining the purpose and context of the requested modifications, without introducing additional instructions or reasoning.
 
@@ -86,7 +86,7 @@ function printFileTemplate(args: TemplateArgs, config: CodespinConfig) {
 
   Rules:
   - While deleting, provide a comment explaining the reason for deleting the specific range of lines, and mentioning the line numbers.
-  - While insertinng, provide a comment explaining the purpose and placement of the inserted lines, and mentioning the line number.
+  - While inserting, provide a comment explaining the purpose and placement of the inserted lines, and mentioning the line number.
   - Do not attempt to calculate or adjust the line numbers based on previous delete or insert operations.
     Always reference the line numbers from the original, unmodified file content.
   - Be precise and methodical in your modifications.
