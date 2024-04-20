@@ -22,7 +22,7 @@ export type InitArgs = {
 };
 
 const DEFAULT_JSON_CONTENT = {
-  version: "0.1",
+  version: "0.0.1",
   model: "openai:gpt-3.5-turbo",
   models: {
     "gpt-3.5": "openai:gpt-3.5-turbo",
