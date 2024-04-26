@@ -288,23 +288,20 @@ export async function generate(
       );
 
       if (args.parseCallback) {
-        args.parseCallback(
-          await Promise.all(
-            files.map(async (file) => {
-              return {
-                path: file.path,
-                original: (await pathExists(
-                  path.resolve(context.workingDir, file.path)
-                ))
-                  ? await readFile(
-                      path.resolve(context.workingDir, file.path)
-                    ).toString()
-                  : undefined,
-                generated: file.contents,
-              };
-            })
-          )
+        const generatedFilesDetail = await Promise.all(
+          files.map(async (file) => {
+            const originalPath = path.resolve(context.workingDir, file.path);
+            const originalExists = await pathExists(originalPath);
+            return {
+              path: file.path,
+              original: originalExists
+                ? (await readFile(originalPath)).toString()
+                : undefined,
+              generated: file.contents,
+            };
+          })
         );
+        args.parseCallback(generatedFilesDetail);
       }
 
       if (args.write) {
