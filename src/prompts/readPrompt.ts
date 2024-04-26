@@ -17,7 +17,7 @@ export async function readPrompt(
     );
 
     return prompt;
-  } else if (textPrompt) {
+  } else if (textPrompt !== undefined) {
     const prompt = await processPrompt(textPrompt, undefined, workingDir);
     return prompt;
   } else {
