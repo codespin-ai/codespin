@@ -74,13 +74,6 @@ export async function main() {
             type: "string",
             describe: "A spec (template) to apply to the prompt.",
           })
-          .option("declare", {
-            type: "array",
-            alias: "d",
-            describe:
-              "List of files containing declarations (class definitions, method signatures etc) to include. This provides additional context during code generation.",
-            string: true,
-          })
           .option("exclude", {
             type: "array",
             describe:
@@ -146,11 +139,6 @@ export async function main() {
             type: "boolean",
             describe:
               "Whether the LLM response needs to be processed. Defaults to true.",
-          })
-          .option("maxDeclare", {
-            type: "number",
-            describe:
-              "The maximum number of declaration files allowed. Defaults to 10.",
           })
           .option("go", {
             type: "boolean",

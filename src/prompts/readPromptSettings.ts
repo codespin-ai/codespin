@@ -5,10 +5,8 @@ export type PromptSettings = {
   out?: string;
   model?: string;
   maxTokens?: number;
-  maxDeclare?: number;
   template?: string;
   include?: string[];
-  declare?: string[];
   parser?: string;
 };
 

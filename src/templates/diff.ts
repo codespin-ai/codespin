@@ -28,7 +28,6 @@ export default async function generate(
     (args.outPath ? printLine("-----", true) : "") +
     printLine(printPrompt(args, false), args.outPath ? false : true) +
     (args.outPath ? printLine("-----", true) : "") +
-    printDeclarations(args) +
     printIncludeFiles(args, true) +
     printFileTemplate(args, config);
 
@@ -218,30 +217,6 @@ function printFileTemplate(args: TemplateArgs, config: CodespinConfig) {
   `;
 
   return printLine(fixTemplateWhitespace(tmpl), true);
-}
-
-function printDeclarations(args: TemplateArgs) {
-  if (args.declare.length === 0) {
-    return "";
-  } else {
-    const text =
-      printLine(
-        "Here are some relevant declarations/signatures for external dependencies:",
-        true
-      ) +
-      args.declare
-        .map(
-          (file) =>
-            printLine(
-              `Declarations for ${relativePath(file.path, args.workingDir)}:`
-            ) +
-            printLine("```") +
-            printLine(file.contents) +
-            printLine("```", true)
-        )
-        .join("\n");
-    return text;
-  }
 }
 
 function printIncludeFiles(args: TemplateArgs, useLineNumbers: boolean) {

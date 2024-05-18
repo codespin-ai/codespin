@@ -2,7 +2,6 @@ import path from "path";
 import { pathExists } from "../fs/pathExists.js";
 import { CodespinConfig } from "../settings/CodespinConfig.js";
 import { getTemplatesDir } from "../settings/getTemplatesDir.js";
-import declarationsTemplate from "../templates/declarations.js";
 import defaultTemplate from "../templates/default.js";
 import dependenciesTemplate from "../templates/dependencies.js";
 import diffTemplate from "../templates/diff.js";
@@ -29,8 +28,6 @@ export async function getTemplate<T>(
     ? plainTemplate
     : template === "default"
     ? defaultTemplate
-    : template === "declarations"
-    ? declarationsTemplate
     : template === "dependencies"
     ? dependenciesTemplate
     : template === "diff"

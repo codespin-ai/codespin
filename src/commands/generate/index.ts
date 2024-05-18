@@ -25,7 +25,6 @@ import { evalSpec } from "../../specs/evalSpec.js";
 import { TemplateArgs } from "../../templates/TemplateArgs.js";
 import { getTemplate } from "../../templating/getTemplate.js";
 import { addLineNumbers } from "../../text/addLineNumbers.js";
-import { getIncludedDeclarations } from "./getIncludedDeclarations.js";
 import { getIncludedFiles } from "./getIncludedFiles.js";
 import { getOutPath } from "./getOutPath.js";
 
@@ -45,12 +44,10 @@ export type GenerateArgs = {
   config?: string;
   include?: string[];
   exclude?: string[];
-  declare?: string[];
   outDir?: string;
   parser?: string;
   parse?: boolean;
   go?: boolean;
-  maxDeclare?: number;
   spec?: string;
   responseCallback?: (text: string) => void;
   responseStreamCallback?: (text: string) => void;
@@ -114,9 +111,6 @@ export async function generate(
   const excludesFromCLI = await Promise.all(
     (args.exclude || []).map((x) => path.resolve(context.workingDir, x))
   );
-  const declarationsFromCLI = await Promise.all(
-    (args.declare || []).map((x) => path.resolve(context.workingDir, x))
-  );
 
   const mustParse = args.parse ?? (args.go ? false : true);
 
@@ -137,8 +131,6 @@ export async function generate(
 
   const maxTokens =
     args.maxTokens ?? promptSettings?.maxTokens ?? config?.maxTokens;
-  const maxDeclare =
-    args.maxDeclare ?? promptSettings?.maxDeclare ?? config?.maxDeclare ?? 30;
 
   let cancelCompletion: (() => void) | undefined;
 
@@ -158,18 +150,6 @@ export async function generate(
     promptFilePath,
     promptSettings,
     context.workingDir
-  );
-
-  const declarations = await getIncludedDeclarations(
-    declarationsFromCLI,
-    api,
-    promptFilePath,
-    promptSettings,
-    completionOptions,
-    maxDeclare,
-    args.config,
-    context.workingDir,
-    completionOptions
   );
 
   const templateFunc = await getTemplate<TemplateArgs>(
@@ -203,7 +183,6 @@ export async function generate(
     promptWithLineNumbers,
     include: includes,
     outPath,
-    declare: declarations,
     promptSettings,
     templateArgs: args.templateArgs,
     workingDir: context.workingDir,

@@ -10,7 +10,6 @@ export default async function generate(
 ): Promise<TemplateResult> {
   const prompt =
     printLine(args.prompt, true) +
-    printDeclarations(args) +
     printIncludeFiles(args, false);
 
   return { prompt, responseParser: "no-output" };
@@ -24,30 +23,6 @@ function printLine(line: string | undefined, addBlankLine = false): string {
 
 function relativePath(filePath: string, workingDir: string) {
   return "./" + path.relative(workingDir, filePath);
-}
-
-function printDeclarations(args: TemplateArgs) {
-  if (args.declare.length === 0) {
-    return "";
-  } else {
-    const text =
-      printLine(
-        "Here are some relevant declarations/signatures for external dependencies:",
-        true
-      ) +
-      args.declare
-        .map(
-          (file) =>
-            printLine(
-              `Declarations for ${relativePath(file.path, args.workingDir)}:`
-            ) +
-            printLine("```") +
-            printLine(file.contents) +
-            printLine("```", true)
-        )
-        .join("\n");
-    return text;
-  }
 }
 
 function printIncludeFiles(args: TemplateArgs, useLineNumbers: boolean) {

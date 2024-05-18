@@ -119,7 +119,7 @@ Use ExpressJS. Use Postgres for the database.
 Place database code in a different file (a database layer).
 ```
 
-#### Include External Files and Declarations
+#### Include External Files 
 
 For the code generator to better understand the context, you must pass the relevant external files (such as dependencies) with the `--include` (or `-i`) option.
 
@@ -129,21 +129,13 @@ For example, if `main.py` depends on `dep1.py` and `dep2.py`:
 codespin gen main.py.md --out main.py --include main.py --include dep1.py --include dep2.py --write
 ```
 
-But in some cases, including entire files (with `--include` or `-i`) will result in larger context sizes. To reduce the size of the context, you can send just the declarations/signatures found in a file with the `--declare` (or `-d`) option.
-
-```sh
-codespin gen main.py.md --out main.py --include main.py -d dep1.py -d dep2.py --write
-```
-
-Note that creating declarations will require a call to the LLM. Declarations are then cached until the file changes.
-
-With both `--include` and `--declare`, you can specify wildcards. The following will include all ".py" files:
+With `--include` you can specify wildcards. The following will include all ".py" files:
 
 ```sh
 codespin gen main.py.md --out main.py -d "*.py" --write
 ```
 
-You can also define the `--include`, `--declare`, `--template`, `--parser`, `--model`, and `--max-tokens` parameters in front-matter like this:
+You can also define the `--include`, `--template`, `--parser`, `--model`, and `--max-tokens` parameters in front-matter like this:
 
 ```markdown
 ---
@@ -274,9 +266,7 @@ This command above will ignore the latest edits to main.py and use content from 
 - `-t, --template <template name or path>`: Path to the template file.
 - `-w, --write`: Write generated code to source file(s).
 - `--debug`: Enable debug mode. Prints debug messages for every step.
-- `--declare <file path>`: Specify declaration files for additional context. Repeat for multiple files.
 - `--exclude <file path>`: List of files to exclude from the prompt. Used to override automatically included source files.
-- `--maxDeclare <count>`: The maximum number of declaration files allowed. Defaults to 10.
 - `--maxTokens`: Maximum number of tokens for generated code.
 - `--model <model name>`: Name of the model to use, such as 'openai:gpt-4' or 'anthropic:claude-3-haiku-20240307'.
 - `--outDir <dir path>`: Path to directory relative to which files are generated. Defaults to the directory of the prompt file.
@@ -325,7 +315,6 @@ export type TemplateArgs = {
   prompt: string;
   promptWithLineNumbers: string;
   include: VersionedFileInfo[];
-  declare: BasicFileInfo[];
   outPath: string | undefined;
   promptSettings: unknown;
   templateArgs: string[] | undefined;

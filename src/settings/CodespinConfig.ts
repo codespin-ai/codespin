@@ -3,7 +3,6 @@ export type CodespinConfig = {
   template?: string;
   model?: string;
   maxTokens?: number;
-  maxDeclare?: number;
   debug?: boolean;
   models?: {
     [key: string]: string;

@@ -3,7 +3,6 @@ import path from "path";
 import { pathExists } from "../fs/pathExists.js";
 import {
   CODESPIN_CONFIG_FILENAME,
-  CODESPIN_DECLARATIONS_DIRNAME,
   CODESPIN_DIRNAME,
   CODESPIN_TEMPLATES_DIRNAME,
 } from "../fs/pathNames.js";
@@ -103,10 +102,6 @@ export async function init(
 
     const configFile = path.resolve(configDir, CODESPIN_CONFIG_FILENAME);
     const templateDir = path.resolve(configDir, CODESPIN_TEMPLATES_DIRNAME);
-    const declarationsDir = path.resolve(
-      configDir,
-      CODESPIN_DECLARATIONS_DIRNAME
-    );
 
     // Check if .codespin already exists
     if (!args.force && (await pathExists(configDir))) {
@@ -121,16 +116,12 @@ export async function init(
     // Create template dir
     await createDirIfMissing(templateDir);
 
-    // Create codespin/declarations
-    await createDirIfMissing(declarationsDir);
-
     // Write the config file.
     await fs.writeFile(
       configFile,
       JSON.stringify(DEFAULT_JSON_CONTENT, null, 2)
     );
 
-    // if the project is under git, exclude codespin/declarations in .gitignore
     if (gitDir) {
       const gitIgnorePath = path.resolve(gitDir, ".gitignore");
 

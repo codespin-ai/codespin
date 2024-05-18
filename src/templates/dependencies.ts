@@ -73,7 +73,7 @@ Print only the JSON and no other text. Enclose it in a JSON codeblock.
 `;
 }
 
-export default async function declarations(
+export default async function dependencies(
   args: DependenciesTemplateArgs,
   config: CodespinConfig
 ) {

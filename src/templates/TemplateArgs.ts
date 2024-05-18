@@ -5,7 +5,6 @@ export type TemplateArgs = {
   prompt: string;
   promptWithLineNumbers: string;
   include: VersionedFileInfo[];
-  declare: BasicFileInfo[];
   outPath: string | undefined;
   promptSettings: unknown;
   templateArgs: string[] | undefined;
