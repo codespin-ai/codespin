@@ -2,7 +2,7 @@
 
 import yargs from "yargs";
 import { dependencies } from "./commands/dependencies.js";
-import { generate } from "./commands/generate.js";
+import { generate } from "./commands/generate/index.js";
 import { init } from "./commands/init.js";
 import { parse } from "./commands/parse.js";
 import { getPackageVersion } from "./getPackageVersion.js";

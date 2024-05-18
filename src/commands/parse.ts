@@ -3,7 +3,7 @@ import { CodespinContext } from "../CodeSpinContext.js";
 import { setDebugFlag } from "../debugMode.js";
 import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
 import { readCodespinConfig } from "../settings/readCodespinConfig.js";
-import { FilesResult, SavedFilesResult } from "./generate.js";
+import { FilesResult, SavedFilesResult } from "./generate/index.js";
 import { ParseFunc } from "../responseParsing/ParseFunc.js";
 import { diffParser } from "../responseParsing/diffParser.js";
 import { fileBlockParser } from "../responseParsing/fileBlockParser.js";

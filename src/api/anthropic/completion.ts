@@ -84,7 +84,7 @@ export async function completion(
     }
   });
 
-  await stream.finalMessage();
+  const fullMessage = await stream.finalMessage();
 
   if (options.responseCallback) {
     options.responseCallback(responseText);
@@ -93,5 +93,10 @@ export async function completion(
   writeDebug("---ANTHROPIC RESPONSE---");
   writeDebug(responseText);
 
-  return { ok: true, message: responseText };
+  return {
+    ok: true,
+    message: responseText,
+    finishReason:
+      fullMessage.stop_reason === "max_tokens" ? "MAX_TOKENS" : "STOP",
+  };
 }

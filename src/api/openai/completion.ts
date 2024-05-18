@@ -9,7 +9,6 @@ type OpenAIConfig = {
 };
 
 let openaiClient: OpenAI | undefined;
-
 let configLoaded = false;
 
 async function loadConfigIfRequired(
@@ -75,12 +74,18 @@ export async function completion(
 
   let responseText = "";
 
+  let finishReason: OpenAI.Chat.Completions.ChatCompletionChunk.Choice["finish_reason"] =
+    null;
+
   for await (const chunk of stream) {
     const content = chunk.choices[0]?.delta?.content || "";
     responseText += content;
     if (options.responseStreamCallback) {
       options.responseStreamCallback(content);
     }
+
+    // Check for finish_reason
+    finishReason = chunk.choices[0]?.finish_reason;
   }
 
   if (options.responseCallback) {
@@ -90,5 +95,9 @@ export async function completion(
   writeDebug("---OPENAI RESPONSE---");
   writeDebug(responseText);
 
-  return { ok: true, message: responseText };
+  return {
+    ok: true,
+    message: responseText,
+    finishReason: finishReason === "length" ? "MAX_TOKENS" : "STOP",
+  };
 }

@@ -1,40 +1,33 @@
 import { readFile } from "fs/promises";
 import path from "path";
-import { CodespinContext } from "../CodeSpinContext.js";
-import { CompletionOptions } from "../api/CompletionOptions.js";
-import { getCompletionAPI } from "../api/getCompletionAPI.js";
-import { writeDebug } from "../console.js";
-import { setDebugFlag } from "../debugMode.js";
-import { exception } from "../exception.js";
-import { BasicFileInfo } from "../fs/BasicFileInfo.js";
-import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
-import { VersionedPath } from "../fs/VersionedPath.js";
-import { getVersionedFileInfo } from "../fs/getFileContent.js";
-import { getVersionedPath } from "../fs/getVersionedPath.js";
-import { pathExists } from "../fs/pathExists.js";
-import { resolvePathInProject } from "../fs/resolvePath.js";
-import { resolveWildcardPaths } from "../fs/resolveWildcards.js";
-import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
-import { writeToFile } from "../fs/writeToFile.js";
-import { readPrompt } from "../prompts/readPrompt.js";
-import {
-  PromptSettings,
-  readPromptSettings,
-} from "../prompts/readPromptSettings.js";
-import { getApiAndModel } from "../settings/getApiAndModel.js";
-import { readCodespinConfig } from "../settings/readCodespinConfig.js";
-import { GeneratedSourceFile } from "../sourceCode/GeneratedSourceFile.js";
-import { SourceFile } from "../sourceCode/SourceFile.js";
-import { getDeclarations } from "../sourceCode/getDeclarations.js";
-import { evalSpec } from "../specs/evalSpec.js";
-import { TemplateArgs } from "../templates/TemplateArgs.js";
-import { getTemplate } from "../templating/getTemplate.js";
-import { addLineNumbers } from "../text/addLineNumbers.js";
-import { CodespinConfig } from "../settings/CodespinConfig.js";
-import { fileBlockParser } from "../responseParsing/fileBlockParser.js";
-import { diffParser } from "../responseParsing/diffParser.js";
-import { ParseFunc } from "../responseParsing/ParseFunc.js";
-import { noOutputParser } from "../responseParsing/noOutputParser.js";
+import { CodespinContext } from "../../CodeSpinContext.js";
+import { CompletionOptions } from "../../api/CompletionOptions.js";
+import { getCompletionAPI } from "../../api/getCompletionAPI.js";
+import { writeDebug } from "../../console.js";
+import { setDebugFlag } from "../../debugMode.js";
+import { exception } from "../../exception.js";
+import { VersionedPath } from "../../fs/VersionedPath.js";
+import { getVersionedPath } from "../../fs/getVersionedPath.js";
+import { pathExists } from "../../fs/pathExists.js";
+import { writeFilesToDisk } from "../../fs/writeFilesToDisk.js";
+import { writeToFile } from "../../fs/writeToFile.js";
+import { readPrompt } from "../../prompts/readPrompt.js";
+import { readPromptSettings } from "../../prompts/readPromptSettings.js";
+import { ParseFunc } from "../../responseParsing/ParseFunc.js";
+import { diffParser } from "../../responseParsing/diffParser.js";
+import { fileBlockParser } from "../../responseParsing/fileBlockParser.js";
+import { noOutputParser } from "../../responseParsing/noOutputParser.js";
+import { getApiAndModel } from "../../settings/getApiAndModel.js";
+import { readCodespinConfig } from "../../settings/readCodespinConfig.js";
+import { GeneratedSourceFile } from "../../sourceCode/GeneratedSourceFile.js";
+import { SourceFile } from "../../sourceCode/SourceFile.js";
+import { evalSpec } from "../../specs/evalSpec.js";
+import { TemplateArgs } from "../../templates/TemplateArgs.js";
+import { getTemplate } from "../../templating/getTemplate.js";
+import { addLineNumbers } from "../../text/addLineNumbers.js";
+import { getIncludedDeclarations } from "./getIncludedDeclarations.js";
+import { getIncludedFiles } from "./getIncludedFiles.js";
+import { getOutPath } from "./getOutPath.js";
 
 export type GenerateArgs = {
   promptFile?: string;
@@ -176,7 +169,7 @@ export async function generate(
     maxDeclare,
     args.config,
     context.workingDir,
-    config
+    completionOptions
   );
 
   const templateFunc = await getTemplate<TemplateArgs>(
@@ -331,144 +324,8 @@ export async function generate(
       };
     }
   } else {
-    if (completionResult.error.code === "length") {
-      throw new Error(
-        "Ran out of tokens. Increase token size by specifying the --max-tokens argument."
-      );
-    } else {
-      throw new Error(
-        `${completionResult.error.code}: ${completionResult.error.message}`
-      );
-    }
-  }
-}
-
-function removeDuplicates<T>(
-  arr: T[],
-  getStringToCompare: (x: T) => string
-): T[] {
-  const uniqueElements = new Map<string, T>();
-
-  arr.forEach((element) => {
-    const comparisonString = getStringToCompare(element);
-    if (!uniqueElements.has(comparisonString)) {
-      uniqueElements.set(comparisonString, element);
-    }
-  });
-
-  return Array.from(uniqueElements.values());
-}
-
-async function getIncludedFiles(
-  includesFromCLI: VersionedPath[],
-  excludesFromCLI: string[],
-  promptFilePath: string | undefined,
-  promptSettings: PromptSettings | undefined,
-  workingDir: string
-): Promise<VersionedFileInfo[]> {
-  const includesFromPrompt = promptFilePath
-    ? await Promise.all(
-        (promptSettings?.include || []).map(async (x) =>
-          getVersionedPath(x, path.dirname(promptFilePath), true, workingDir)
-        )
-      )
-    : [];
-
-  const allPaths = includesFromCLI.concat(includesFromPrompt);
-
-  const pathsWithWildcards: VersionedPath[] = (
-    await Promise.all(
-      allPaths.map(async (x) =>
-        x.path.includes("*")
-          ? (
-              await resolveWildcardPaths(x.path)
-            ).map((f) => ({
-              path: f,
-              version: x.version,
-            }))
-          : x
-      )
-    )
-  ).flat();
-
-  const validFiles = removeDuplicates(
-    pathsWithWildcards.filter((x) => !excludesFromCLI.includes(x.path)),
-    (x) => x.path
-  );
-
-  const fileInfoList = await Promise.all(
-    validFiles.map((x) => getVersionedFileInfo(x, workingDir))
-  );
-
-  return fileInfoList;
-}
-
-async function getIncludedDeclarations(
-  declarationsFromCLI: string[],
-  api: string,
-  promptFilePath: string | undefined,
-  promptSettings: PromptSettings | undefined,
-  completionOptions: CompletionOptions,
-  maxDeclare: number,
-  customConfigDir: string | undefined,
-  workingDir: string,
-  config: CodespinConfig
-): Promise<BasicFileInfo[]> {
-  const declarationsFromPrompt = promptFilePath
-    ? await Promise.all(
-        (promptSettings?.declare || []).map(async (x) =>
-          resolvePathInProject(x, path.dirname(promptFilePath), workingDir)
-        )
-      )
-    : [];
-
-  const allPaths = declarationsFromPrompt.concat(declarationsFromCLI);
-
-  const pathsWithWildcards: string[] = (
-    await Promise.all(
-      allPaths.map(async (x) =>
-        x.includes("*") ? await resolveWildcardPaths(x) : x
-      )
-    )
-  ).flat();
-
-  const filePaths = removeDuplicates(pathsWithWildcards, (x) => x);
-
-  if (filePaths.length > maxDeclare) {
-    exception(
-      `The number of declaration files exceeded ${maxDeclare}. Set the --max-declare parameter.`
+    throw new Error(
+      `${completionResult.error.code}: ${completionResult.error.message}`
     );
   }
-
-  if (filePaths.length) {
-    return await getDeclarations(
-      filePaths,
-      api,
-      customConfigDir,
-      completionOptions,
-      workingDir,
-      config
-    );
-  } else {
-    return [];
-  }
-}
-
-// If the out is mentioned in the CLI it's relative to the working dir.
-// If it's mentioned in prompt front-matter, it is relative to the prompt file's directory.
-async function getOutPath(
-  outFromCLI: string | undefined,
-  promptFilePath: string | undefined,
-  promptSettings: PromptSettings | undefined,
-  workingDir: string
-): Promise<string | undefined> {
-  return outFromCLI
-    ? path.resolve(workingDir, outFromCLI)
-    : promptFilePath && promptSettings && promptSettings.out
-    ? (() => {
-        const dirOfPromptFile = path.dirname(promptFilePath);
-        const outPath = path.resolve(dirOfPromptFile, promptSettings.out);
-        return outPath;
-      })()
-    : undefined;
 }
