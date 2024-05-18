@@ -27,6 +27,8 @@ import { getTemplate } from "../../templating/getTemplate.js";
 import { addLineNumbers } from "../../text/addLineNumbers.js";
 import { getIncludedFiles } from "./getIncludedFiles.js";
 import { getOutPath } from "./getOutPath.js";
+import { getGeneratedFiles } from "./getGeneratedFiles.js";
+import { callCompletion } from "./callCompletion.js";
 
 export type GenerateArgs = {
   promptFile?: string;
@@ -132,18 +134,6 @@ export async function generate(
   const maxTokens =
     args.maxTokens ?? promptSettings?.maxTokens ?? config?.maxTokens;
 
-  let cancelCompletion: (() => void) | undefined;
-
-  const completionOptions: CompletionOptions = {
-    model,
-    maxTokens,
-    responseStreamCallback: args.responseStreamCallback,
-    responseCallback: args.responseCallback,
-    cancelCallback: (cancel) => {
-      cancelCompletion = cancel;
-    },
-  };
-
   const includes = await getIncludedFiles(
     includesFromCLI,
     excludesFromCLI,
@@ -219,24 +209,17 @@ export async function generate(
     };
   }
 
-  function generateCommandCancel() {
-    if (cancelCompletion) {
-      cancelCompletion();
-    }
-  }
-
-  if (args.cancelCallback) {
-    args.cancelCallback(generateCommandCancel);
-  }
-
-  const completion = getCompletionAPI(api);
-
-  const completionResult = await completion(
+  const completionResult = await callCompletion({
+    api,
+    config: args.config,
     evaluatedPrompt,
-    args.config,
-    completionOptions,
-    context.workingDir
-  );
+    maxTokens,
+    model,
+    workingDir: context.workingDir,
+    cancelCallback: args.cancelCallback,
+    responseCallback: args.responseCallback,
+    responseStreamCallback: args.responseStreamCallback,
+  });
 
   if (completionResult.ok) {
     if (mustParse) {
@@ -260,19 +243,7 @@ export async function generate(
       );
 
       if (args.parseCallback) {
-        const generatedFilesDetail = await Promise.all(
-          files.map(async (file) => {
-            const originalPath = path.resolve(context.workingDir, file.path);
-            const originalExists = await pathExists(originalPath);
-            return {
-              path: file.path,
-              original: originalExists
-                ? (await readFile(originalPath)).toString()
-                : undefined,
-              generated: file.contents,
-            };
-          })
-        );
+        const generatedFilesDetail = await getGeneratedFiles(files, context);
         args.parseCallback(generatedFilesDetail);
       }
 
