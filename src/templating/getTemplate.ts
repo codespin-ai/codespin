@@ -7,6 +7,7 @@ import dependenciesTemplate from "../templates/dependencies.js";
 import diffTemplate from "../templates/diff.js";
 import plainTemplate from "../templates/plain.js";
 import filesTemplate from "../templates/files.js";
+import continuationTemplate from "../templates/continuation.js";
 import { exception } from "../exception.js";
 
 export type TemplateResult = {
@@ -34,6 +35,8 @@ export async function getTemplate<T>(
     ? diffTemplate
     : template === "files"
     ? filesTemplate
+    : template === "continuation"
+    ? continuationTemplate
     : await (async () => {
         const projectTemplateDir = await getTemplatesDir(
           customConfigDir,

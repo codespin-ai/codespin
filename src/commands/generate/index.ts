@@ -51,6 +51,7 @@ export type GenerateArgs = {
   parse?: boolean;
   go?: boolean;
   spec?: string;
+  multi?: number;
   responseCallback?: (text: string) => void;
   responseStreamCallback?: (text: string) => void;
   promptCallback?: (prompt: string) => void;
