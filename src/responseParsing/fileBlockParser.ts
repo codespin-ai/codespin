@@ -9,16 +9,15 @@ export async function fileBlockParser(
   return parseFileContents(response);
 }
 
-const filePathRegex =
-  /File path:\s*(\.\/[\w./-]+)\s*\n*```(\w*)\n([\s\S]*?)```/g;
+const filePathRegex = /File path:\s*(\.\/[\w./-]+)\s*\n*```\n([\s\S]*?)\n```/g;
 
 const extractMatches = (input: string, regex: RegExp): RegExpExecArray[] => {
   return [...input.matchAll(regex)];
 };
 
 const matchToFile = (match: RegExpExecArray): SourceFile => {
-  const path = match[1].trim();
-  const contents = match[3].trim();
+  const path = match[1]?.trim();
+  const contents = match[2]?.trim();
 
   if (!path || !contents) {
     throw new Error("File path or contents missing in code block.");
@@ -28,5 +27,11 @@ const matchToFile = (match: RegExpExecArray): SourceFile => {
 };
 
 const parseFileContents = (input: string): SourceFile[] => {
-  return extractMatches(input, filePathRegex).map(matchToFile);
+  const matches = extractMatches(input, filePathRegex);
+
+  if (input.trim() === "") {
+    return [];
+  }
+
+  return matches.map(matchToFile);
 };

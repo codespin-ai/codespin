@@ -66,25 +66,6 @@ export function writeJson() {}
     expect(result).toEqual([]);
   });
 
-  it("handles malformed blocks gracefully", async () => {
-    const input = `
-File path:./src/files/readJson.ts
-\`\`\`
-export function readJson() {}
-\`\`\`
-File path: ./src/files/writeJson.ts
-\`\`\`
-export function writeJson() {
-`;
-    const result = await fileBlockParser(input, "", mockConfig);
-    expect(result).toEqual([
-      {
-        path: "./src/files/readJson.ts",
-        contents: "export function readJson() {}",
-      },
-    ]);
-  });
-
   it("ignores content between code blocks", async () => {
     const input = `
 File path: ./src/files/readJson.ts
@@ -98,6 +79,35 @@ File path:./src/files/writeJson.ts
 \`\`\`
 export function writeJson() {}
 \`\`\`
+`;
+    const result = await fileBlockParser(input, "", mockConfig);
+    expect(result).toEqual([
+      {
+        path: "./src/files/readJson.ts",
+        contents: "export function readJson() {}",
+      },
+      {
+        path: "./src/files/writeJson.ts",
+        contents: "export function writeJson() {}",
+      },
+    ]);
+  });
+
+  it("ignores content between and after code blocks", async () => {
+    const input = `
+File path: ./src/files/readJson.ts
+\`\`\`
+export function readJson() {}
+\`\`\`
+
+Some content here which should be ignored.
+
+File path:./src/files/writeJson.ts
+\`\`\`
+export function writeJson() {}
+\`\`\`
+
+More content here to be ignored.
 `;
     const result = await fileBlockParser(input, "", mockConfig);
     expect(result).toEqual([
