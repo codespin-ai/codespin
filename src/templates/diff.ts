@@ -11,7 +11,7 @@ import {
 } from "../responseParsing/markers.js";
 import { TemplateResult } from "../templating/getTemplate.js";
 
-export default async function generate(
+export default async function diff(
   args: TemplateArgs,
   config: CodespinConfig
 ): Promise<TemplateResult> {
