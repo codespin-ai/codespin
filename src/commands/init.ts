@@ -33,16 +33,6 @@ const DEFAULT_JSON_CONTENT: CodespinConfig = {
     "claude-3-sonnet": "anthropic:claude-3-sonnet-20240229",
     "claude-3-opus": "anthropic:claude-3-opus-20240229",
   },
-  markers: {
-    START_UPDATES: "START_UPDATES",
-    END_UPDATES: "END_UPDATES",
-    START_FILE_CONTENTS: "START_FILE_CONTENTS",
-    END_FILE_CONTENTS: "END_FILE_CONTENTS",
-    DELETE_LINES: "DELETE_LINES",
-    START_INSERT_LINES: "START_INSERT_LINES",
-    END_INSERT_LINES: "END_INSERT_LINES",
-    PROMPT: "PROMPT",
-  },
 };
 
 const DEFAULT_OPENAI_CONFIG = {
