@@ -1,6 +1,7 @@
 import { CompletionOptions } from "../../api/CompletionOptions.js";
 import { CompletionResult } from "../../api/CompletionResult.js";
 import { getCompletionAPI } from "../../api/getCompletionAPI.js";
+import { writeDebug } from "../../console.js";
 import { CodespinConfig } from "../../settings/CodespinConfig.js";
 
 type CallCompletionArgs = {
@@ -44,8 +45,18 @@ export async function callCompletion(
     },
   };
 
+  const conversationHistory = [
+    { role: "user" as const, content: args.evaluatedPrompt },
+  ];
+
+  writeDebug("--- PROMPT ---");
+  for (const message of conversationHistory) {
+    writeDebug(`ROLE: ${message.role}:`);
+    writeDebug(message.content);
+  }
+
   const completionResult = await completion(
-    [{ role: "user", content: args.evaluatedPrompt }],
+    conversationHistory,
     args.customConfigDir,
     completionOptions,
     args.workingDir
