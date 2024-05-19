@@ -14,6 +14,7 @@ type CallCompletionArgs = {
   responseCallback?: (text: string) => void;
   responseStreamCallback?: (text: string) => void;
   cancelCallback?: (cancel: () => void) => void;
+  multi: number;
 };
 
 export async function callCompletion(

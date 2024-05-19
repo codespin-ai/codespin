@@ -216,6 +216,7 @@ export async function generate(
     maxTokens,
     model,
     config,
+    multi,
     workingDir: context.workingDir,
     cancelCallback: args.cancelCallback,
     responseCallback: args.responseCallback,
