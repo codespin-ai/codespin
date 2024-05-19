@@ -4,6 +4,7 @@ import { writeDebug } from "../../console.js";
 import { readConfig } from "../../settings/readConfig.js";
 import { CompletionOptions } from "../CompletionOptions.js";
 import { CompletionResult } from "../CompletionResult.js";
+import { CompletionInputMessage } from "../types.js";
 
 type AnthropicConfig = {
   apiKey: string;
@@ -32,7 +33,7 @@ async function loadConfigIfRequired(
 
 // Main completion function using the Anthropic SDK
 export async function completion(
-  prompt: string,
+  messages: CompletionInputMessage[],
   customConfigDir: string | undefined,
   options: CompletionOptions,
   workingDir: string
@@ -63,12 +64,7 @@ export async function completion(
   const stream = anthropic.messages.stream({
     model: options.model,
     max_tokens: options.maxTokens || 4096,
-    messages: [
-      {
-        role: "user",
-        content: prompt,
-      },
-    ],
+    messages: messages,
   });
 
   if (options.cancelCallback) {

@@ -3,9 +3,10 @@ import { completion as openaiCompletion } from "./openai/completion.js";
 import { completion as anthropicCompletion } from "./anthropic/completion.js";
 import { CompletionOptions } from "./CompletionOptions.js";
 import { CompletionResult } from "./CompletionResult.js";
+import { CompletionInputMessage } from "./types.js";
 
 export type CompletionFunc = (
-  prompt: string,
+  messages: CompletionInputMessage[],
   customConfigDir: string | undefined,
   options: CompletionOptions,
   workingDir: string

@@ -4,6 +4,7 @@ export type CodespinConfig = {
   model?: string;
   maxTokens?: number;
   debug?: boolean;
+  multi?: number;
   models?: {
     [key: string]: string;
   };

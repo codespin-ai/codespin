@@ -8,6 +8,7 @@ export type PromptSettings = {
   template?: string;
   include?: string[];
   parser?: string;
+  multi?: number;
 };
 
 export async function readPromptSettings(

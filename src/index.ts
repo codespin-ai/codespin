@@ -63,6 +63,12 @@ export async function main() {
             alias: "w",
             describe: "Write generated code to source file(s).",
           })
+          .option("multi", {
+            type: "number",
+            alias: "m",
+            describe:
+              "Specify the maximum number of calls to complete the output when output token size is exceeded.",
+          })
           .option("include", {
             type: "array",
             alias: "i",

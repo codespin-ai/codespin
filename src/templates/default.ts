@@ -7,6 +7,7 @@ import {
   getStartFileContentsMarker,
 } from "../responseParsing/markers.js";
 import { TemplateResult } from "../templating/getTemplate.js";
+import { trimWhitespace } from "../templating/trimWhitespace.js";
 
 export default async function generate(
   args: TemplateArgs,
@@ -78,7 +79,7 @@ function printFileTemplate(args: TemplateArgs, config: CodespinConfig) {
   You must respond with the complete contents of each file. DO NOT omit any line.
   `;
 
-  return printLine(fixTemplateWhitespace(tmpl), true);
+  return printLine(trimWhitespace(tmpl), true);
 }
 
 function printIncludeFiles(args: TemplateArgs, useLineNumbers: boolean) {
@@ -135,30 +136,4 @@ function printIncludeFiles(args: TemplateArgs, useLineNumbers: boolean) {
         .join("\n");
     return text;
   }
-}
-
-export function fixTemplateWhitespace(input: string) {
-  // Split the string into an array of lines.
-  const lines = input.split("\n");
-
-  // Remove leading and trailing empty lines if found.
-  if (lines[0].trim() === "") lines.shift();
-  if (lines[lines.length - 1].trim() === "") lines.pop();
-
-  // Identify the whitespace prior to the first non-empty line.
-  const firstNonEmptyLine = lines.find((line) => line.trim() !== "");
-  const leadingWhitespaceMatch = firstNonEmptyLine?.match(/^(\s+)/);
-  const leadingWhitespace = leadingWhitespaceMatch
-    ? leadingWhitespaceMatch[0]
-    : "";
-
-  // Subtract the whitespace from every other line, except empty lines.
-  const transformedLines = lines.map((line) => {
-    if (line.trim() === "") return line; // Return the empty line as it is.
-    return line.startsWith(leadingWhitespace)
-      ? line.slice(leadingWhitespace.length)
-      : line;
-  });
-
-  return transformedLines.join("\n");
 }

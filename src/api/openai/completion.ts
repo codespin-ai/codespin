@@ -3,6 +3,7 @@ import { writeDebug } from "../../console.js";
 import { readConfig } from "../../settings/readConfig.js";
 import { CompletionOptions } from "../CompletionOptions.js";
 import { CompletionResult } from "../CompletionResult.js";
+import { CompletionInputMessage } from "../types.js";
 
 type OpenAIConfig = {
   apiKey: string;
@@ -37,7 +38,7 @@ async function loadConfigIfRequired(
 }
 
 export async function completion(
-  prompt: string,
+  messages: CompletionInputMessage[],
   customConfigDir: string | undefined,
   options: CompletionOptions,
   workingDir: string
@@ -61,7 +62,10 @@ export async function completion(
 
   const stream = await openaiClient.chat.completions.create({
     model: options.model,
-    messages: [{ role: "user", content: prompt }],
+    messages: messages.map((x) => ({
+      role: x.role,
+      content: x.content,
+    })),
     max_tokens: options.maxTokens,
     stream: true,
   });

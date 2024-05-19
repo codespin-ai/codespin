@@ -189,9 +189,6 @@ export async function generate(
     args.promptCallback(evaluatedPrompt);
   }
 
-  writeDebug("--- PROMPT ---");
-  writeDebug(evaluatedPrompt);
-
   if (args.printPrompt || typeof args.writePrompt !== "undefined") {
     if (typeof args.writePrompt !== "undefined") {
       // If --write-prompt is specified but no file is mentioned
@@ -210,12 +207,15 @@ export async function generate(
     };
   }
 
+  const multi = args.multi ?? promptSettings?.multi ?? config.multi ?? 4;
+
   const completionResult = await callCompletion({
     api,
-    config: args.config,
+    customConfigDir: args.config,
     evaluatedPrompt,
     maxTokens,
     model,
+    config,
     workingDir: context.workingDir,
     cancelCallback: args.cancelCallback,
     responseCallback: args.responseCallback,

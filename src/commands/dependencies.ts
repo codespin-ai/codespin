@@ -85,7 +85,7 @@ export async function dependencies(
     const completion = getCompletionAPI(api);
 
     const completionResult = await completion(
-      prompt,
+      [{ role: "user", content: prompt }],
       args.config,
       completionOptions,
       context.workingDir
