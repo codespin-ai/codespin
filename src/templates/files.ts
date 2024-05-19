@@ -4,7 +4,7 @@ import { TemplateResult } from "../templating/getTemplate.js";
 import { addLineNumbers } from "../text/addLineNumbers.js";
 import { TemplateArgs } from "./TemplateArgs.js";
 
-export default async function generate(
+export default async function filesTemplate(
   args: TemplateArgs,
   config: CodespinConfig
 ): Promise<TemplateResult> {

@@ -9,7 +9,7 @@ import {
 import { TemplateResult } from "../templating/getTemplate.js";
 import { trimWhitespace } from "../templating/trimWhitespace.js";
 
-export default async function generate(
+export default async function defaultTemplate(
   args: TemplateArgs,
   config: CodespinConfig
 ): Promise<TemplateResult> {
