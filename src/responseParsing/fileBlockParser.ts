@@ -1,36 +1,32 @@
-import { isDefined } from "../langTools/isDefined.js";
 import { CodespinConfig } from "../settings/CodespinConfig.js";
 import { SourceFile } from "../sourceCode/SourceFile.js";
-import { extractFromMarkdownCodeBlock } from "./codeBlocks.js";
-import {
-  getEndFileContentsRegex,
-  getStartFileContentsRegex,
-} from "./markers.js";
 
 export async function fileBlockParser(
   response: string,
   workingDir: string,
   config: CodespinConfig
 ): Promise<SourceFile[]> {
-  return parseFileContents(response, config);
+  return parseFileContents(response);
 }
 
-function parseFileContents(input: string, config: CodespinConfig): SourceFile[] {
-  return input
-    .split(getEndFileContentsRegex(config))
-    .slice(0, -1) // Remove the last
-    .filter((content) => content.trim() !== "")
-    .map((content) => {
-      const match = content.match(getStartFileContentsRegex(config));
-      if (match && match.length === 3) {
-        const contents = match[2].trim();
+const filePathRegex =
+  /File path:\s*(\.\/[\w./-]+)\s*\n*```(\w*)\n([\s\S]*?)```/g;
 
-        return {
-          path: match[1].trim(),
-          contents: extractFromMarkdownCodeBlock(contents, true).contents,
-        };
-      }
-      return null;
-    })
-    .filter(isDefined);
-}
+const extractMatches = (input: string, regex: RegExp): RegExpExecArray[] => {
+  return [...input.matchAll(regex)];
+};
+
+const matchToFile = (match: RegExpExecArray): SourceFile => {
+  const path = match[1].trim();
+  const contents = match[3].trim();
+
+  if (!path || !contents) {
+    throw new Error("File path or contents missing in code block.");
+  }
+
+  return { path, contents };
+};
+
+const parseFileContents = (input: string): SourceFile[] => {
+  return extractMatches(input, filePathRegex).map(matchToFile);
+};

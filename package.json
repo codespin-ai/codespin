@@ -4,7 +4,7 @@
   "description": "Source code generation with LLM prompts",
   "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "build": "rm -rf dist && npx tsc"
   },
   "bin": {
@@ -34,7 +34,12 @@
     "glob": "^10.3.12",
     "js-yaml": "^4.1.0",
     "openai": "^4.33.0",
-    "yargs": "^17.7.2",
-    "typescript": "^5.4.4"
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.2",
+    "typescript": "^5.4.5"
   }
 }

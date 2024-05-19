@@ -207,7 +207,7 @@ export async function generate(
     };
   }
 
-  const multi = args.multi ?? promptSettings?.multi ?? config.multi ?? 4;
+  const multi = args.multi ?? promptSettings?.multi ?? config.multi ?? 0;
 
   const completionResult = await callCompletion({
     api,

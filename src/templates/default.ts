@@ -2,10 +2,6 @@ import path from "path";
 import { TemplateArgs } from "./TemplateArgs.js";
 import { addLineNumbers } from "../text/addLineNumbers.js";
 import { CodespinConfig } from "../settings/CodespinConfig.js";
-import {
-  getEndFileContentsMarker,
-  getStartFileContentsMarker,
-} from "../responseParsing/markers.js";
 import { TemplateResult } from "../templating/getTemplate.js";
 import { trimWhitespace } from "../templating/trimWhitespace.js";
 
@@ -50,31 +46,31 @@ function relativePath(filePath: string, workingDir: string) {
 }
 
 function printFileTemplate(args: TemplateArgs, config: CodespinConfig) {
-  const START_FILE_CONTENTS_MARKER = getStartFileContentsMarker(config);
-  const END_FILE_CONTENTS_MARKER = getEndFileContentsMarker(config);
-
   const tmpl = `
   Respond with just the code (but exclude invocation examples etc) in the following format:
 
-  $${START_FILE_CONTENTS_MARKER}:./some/path/greet.ts$
+  File path:./some/path/greet.ts
+  \`\`\`
   export function greet() {
     console.log("hello, world!");
   }
-  $${END_FILE_CONTENTS_MARKER}:./some/path/greet.ts$
+  \`\`\`
 
   If there are multiple files to be generated (as in "some/path/lorem.ts" and "some/path/ipsum.ts" in the example below), you should repeat blocks like this:
 
-  $${START_FILE_CONTENTS_MARKER}:./some/path/lorem.ts$
+  File path:./some/path/lorem.ts
+  \`\`\`
   export function printLorem() {
     console.log("lorem!");
   }
-  $${END_FILE_CONTENTS_MARKER}:./some/path/lorem.ts$
+  \`\`\`
 
-  $${START_FILE_CONTENTS_MARKER}:./some/path/ipsum.ts$
+  File path:./some/path/ipsum.ts
+  \`\`\`
   export function printIpsum() {
     console.log("ipsum!");
   }
-  $${END_FILE_CONTENTS_MARKER}:./some/path/ipsum.ts$
+  \`\`\`
 
   You must respond with the complete contents of each file. DO NOT omit any line.
   `;

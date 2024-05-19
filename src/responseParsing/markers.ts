@@ -18,24 +18,6 @@ export function getEndUpdatesRegex(config: CodespinConfig) {
   return new RegExp(`\\$${marker}:.+?\\$(?:\\s*\\/\\/.*)?`);
 }
 
-export function getStartFileContentsMarker(config: CodespinConfig) {
-  return config.markers?.START_FILE_CONTENTS || "START_FILE_CONTENTS";
-}
-
-export function getStartFileContentsRegex(config: CodespinConfig) {
-  const marker = getStartFileContentsMarker(config);
-  return new RegExp(`\\$${marker}:(.+?)\\$(.*)`, "s");
-}
-
-export function getEndFileContentsMarker(config: CodespinConfig) {
-  return config.markers?.END_FILE_CONTENTS || "END_FILE_CONTENTS";
-}
-
-export function getEndFileContentsRegex(config: CodespinConfig) {
-  const marker = getEndFileContentsMarker(config);
-  return new RegExp(`\\$${marker}:.+?\\$(?:\\s*\\/\\/.*)?`);
-}
-
 export function getDeleteLinesMarker(config: CodespinConfig) {
   return config.markers?.DELETE_LINES || "DELETE_LINES";
 }
