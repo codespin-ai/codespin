@@ -51,7 +51,7 @@ export async function callCompletion(
 
   writeDebug("--- PROMPT ---");
   for (const message of conversationHistory) {
-    writeDebug(`ROLE: ${message.role}:`);
+    writeDebug(`ROLE: ${message.role}`);
     writeDebug(message.content);
   }
 
