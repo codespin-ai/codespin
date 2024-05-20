@@ -164,16 +164,9 @@ export async function main() {
             writeToConsole();
           }
         } else if (result.type === "saved") {
-          if (result.generatedFiles.length) {
+          if (result.files.length) {
             writeToConsole(
-              `Generated ${result.generatedFiles
-                .map((x) => x.file)
-                .join(", ")}.`
-            );
-          }
-          if (result.skippedFiles.length) {
-            writeToConsole(
-              `Skipped ${result.skippedFiles.map((x) => x.file).join(", ")}.`
+              `Generated ${result.files.map((x) => x.file).join(", ")}.`
             );
           }
         } else if (result.type === "prompt") {
@@ -241,16 +234,9 @@ export async function main() {
             writeToConsole();
           }
         } else if (result.type === "saved") {
-          if (result.generatedFiles.length) {
+          if (result.files.length) {
             writeToConsole(
-              `Generated ${result.generatedFiles
-                .map((x) => x.file)
-                .join(", ")}.`
-            );
-          }
-          if (result.skippedFiles.length) {
-            writeToConsole(
-              `Skipped ${result.skippedFiles.map((x) => x.file).join(", ")}.`
+              `Generated ${result.files.map((x) => x.file).join(", ")}.`
             );
           }
         }

@@ -1,17 +1,16 @@
-import path from "path";
-import { SourceFile } from "../../sourceCode/SourceFile.js";
-import { pathExists } from "../../fs/pathExists.js";
 import { readFile } from "fs/promises";
-import { CodespinContext } from "../../CodeSpinContext.js";
+import path from "path";
+import { pathExists } from "../../fs/pathExists.js";
 import { GeneratedSourceFile } from "../../sourceCode/GeneratedSourceFile.js";
+import { SourceFile } from "../../sourceCode/SourceFile.js";
 
 export async function getGeneratedFiles(
   files: SourceFile[],
-  context: CodespinContext
+  workingDir: string
 ): Promise<GeneratedSourceFile[]> {
   return await Promise.all(
     files.map(async (file) => {
-      const originalPath = path.resolve(context.workingDir, file.path);
+      const originalPath = path.resolve(workingDir, file.path);
       const originalExists = await pathExists(originalPath);
       return {
         path: file.path,

@@ -1,34 +1,18 @@
-import { readFile } from "fs/promises";
 import path from "path";
 import { CodespinContext } from "../../CodeSpinContext.js";
-import { CompletionOptions } from "../../api/CompletionOptions.js";
-import { getCompletionAPI } from "../../api/getCompletionAPI.js";
-import { writeDebug } from "../../console.js";
 import { setDebugFlag } from "../../debugMode.js";
-import { exception } from "../../exception.js";
 import { VersionedPath } from "../../fs/VersionedPath.js";
 import { getVersionedPath } from "../../fs/getVersionedPath.js";
-import { pathExists } from "../../fs/pathExists.js";
-import { writeFilesToDisk } from "../../fs/writeFilesToDisk.js";
 import { writeToFile } from "../../fs/writeToFile.js";
-import { readPrompt } from "../../prompts/readPrompt.js";
 import { readPromptSettings } from "../../prompts/readPromptSettings.js";
-import { ParseFunc } from "../../responseParsing/ParseFunc.js";
-import { diffParser } from "../../responseParsing/diffParser.js";
-import { fileBlockParser } from "../../responseParsing/fileBlockParser.js";
-import { noOutputParser } from "../../responseParsing/noOutputParser.js";
 import { getApiAndModel } from "../../settings/getApiAndModel.js";
 import { readCodespinConfig } from "../../settings/readCodespinConfig.js";
 import { GeneratedSourceFile } from "../../sourceCode/GeneratedSourceFile.js";
 import { SourceFile } from "../../sourceCode/SourceFile.js";
-import { evalSpec } from "../../specs/evalSpec.js";
-import { TemplateArgs } from "../../templates/TemplateArgs.js";
-import { getTemplate } from "../../templating/getTemplate.js";
-import { addLineNumbers } from "../../text/addLineNumbers.js";
-import { getIncludedFiles } from "./getIncludedFiles.js";
-import { getOutPath } from "./getOutPath.js";
-import { getGeneratedFiles } from "./getGeneratedFiles.js";
 import { callCompletion } from "./callCompletion.js";
+import { evaluatePrompt } from "./evaluatePrompt.js";
+import { getIncludedFiles } from "./getIncludedFiles.js";
+import { processResponse } from "./processResponse.js";
 
 export type GenerateArgs = {
   promptFile?: string;
@@ -67,12 +51,7 @@ export type PromptResult = {
 
 export type SavedFilesResult = {
   type: "saved";
-  generatedFiles: {
-    generated: boolean;
-    file: string;
-  }[];
-  skippedFiles: {
-    generated: boolean;
+  files: {
     file: string;
   }[];
 };
@@ -143,47 +122,22 @@ export async function generate(
     context.workingDir
   );
 
-  const templateFunc = await getTemplate<TemplateArgs>(
-    args.template ?? (args.go ? "plain" : "default"),
-    args.config,
-    context.workingDir
-  );
+  const template = args.template ?? (args.go ? "plain" : "default");
 
-  const basicPrompt = await readPrompt(
-    promptFilePath,
-    args.prompt,
-    context.workingDir
-  );
-
-  // If the spec option is specified, evaluate the spec
-  const prompt = args.spec
-    ? await evalSpec(basicPrompt, args.spec, context.workingDir, config)
-    : basicPrompt;
-
-  const promptWithLineNumbers = addLineNumbers(prompt);
-
-  const outPath = await getOutPath(
-    args.out,
+  const { prompt: evaluatedPrompt, responseParser } = await evaluatePrompt({
+    config,
+    customConfigDir: args.config,
+    debug: args.debug ?? false,
+    includes,
+    out: args.out,
+    prompt: args.prompt,
     promptFilePath,
     promptSettings,
-    context.workingDir
-  );
-
-  const generateCodeTemplateArgs: TemplateArgs = {
-    prompt,
-    promptWithLineNumbers,
-    include: includes,
-    outPath,
-    promptSettings,
+    spec: args.spec,
+    template,
     templateArgs: args.templateArgs,
     workingDir: context.workingDir,
-    debug: args.debug,
-  };
-
-  const { prompt: evaluatedPrompt, responseParser } = await templateFunc(
-    generateCodeTemplateArgs,
-    config
-  );
+  });
 
   if (args.promptCallback) {
     args.promptCallback(evaluatedPrompt);
@@ -225,50 +179,17 @@ export async function generate(
 
   if (completionResult.ok) {
     if (mustParse) {
-      // Do we have a custom response parser?
-      const customParser = args.parser || promptSettings?.parser;
-
-      const parseFunc: ParseFunc = customParser
-        ? (await import(customParser)).default
-        : responseParser === "file-block"
-        ? fileBlockParser
-        : responseParser === "diff"
-        ? diffParser
-        : responseParser === "no-output"
-        ? noOutputParser
-        : exception(`Unknown response parser ${responseParser}.`);
-
-      const files: SourceFile[] = await parseFunc(
-        completionResult.message,
-        context.workingDir,
-        config
-      );
-
-      if (args.parseCallback) {
-        const generatedFilesDetail = await getGeneratedFiles(files, context);
-        args.parseCallback(generatedFilesDetail);
-      }
-
-      if (args.write) {
-        const extractResult = await writeFilesToDisk(
-          args.outDir || context.workingDir,
-          files,
-          args.exec,
-          context.workingDir
-        );
-        const generatedFiles = extractResult.filter((x) => x.generated);
-        const skippedFiles = extractResult.filter((x) => !x.generated);
-        return {
-          type: "saved",
-          generatedFiles,
-          skippedFiles,
-        };
-      } else {
-        return {
-          type: "files",
-          files,
-        };
-      }
+      return await processResponse({
+        completionResult,
+        config,
+        parser: responseParser,
+        promptSettings,
+        responseParser,
+        workingDir: context.workingDir,
+        exec: args.exec,
+        outDir: args.outDir,
+        write: args.write ?? false,
+      });
     } else {
       return {
         type: "unparsed",

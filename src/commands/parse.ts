@@ -47,19 +47,15 @@ export async function parse(
   const files = await parseFunc(llmResponse, context.workingDir, config);
 
   if (args.write) {
-    const extractResult = await writeFilesToDisk(
+    const savedFiles = await writeFilesToDisk(
       args.outDir || context.workingDir,
       files,
       args.exec,
       context.workingDir
     );
-    const generatedFiles = extractResult.filter((x) => x.generated);
-    const skippedFiles = extractResult.filter((x) => !x.generated);
-
     return {
       type: "saved",
-      generatedFiles,
-      skippedFiles,
+      files: savedFiles,
     };
   } else {
     return {
