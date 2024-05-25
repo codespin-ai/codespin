@@ -9,7 +9,7 @@ export async function writeFilesToDisk(
   sourceFiles: SourceFile[],
   exec: string | undefined,
   workingDir: string
-): Promise<{ file: string }[]> {
+): Promise<SourceFile[]> {
   const files = await Promise.all(
     sourceFiles.map(async (file) => {
       const generatedFilePath = path.resolve(outDir, file.path);
@@ -19,7 +19,7 @@ export async function writeFilesToDisk(
       if (exec) {
         await execString(`${exec} ${generatedFilePath}`, workingDir);
       }
-      return { file: file.path };
+      return file;
     })
   );
 

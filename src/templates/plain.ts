@@ -1,9 +1,10 @@
 import { CodespinConfig } from "../settings/CodespinConfig.js";
-import { TemplateResult } from "../templating/getTemplate.js";
+import { PlainTemplateArgs } from "./PlainTemplateArgs.js";
+import { PlainTemplateResult } from "./PlainTemplateResult.js";
 
 export default async function plainTemplate(
-  args: { prompt: string },
+  args: PlainTemplateArgs,
   config: CodespinConfig
-): Promise<TemplateResult> {
+): Promise<PlainTemplateResult> {
   return { prompt: args.prompt };
 }

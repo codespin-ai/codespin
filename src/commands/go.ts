@@ -1,0 +1,99 @@
+import { CodespinContext } from "../CodeSpinContext.js";
+import { CompletionOptions } from "../api/CompletionOptions.js";
+import { CompletionResult } from "../api/CompletionResult.js";
+import { getCompletionAPI } from "../api/getCompletionAPI.js";
+import { writeDebug } from "../console.js";
+import { setDebugFlag } from "../debugMode.js";
+import { processPrompt } from "../prompts/processPrompt.js";
+import { stdinDirective } from "../prompts/stdinDirective.js";
+import { getApiAndModel } from "../settings/getApiAndModel.js";
+import { readCodespinConfig } from "../settings/readCodespinConfig.js";
+import { PlainTemplateArgs } from "../templates/PlainTemplateArgs.js";
+import { PlainTemplateResult } from "../templates/PlainTemplateResult.js";
+import plainTemplate from "../templates/plain.js";
+import { getCustomTemplate } from "../templating/getCustomTemplate.js";
+
+export type GoArgs = {
+  template: string | undefined;
+  prompt: string;
+  model: string | undefined;
+  maxTokens?: number;
+  debug?: boolean;
+  config: string | undefined;
+  responseCallback?: (text: string) => void;
+  responseStreamCallback?: (text: string) => void;
+  promptCallback?: (prompt: string) => void;
+  cancelCallback?: (cancel: () => void) => void;
+};
+
+export async function go(
+  args: GoArgs,
+  context: CodespinContext
+): Promise<CompletionResult> {
+  const config = await readCodespinConfig(args.config, context.workingDir);
+
+  const [api, model] = getApiAndModel([args.model], config);
+
+  if (config.debug) {
+    setDebugFlag();
+  }
+
+  const templateFunc =
+    (await getCustomTemplate<PlainTemplateArgs, PlainTemplateResult>(
+      "plain",
+      args.config,
+      context.workingDir
+    )) ?? plainTemplate;
+
+  const { prompt: evaluatedPrompt } = await templateFunc(
+    {
+      prompt: await stdinDirective(
+        args.prompt + " codespin:stdin",
+        context.workingDir
+      ),
+    },
+    config
+  );
+
+  if (args.promptCallback) {
+    args.promptCallback(evaluatedPrompt);
+  }
+
+  let cancelCompletion: (() => void) | undefined;
+
+  function generateCommandCancel() {
+    if (cancelCompletion) {
+      cancelCompletion();
+    }
+  }
+
+  if (args.cancelCallback) {
+    args.cancelCallback(generateCommandCancel);
+  }
+
+  const completion = getCompletionAPI(api);
+
+  const completionOptions: CompletionOptions = {
+    model,
+    maxTokens: args.maxTokens,
+    responseStreamCallback: args.responseStreamCallback,
+    responseCallback: args.responseCallback,
+    cancelCallback: (cancel) => {
+      cancelCompletion = cancel;
+    },
+  };
+
+  let messageToLLM = { role: "user" as const, content: evaluatedPrompt };
+
+  writeDebug("--- PROMPT ---");
+  writeDebug(messageToLLM.content);
+
+  const completionResult = await completion(
+    [messageToLLM],
+    args.config,
+    completionOptions,
+    context.workingDir
+  );
+
+  return completionResult;
+}

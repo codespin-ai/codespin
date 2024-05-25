@@ -10,8 +10,11 @@ import { getLanguageService } from "../languageServices/getLanguageService.js";
 import { extractFromMarkdownCodeBlock } from "../responseParsing/codeBlocks.js";
 import { getApiAndModel } from "../settings/getApiAndModel.js";
 import { readCodespinConfig } from "../settings/readCodespinConfig.js";
-import { getTemplate } from "../templating/getTemplate.js";
 import { Dependency } from "../sourceCode/Dependency.js";
+import dependenciesTemplate from "../templates/dependencies.js";
+import { getCustomTemplate } from "../templating/getCustomTemplate.js";
+import { DependenciesTemplateArgs } from "../templates/DependenciesTemplateArgs.js";
+import { DependenciesTemplateResult } from "../templates/DependenciesTemplateResult.js";
 
 export type DependenciesArgs = {
   file: string;
@@ -59,13 +62,13 @@ export async function dependencies(
       "utf-8"
     );
 
-    const templateFunc = await getTemplate(
-      "dependencies",
-      args.config,
-      context.workingDir
-    );
+    // See if there's a custom template
+    const customTemplate = await getCustomTemplate<
+      DependenciesTemplateArgs,
+      DependenciesTemplateResult
+    >("dependencies", args.config, context.workingDir);
 
-    const { prompt } = await templateFunc(
+    const { prompt } = await (customTemplate ?? dependenciesTemplate)(
       {
         filePath: args.file,
         sourceCode,

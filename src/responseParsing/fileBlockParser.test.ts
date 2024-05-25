@@ -121,4 +121,28 @@ More content here to be ignored.
       },
     ]);
   });
+
+  it("ignores incomplete code blocks missing closing backticks", async () => {
+    const input = `
+File path:./src/files/readJson.ts
+\`\`\`
+file 1 contents
+\`\`\`
+
+File path:./src/files/another.ts
+\`\`\`
+file 2 partial
+
+File 2 should not be parsed since the closing triple backticks are missing.
+  `;
+
+    const result = await fileBlockParser(input, "", mockConfig);
+    expect(result).toEqual([
+      {
+        path: "./src/files/readJson.ts",
+        contents: "file 1 contents",
+      },
+      // No entry for ./src/files/another.ts because it's missing closing backticks
+    ]);
+  });
 });

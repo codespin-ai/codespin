@@ -1,18 +1,30 @@
 import path from "path";
 import { CodespinContext } from "../../CodeSpinContext.js";
+import { CompletionOptions } from "../../api/CompletionOptions.js";
+import { getCompletionAPI } from "../../api/getCompletionAPI.js";
+import { writeDebug } from "../../console.js";
 import { setDebugFlag } from "../../debugMode.js";
+import { exception } from "../../exception.js";
 import { VersionedPath } from "../../fs/VersionedPath.js";
 import { getVersionedPath } from "../../fs/getVersionedPath.js";
+import { writeFilesToDisk } from "../../fs/writeFilesToDisk.js";
 import { writeToFile } from "../../fs/writeToFile.js";
+import { readPrompt } from "../../prompts/readPrompt.js";
 import { readPromptSettings } from "../../prompts/readPromptSettings.js";
+import { fileBlockParser } from "../../responseParsing/fileBlockParser.js";
 import { getApiAndModel } from "../../settings/getApiAndModel.js";
 import { readCodespinConfig } from "../../settings/readCodespinConfig.js";
 import { GeneratedSourceFile } from "../../sourceCode/GeneratedSourceFile.js";
 import { SourceFile } from "../../sourceCode/SourceFile.js";
-import { callCompletion } from "./callCompletion.js";
-import { evaluatePrompt } from "./evaluatePrompt.js";
+import { evalSpec } from "../../specs/evalSpec.js";
+import { TemplateArgs } from "../../templates/TemplateArgs.js";
+import { TemplateResult } from "../../templates/TemplateResult.js";
+import defaultTemplate from "../../templates/default.js";
+import { getCustomTemplate } from "../../templating/getCustomTemplate.js";
+import { addLineNumbers } from "../../text/addLineNumbers.js";
+import { getGeneratedFiles } from "./getGeneratedFiles.js";
 import { getIncludedFiles } from "./getIncludedFiles.js";
-import { processResponse } from "./processResponse.js";
+import { getOutPath } from "./getOutPath.js";
 
 export type GenerateArgs = {
   promptFile?: string;
@@ -24,7 +36,7 @@ export type GenerateArgs = {
   printPrompt?: boolean;
   writePrompt?: string;
   template?: string;
-  templateArgs?: string[];
+  customArgs?: string[];
   debug?: boolean;
   exec?: string;
   config?: string;
@@ -51,9 +63,7 @@ export type PromptResult = {
 
 export type SavedFilesResult = {
   type: "saved";
-  files: {
-    file: string;
-  }[];
+  files: SourceFile[];
 };
 
 export type FilesResult = {
@@ -94,7 +104,7 @@ export async function generate(
     (args.exclude || []).map((x) => path.resolve(context.workingDir, x))
   );
 
-  const mustParse = args.parse ?? (args.go ? false : true);
+  const mustParse = args.parse ?? true;
 
   const config = await readCodespinConfig(args.config, context.workingDir);
 
@@ -122,27 +132,56 @@ export async function generate(
     context.workingDir
   );
 
-  const template = args.template ?? (args.go ? "plain" : "default");
-
-  const { prompt: evaluatedPrompt, responseParser } = await evaluatePrompt({
-    config,
-    customConfigDir: args.config,
-    debug: args.debug ?? false,
-    includes,
-    out: args.out,
-    prompt: args.prompt,
+  const outPath = await getOutPath(
+    args.out,
     promptFilePath,
     promptSettings,
-    spec: args.spec,
-    template,
-    templateArgs: args.templateArgs,
+    context.workingDir
+  );
+
+  const templateFunc = args.template
+    ? (await getCustomTemplate<TemplateArgs, TemplateResult>(
+        args.template,
+        args.config,
+        context.workingDir
+      )) ?? defaultTemplate
+    : defaultTemplate;
+
+  const basicPrompt = await readPrompt(
+    promptFilePath,
+    args.prompt,
+    context.workingDir
+  );
+
+  // If the spec option is specified, evaluate the spec
+  const prompt = args.spec
+    ? await evalSpec(basicPrompt, args.spec, context.workingDir, config)
+    : basicPrompt;
+
+  const promptWithLineNumbers = addLineNumbers(prompt);
+
+  const templateArgs: TemplateArgs = {
+    prompt,
+    promptWithLineNumbers,
+    includes,
+    outPath,
+    promptSettings,
+    generatedFiles: [],
+    customArgs: args.customArgs,
     workingDir: context.workingDir,
-  });
+    debug: args.debug,
+  };
+
+  const { prompt: evaluatedPrompt, responseParser } = await templateFunc(
+    templateArgs,
+    config
+  );
 
   if (args.promptCallback) {
     args.promptCallback(evaluatedPrompt);
   }
 
+  // No files to be generated. Just print/save the prompt.
   if (args.printPrompt || typeof args.writePrompt !== "undefined") {
     if (typeof args.writePrompt !== "undefined") {
       // If --write-prompt is specified but no file is mentioned
@@ -161,44 +200,150 @@ export async function generate(
     };
   }
 
-  const multi = args.multi ?? promptSettings?.multi ?? config.multi ?? 0;
+  // Hit the LLM.
+  else {
+    const multi = args.multi ?? 1;
 
-  const completionResult = await callCompletion({
-    api,
-    customConfigDir: args.config,
-    evaluatedPrompt,
-    maxTokens,
-    model,
-    config,
-    multi,
-    workingDir: context.workingDir,
-    cancelCallback: args.cancelCallback,
-    responseCallback: args.responseCallback,
-    responseStreamCallback: args.responseStreamCallback,
-  });
+    let cancelCompletion: (() => void) | undefined;
 
-  if (completionResult.ok) {
-    if (mustParse) {
-      return await processResponse({
-        completionResult,
-        config,
-        parser: responseParser,
-        promptSettings,
-        responseParser,
-        workingDir: context.workingDir,
-        exec: args.exec,
-        outDir: args.outDir,
-        write: args.write ?? false,
-      });
-    } else {
-      return {
-        type: "unparsed",
-        text: completionResult.message,
-      };
+    function generateCommandCancel() {
+      if (cancelCompletion) {
+        cancelCompletion();
+      }
     }
-  } else {
-    throw new Error(
-      `${completionResult.error.code}: ${completionResult.error.message}`
-    );
+
+    if (args.cancelCallback) {
+      args.cancelCallback(generateCommandCancel);
+    }
+
+    const completion = getCompletionAPI(api);
+
+    const completionOptions: CompletionOptions = {
+      model,
+      maxTokens: args.maxTokens,
+      responseStreamCallback: args.responseStreamCallback,
+      responseCallback: args.responseCallback,
+      cancelCallback: (cancel) => {
+        cancelCompletion = cancel;
+      },
+    };
+
+    let continuationCount = 0;
+
+    const generatedFiles: {
+      [path: string]: string;
+    } = {};
+
+    while (continuationCount < multi) {
+      continuationCount++;
+
+      const messageToLLM = {
+        role: "user" as const,
+        content:
+          continuationCount === 0
+            ? evaluatedPrompt
+            : (
+                await templateFunc(
+                  {
+                    ...templateArgs,
+                    generatedFiles: toSourceFileList(generatedFiles),
+                  },
+                  config
+                )
+              ).prompt,
+      };
+
+      writeDebug("--- PROMPT ---");
+      writeDebug(messageToLLM.content);
+
+      const completionResult = await completion(
+        [messageToLLM],
+        args.config,
+        completionOptions,
+        context.workingDir
+      );
+
+      if (completionResult.ok) {
+        if (
+          completionResult.finishReason === "STOP" ||
+          completionResult.finishReason === "MAX_TOKENS"
+        ) {
+          const newlyGeneratedFiles = await fileBlockParser(
+            completionResult.message,
+            context.workingDir,
+            config
+          );
+
+          updateFiles(generatedFiles, newlyGeneratedFiles);
+
+          if (completionResult.finishReason === "STOP") {
+            const files = toSourceFileList(generatedFiles);
+
+            if (args.parseCallback) {
+              const generatedFilesDetail = await getGeneratedFiles(
+                files,
+                context.workingDir
+              );
+              args.parseCallback(generatedFilesDetail);
+            }
+
+            if (args.write) {
+              await writeFilesToDisk(
+                args.outDir || context.workingDir,
+                files,
+                args.exec,
+                context.workingDir
+              );
+              return {
+                type: "saved" as const,
+                files,
+              };
+            } else {
+              return {
+                type: "files" as const,
+                files,
+              };
+            }
+          } else if (completionResult.finishReason === "MAX_TOKENS") {
+            if (multi === 0) {
+              return exception(
+                `MAX_TOKENS: Maximum number of tokens exceeded and the multi-step param (--multi) is set to zero.`
+              );
+            }
+            if (responseParser !== "file-block") {
+              return exception(
+                `CANNOT_MERGE_DIFF_RESPONSE: Diff responses cannot be merged. Remove the diff flag.`
+              );
+            }
+          }
+        } else {
+          return exception(
+            `UNKNOWN_FINISH_REASON: ${completionResult.finishReason}`
+          );
+        }
+      } else {
+        return exception(
+          `${completionResult.error.code}: ${completionResult.error.message}`
+        );
+      }
+    }
+
+    return exception(`MAX_MULTI_QUERY: Maximum number of LLM calls exceeded.`);
   }
+}
+
+function updateFiles(
+  files: { [path: string]: string },
+  newFiles: SourceFile[]
+) {
+  for (const file of newFiles) {
+    files[file.path] = file.contents;
+  }
+}
+
+function toSourceFileList(files: { [path: string]: string }): SourceFile[] {
+  return Object.keys(files).map((x) => ({
+    path: x,
+    contents: files[x],
+  }));
 }

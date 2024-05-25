@@ -7,6 +7,7 @@ import { init } from "./commands/init.js";
 import { parse } from "./commands/parse.js";
 import { getPackageVersion } from "./getPackageVersion.js";
 import { setInvokeMode } from "./process/getInvokeMode.js";
+import { go } from "./commands/go.js";
 
 setInvokeMode("cli");
 
@@ -145,12 +146,6 @@ export async function main() {
             type: "boolean",
             describe:
               "Whether the LLM response needs to be processed. Defaults to true.",
-          })
-          .option("go", {
-            type: "boolean",
-            alias: "g",
-            describe:
-              "Shorthand which sets template to plain.mjs and parse to false.",
           }),
       async (argv) => {
         const result = await generate(argv, { workingDir: process.cwd() });
@@ -166,7 +161,7 @@ export async function main() {
         } else if (result.type === "saved") {
           if (result.files.length) {
             writeToConsole(
-              `Generated ${result.files.map((x) => x.file).join(", ")}.`
+              `Generated ${result.files.map((x) => x.path).join(", ")}.`
             );
           }
         } else if (result.type === "prompt") {
@@ -236,9 +231,55 @@ export async function main() {
         } else if (result.type === "saved") {
           if (result.files.length) {
             writeToConsole(
-              `Generated ${result.files.map((x) => x.file).join(", ")}.`
+              `Generated ${result.files.map((x) => x.path).join(", ")}.`
             );
           }
+        }
+      }
+    )
+    .command(
+      "go <prompt>",
+      "Send a plain prompt to the LLM optionally with piped stdin",
+      (yargs) =>
+        yargs
+          .positional("prompt", {
+            describe: "The prompt.",
+            demandOption: true,
+            type: "string",
+          })
+          .option("template", {
+            type: "string",
+            alias: "t",
+            describe: "Path to the template file.",
+          })
+          .option("model", {
+            type: "string",
+            describe: "Name of the model to use. Such as 'gpt-4'.",
+          })
+          .option("maxTokens", {
+            type: "number",
+            describe: "Maximum number of tokens for generated code.",
+          })
+          .option("debug", {
+            type: "boolean",
+            describe:
+              "Enable debug mode. This prints a debug messages for every step.",
+          })
+          .option("config", {
+            type: "string",
+            alias: "c",
+            describe: "Path to a config directory (.codespin).",
+          }),
+      async (argv) => {
+        const result = await go(argv, {
+          workingDir: process.cwd(),
+        });
+
+        if (result.ok) {
+          writeToConsole(result.message);
+        } else {
+          errorToConsole(result.error.message);
+          process.exit(-1);
         }
       }
     )
@@ -294,7 +335,11 @@ export async function main() {
 }
 
 function writeToConsole(text?: string) {
-  console.log(text || "");
+  console.log(text ?? "");
+}
+
+function errorToConsole(text?: string) {
+  console.error(text ?? "");
 }
 
 main();

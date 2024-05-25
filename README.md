@@ -86,7 +86,7 @@ Create a file called `main.py.md` as follows:
 
 ```markdown
 out: main.py
-include:
+includes:
 
 - main.py
 
@@ -142,7 +142,7 @@ You can also define the `--include`, `--template`, `--parser`, `--model`, and `-
 model: openai:gpt-3.5-turbo-16k
 maxTokens: 8000
 out: main.py
-include:
+includes:
   - dep1.py
   - dep2.py
 ---
@@ -259,7 +259,6 @@ This command above will ignore the latest edits to main.py and use content from 
 
 - `-c, --config <file path>`: Path to a config directory (.codespin).
 - `-e, --exec <script path>`: Execute a command for each generated file.
-- `-g, --go`: Shorthand which sets the template to plain.mjs and parsing to false.
 - `-i, --include <file path>`: List of files to include in the prompt for additional context.
 - `-o, --out <output file path>`: Specify the output file name to generate.
 - `-p, --prompt <some text>`: Specify the prompt directly on the command line.
@@ -314,14 +313,16 @@ export type TemplateResult = {
 export type TemplateArgs = {
   prompt: string;
   promptWithLineNumbers: string;
-  include: VersionedFileInfo[];
+  includes: VersionedFileInfo[];
+  generatedFiles: SourceFile[];
   outPath: string | undefined;
   promptSettings: unknown;
-  templateArgs: string[] | undefined;
+  customArgs: string[] | undefined;
   workingDir: string;
+  debug: boolean | undefined;
 };
 
-export type BasicFileInfo = {
+export type SourceFile = {
   path: string;
   contents: string;
 };
@@ -404,25 +405,10 @@ codespin parse gptresponse.txt --write
 
 ## One more thing - Piping into the LLM!
 
-Well, prompts can include data that was piped into `codespin gen` as well. :)
-
-In your prompt, `codespin:stdin` will refer to whatever was passed to codespin.
-
-For example, let's pipe the output of the `ls` command into codespin:
+You can pipe into codespin with the `codespin go` command:
 
 ```sh
-ls | codespin gen -p $'Convert to uppercase each line in the following text \ncodespin:stdin' -t plain.mjs --no-parse
-```
-
-The above example uses the included `plain.mjs` template along with the `--no-parse` option to print the LLM's response directly to the console.
-This is so handy there's shorthand for this: the `-g` option (g for Go).
-
-```sh
-# This
-ls | codespin gen -p $'Convert to uppercase each line in the following text \ncodespin:stdin' -t plain.mjs --no-parse
-
-# can be written as
-ls | codespin gen -p $'Convert to uppercase each line in the following text \ncodespin:stdin' -g
+ls | codespin go 'Convert to uppercase each line in the following text'
 ```
 
 ## Contributing

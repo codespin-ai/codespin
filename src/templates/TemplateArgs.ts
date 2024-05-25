@@ -1,13 +1,14 @@
-import { BasicFileInfo } from "../fs/BasicFileInfo.js";
 import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
+import { SourceFile } from "../sourceCode/SourceFile.js";
 
 export type TemplateArgs = {
   prompt: string;
   promptWithLineNumbers: string;
-  include: VersionedFileInfo[];
+  includes: VersionedFileInfo[];
+  generatedFiles: SourceFile[];
   outPath: string | undefined;
   promptSettings: unknown;
-  templateArgs: string[] | undefined;
+  customArgs: string[] | undefined;
   workingDir: string;
   debug: boolean | undefined;
 };
