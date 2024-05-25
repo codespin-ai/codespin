@@ -55,7 +55,7 @@ export async function dependencies(
     const config = await readCodespinConfig(args.config, context.workingDir);
 
     // This is in bytes
-    const maxInput = args.maxInput ?? config.maxInput ?? 40000;
+    const maxInput = args.maxInput ?? config.maxInput;
 
     if (config.debug) {
       setDebugFlag();
@@ -94,7 +94,7 @@ export async function dependencies(
     const completion = getCompletionAPI(api);
 
     validateMaxInputLength(prompt, maxInput);
-    
+
     const completionResult = await completion(
       [{ role: "user", content: prompt }],
       args.config,

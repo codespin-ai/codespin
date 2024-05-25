@@ -111,7 +111,7 @@ export async function generate(
   const config = await readCodespinConfig(args.config, context.workingDir);
 
   // This is in bytes
-  const maxInput = args.maxInput ?? config.maxInput ?? 40000;
+  const maxInput = args.maxInput ?? config.maxInput;
 
   if (config.debug) {
     setDebugFlag();
