@@ -26,6 +26,7 @@ import { addLineNumbers } from "../../text/addLineNumbers.js";
 import { getGeneratedFiles } from "./getGeneratedFiles.js";
 import { getIncludedFiles } from "./getIncludedFiles.js";
 import { getOutPath } from "./getOutPath.js";
+import diffTemplate from "../../templates/diff.js";
 
 export type GenerateArgs = {
   promptFile?: string;
@@ -147,7 +148,9 @@ export async function generate(
         args.template,
         args.config,
         context.workingDir
-      )) ?? defaultTemplate
+      )) ?? args.template === "diff"
+      ? diffTemplate
+      : defaultTemplate
     : defaultTemplate;
 
   const basicPrompt = await readPrompt(
@@ -205,7 +208,8 @@ export async function generate(
 
   // Hit the LLM.
   else {
-    const multi = args.multi ?? 1;
+    const multi =
+      args.multi && responseParser === "file-block" ? args.multi : 0;
 
     let cancelCompletion: (() => void) | undefined;
 
@@ -237,7 +241,7 @@ export async function generate(
       [path: string]: string;
     } = {};
 
-    while (continuationCount < multi) {
+    while (continuationCount <= multi) {
       continuationCount++;
 
       const messageToLLM = {
