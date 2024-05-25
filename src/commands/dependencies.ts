@@ -8,18 +8,20 @@ import { setDebugFlag } from "../debugMode.js";
 import { pathExists } from "../fs/pathExists.js";
 import { getLanguageService } from "../languageServices/getLanguageService.js";
 import { extractFromMarkdownCodeBlock } from "../responseParsing/codeBlocks.js";
+import { validateMaxInputLength } from "../safety/validateMaxInputLength.js";
 import { getApiAndModel } from "../settings/getApiAndModel.js";
 import { readCodespinConfig } from "../settings/readCodespinConfig.js";
 import { Dependency } from "../sourceCode/Dependency.js";
-import dependenciesTemplate from "../templates/dependencies.js";
-import { getCustomTemplate } from "../templating/getCustomTemplate.js";
 import { DependenciesTemplateArgs } from "../templates/DependenciesTemplateArgs.js";
 import { DependenciesTemplateResult } from "../templates/DependenciesTemplateResult.js";
+import dependenciesTemplate from "../templates/dependencies.js";
+import { getCustomTemplate } from "../templating/getCustomTemplate.js";
 
 export type DependenciesArgs = {
   file: string;
   config?: string;
   model?: string;
+  maxInput?: number;
   maxTokens?: number;
   debug?: boolean;
 };
@@ -47,9 +49,13 @@ export async function dependencies(
       ),
     };
   }
+
   // No language service.
   else {
     const config = await readCodespinConfig(args.config, context.workingDir);
+
+    // This is in bytes
+    const maxInput = args.maxInput ?? config.maxInput ?? 40000;
 
     if (config.debug) {
       setDebugFlag();
@@ -87,6 +93,8 @@ export async function dependencies(
 
     const completion = getCompletionAPI(api);
 
+    validateMaxInputLength(prompt, maxInput);
+    
     const completionResult = await completion(
       [{ role: "user", content: prompt }],
       args.config,

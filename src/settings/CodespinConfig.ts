@@ -1,10 +1,11 @@
 export type CodespinConfig = {
-  version?: string,
+  version?: string;
   template?: string;
   model?: string;
   maxTokens?: number;
   debug?: boolean;
   multi?: number;
+  maxInput?: number;
   models?: {
     [key: string]: string;
   };

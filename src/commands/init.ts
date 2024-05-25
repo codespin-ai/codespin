@@ -7,12 +7,12 @@ import {
   CODESPIN_TEMPLATES_DIRNAME,
 } from "../fs/pathNames.js";
 
+import { homedir } from "os";
 import { CodespinContext } from "../CodeSpinContext.js";
 import { setDebugFlag } from "../debugMode.js";
 import { createDirIfMissing } from "../fs/createDirIfMissing.js";
 import { writeToFile } from "../fs/writeToFile.js";
 import { getGitRoot } from "../git/getGitRoot.js";
-import { homedir } from "os";
 import { CodespinConfig } from "../settings/CodespinConfig.js";
 
 export type InitArgs = {
@@ -33,6 +33,7 @@ const DEFAULT_JSON_CONTENT: CodespinConfig = {
     "claude-3-sonnet": "anthropic:claude-3-sonnet-20240229",
     "claude-3-opus": "anthropic:claude-3-opus-20240229",
   },
+  maxInput: 40000,
 };
 
 const DEFAULT_OPENAI_CONFIG = {

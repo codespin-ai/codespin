@@ -12,6 +12,7 @@ import { writeToFile } from "../../fs/writeToFile.js";
 import { readPrompt } from "../../prompts/readPrompt.js";
 import { readPromptSettings } from "../../prompts/readPromptSettings.js";
 import { fileBlockParser } from "../../responseParsing/fileBlockParser.js";
+import { validateMaxInputLength } from "../../safety/validateMaxInputLength.js";
 import { getApiAndModel } from "../../settings/getApiAndModel.js";
 import { readCodespinConfig } from "../../settings/readCodespinConfig.js";
 import { GeneratedSourceFile } from "../../sourceCode/GeneratedSourceFile.js";
@@ -31,6 +32,7 @@ export type GenerateArgs = {
   out?: string;
   prompt?: string;
   model?: string;
+  maxInput?: number;
   maxTokens?: number;
   write?: boolean;
   printPrompt?: boolean;
@@ -104,9 +106,10 @@ export async function generate(
     (args.exclude || []).map((x) => path.resolve(context.workingDir, x))
   );
 
-  const mustParse = args.parse ?? true;
-
   const config = await readCodespinConfig(args.config, context.workingDir);
+
+  // This is in bytes
+  const maxInput = args.maxInput ?? config.maxInput ?? 40000;
 
   if (config.debug) {
     setDebugFlag();
@@ -220,7 +223,7 @@ export async function generate(
 
     const completionOptions: CompletionOptions = {
       model,
-      maxTokens: args.maxTokens,
+      maxTokens,
       responseStreamCallback: args.responseStreamCallback,
       responseCallback: args.responseCallback,
       cancelCallback: (cancel) => {
@@ -255,6 +258,8 @@ export async function generate(
 
       writeDebug("--- PROMPT ---");
       writeDebug(messageToLLM.content);
+
+      validateMaxInputLength(messageToLLM.content, maxInput);
 
       const completionResult = await completion(
         [messageToLLM],

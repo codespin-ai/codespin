@@ -4,8 +4,8 @@ import { CompletionResult } from "../api/CompletionResult.js";
 import { getCompletionAPI } from "../api/getCompletionAPI.js";
 import { writeDebug } from "../console.js";
 import { setDebugFlag } from "../debugMode.js";
-import { processPrompt } from "../prompts/processPrompt.js";
 import { stdinDirective } from "../prompts/stdinDirective.js";
+import { validateMaxInputLength } from "../safety/validateMaxInputLength.js";
 import { getApiAndModel } from "../settings/getApiAndModel.js";
 import { readCodespinConfig } from "../settings/readCodespinConfig.js";
 import { PlainTemplateArgs } from "../templates/PlainTemplateArgs.js";
@@ -17,6 +17,7 @@ export type GoArgs = {
   template: string | undefined;
   prompt: string;
   model: string | undefined;
+  maxInput?: number;
   maxTokens?: number;
   debug?: boolean;
   config: string | undefined;
@@ -31,6 +32,9 @@ export async function go(
   context: CodespinContext
 ): Promise<CompletionResult> {
   const config = await readCodespinConfig(args.config, context.workingDir);
+
+  // This is in bytes
+  const maxInput = args.maxInput ?? config.maxInput ?? 40000;
 
   const [api, model] = getApiAndModel([args.model], config);
 
@@ -48,7 +52,7 @@ export async function go(
   const { prompt: evaluatedPrompt } = await templateFunc(
     {
       prompt: await stdinDirective(
-        args.prompt + " codespin:stdin",
+        args.prompt + "\n codespin:stdin",
         context.workingDir
       ),
     },
@@ -87,6 +91,8 @@ export async function go(
 
   writeDebug("--- PROMPT ---");
   writeDebug(messageToLLM.content);
+
+  validateMaxInputLength(evaluatedPrompt, maxInput);
 
   const completionResult = await completion(
     [messageToLLM],

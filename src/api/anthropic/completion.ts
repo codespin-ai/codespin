@@ -63,7 +63,7 @@ export async function completion(
 
   const stream = anthropic.messages.stream({
     model: options.model,
-    max_tokens: options.maxTokens || 4096,
+    max_tokens: options.maxTokens ?? 4000,
     messages: messages,
   });
 

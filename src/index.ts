@@ -138,6 +138,11 @@ export async function main() {
             describe:
               "Path to directory relative to which files are generated. Defaults to the directory of the prompt file.",
           })
+          .option("maxInput", {
+            alias: "maxi",
+            type: "number",
+            describe: "Max input length in bytes",
+          })
           .option("parser", {
             type: "string",
             describe: "Use a custom script to parse llm response.",
@@ -266,6 +271,11 @@ export async function main() {
             describe:
               "Enable debug mode. This prints a debug messages for every step.",
           })
+          .option("maxInput", {
+            alias: "maxi",
+            type: "number",
+            describe: "Max input length in bytes",
+          })
           .option("config", {
             type: "string",
             alias: "c",
@@ -309,6 +319,11 @@ export async function main() {
             type: "boolean",
             describe:
               "Enable debug mode. This prints a debug messages for every step.",
+          })
+          .option("maxInput", {
+            alias: "maxi",
+            type: "number",
+            describe: "Max input length in bytes",
           })
           .option("config", {
             type: "string",

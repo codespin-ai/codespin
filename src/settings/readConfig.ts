@@ -3,15 +3,18 @@ import * as path from "path";
 import { pathExists } from "../fs/pathExists.js";
 import { CODESPIN_DIRNAME } from "../fs/pathNames.js";
 
-import { getGitRoot } from "../git/getGitRoot.js";
 import { homedir } from "os";
+import { getGitRoot } from "../git/getGitRoot.js";
 
-export async function getConfigFilePath(
+async function getConfigFilePath(
   pathFragment: string,
   customConfigDir: string | undefined,
   workingDir: string
 ): Promise<string | undefined> {
-  if (customConfigDir && (await pathExists(path.join(customConfigDir, pathFragment)))) {
+  if (
+    customConfigDir &&
+    (await pathExists(path.join(customConfigDir, pathFragment)))
+  ) {
     return path.join(customConfigDir, pathFragment);
   }
 
@@ -32,10 +35,6 @@ export async function getConfigFilePath(
     return path.join(workingDir, CODESPIN_DIRNAME, pathFragment);
   }
 
-  if (await pathExists(path.join(homedir(), CODESPIN_DIRNAME, pathFragment))) {
-    return path.join(homedir(), CODESPIN_DIRNAME, pathFragment);
-  }
-
   return undefined;
 }
 
@@ -44,15 +43,27 @@ export async function readConfig<T>(
   customConfigDir: string | undefined,
   workingDir: string
 ): Promise<T | undefined> {
+  const homeConfigPath = (await pathExists(
+    path.join(homedir(), CODESPIN_DIRNAME, pathFragment)
+  ))
+    ? path.join(homedir(), CODESPIN_DIRNAME, pathFragment)
+    : undefined;
+
+  const homeConfig = homeConfigPath
+    ? JSON.parse(await fs.readFile(homeConfigPath, "utf8"))
+    : undefined;
+
   const filePath = await getConfigFilePath(
     pathFragment,
     customConfigDir,
     workingDir
   );
+
   if (filePath) {
     const fileContents = await fs.readFile(filePath, "utf8");
-    return JSON.parse(fileContents);
+    const jsonConfig = JSON.parse(fileContents);
+    return homeConfig ? { ...homeConfig, ...jsonConfig } : jsonConfig;
   } else {
-    return undefined;
+    return homeConfig;
   }
 }
