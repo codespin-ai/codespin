@@ -23,10 +23,7 @@ export default async function defaultTemplate(
             )
           : "") +
         (args.outPath ? printLine("-----", true) : "") +
-        printLine(
-          printPrompt(args.promptWithLineNumbers, args.prompt, false),
-          args.outPath ? false : true
-        ) +
+        printLine(printPrompt(args, false), args.outPath ? false : true) +
         (args.outPath ? printLine("-----", true) : "") +
         printIncludeFiles(args.includes, args.workingDir, false) +
         printFileTemplate(args, config)
@@ -42,10 +39,7 @@ export default async function defaultTemplate(
             )
           : "") +
         (args.outPath ? printLine("-----", true) : "") +
-        printLine(
-          printPrompt(args.promptWithLineNumbers, args.prompt, false),
-          args.outPath ? false : true
-        ) +
+        printLine(printPrompt(args, false), args.outPath ? false : true) +
         (args.outPath ? printLine("-----", true) : "") +
         printIncludeFiles(
           filterIncludes(
@@ -68,12 +62,11 @@ function printLine(line: string | undefined, addBlankLine = false): string {
     : "\n";
 }
 
-function printPrompt(
-  prompt: string,
-  promptWithLineNumbers: string,
-  useLineNumbers: boolean
-) {
-  return printLine(useLineNumbers ? promptWithLineNumbers : prompt, true);
+function printPrompt(args: TemplateArgs, useLineNumbers: boolean) {
+  return printLine(
+    useLineNumbers ? args.promptWithLineNumbers : args.prompt,
+    true
+  );
 }
 
 function relativePath(filePath: string, workingDir: string) {
