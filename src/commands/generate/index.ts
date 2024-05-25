@@ -27,6 +27,7 @@ import { getGeneratedFiles } from "./getGeneratedFiles.js";
 import { getIncludedFiles } from "./getIncludedFiles.js";
 import { getOutPath } from "./getOutPath.js";
 import diffTemplate from "../../templates/diff.js";
+import { diffParser } from "../../responseParsing/diffParser.js";
 
 export type GenerateArgs = {
   promptFile?: string;
@@ -277,7 +278,9 @@ export async function generate(
           completionResult.finishReason === "STOP" ||
           completionResult.finishReason === "MAX_TOKENS"
         ) {
-          const newlyGeneratedFiles = await fileBlockParser(
+          const newlyGeneratedFiles = await (responseParser === "diff"
+            ? diffParser
+            : fileBlockParser)(
             completionResult.message,
             context.workingDir,
             config
