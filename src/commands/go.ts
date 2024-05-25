@@ -4,6 +4,7 @@ import { CompletionResult } from "../api/CompletionResult.js";
 import { getCompletionAPI } from "../api/getCompletionAPI.js";
 import { writeDebug } from "../console.js";
 import { setDebugFlag } from "../debugMode.js";
+import { exception } from "../exception.js";
 import { stdinDirective } from "../prompts/stdinDirective.js";
 import { validateMaxInputLength } from "../safety/validateMaxInputLength.js";
 import { getApiAndModel } from "../settings/getApiAndModel.js";
@@ -27,10 +28,14 @@ export type GoArgs = {
   cancelCallback?: (cancel: () => void) => void;
 };
 
+export type GoResult = {
+  response: string;
+};
+
 export async function go(
   args: GoArgs,
   context: CodespinContext
-): Promise<CompletionResult> {
+): Promise<GoResult> {
   const config = await readCodespinConfig(args.config, context.workingDir);
 
   // This is in bytes
@@ -101,5 +106,9 @@ export async function go(
     context.workingDir
   );
 
-  return completionResult;
+  return completionResult.ok
+    ? { response: completionResult.message }
+    : exception(
+        `${completionResult.error.code}: ${completionResult.error.message}`
+      );
 }

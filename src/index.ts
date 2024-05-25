@@ -289,12 +289,7 @@ export async function main() {
           }
         );
 
-        if (result.ok) {
-          writeToConsole(result.message);
-        } else {
-          errorToConsole(result.error.message);
-          process.exit(-1);
-        }
+        writeToConsole(result.response);
       }
     )
     .command(
