@@ -238,13 +238,14 @@ export async function main() {
       }
     )
     .command(
-      "go <prompt>",
+      "go [prompt...]",
       "Send a plain prompt to the LLM optionally with piped stdin",
       (yargs) =>
         yargs
           .positional("prompt", {
             describe: "The prompt.",
             demandOption: true,
+            array: true,
             type: "string",
           })
           .option("template", {
@@ -271,9 +272,12 @@ export async function main() {
             describe: "Path to a config directory (.codespin).",
           }),
       async (argv) => {
-        const result = await go(argv, {
-          workingDir: process.cwd(),
-        });
+        const result = await go(
+          { ...argv, prompt: argv.prompt.join(" ") },
+          {
+            workingDir: process.cwd(),
+          }
+        );
 
         if (result.ok) {
           writeToConsole(result.message);
