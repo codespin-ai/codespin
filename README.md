@@ -13,6 +13,8 @@ Then, install codespin using:
 npm install -g codespin
 ```
 
+💡 The easiest way to use codespin is via the CodeSpin.AI vscode plugin.
+
 ## Getting Help
 
 To list all available commands:
@@ -33,9 +35,9 @@ Also, check the [Discord Channel](https://discord.gg/mGRbwE7n).
 
 ## Usage
 
-Set the `OPENAI_API_KEY` (OR `ANTHROPIC_API_KEY` for Anthropic) environment variable. If you don't have an account, register at [https://platform.openai.com/signup](https://platform.openai.com/signup).
+Set the `OPENAI_API_KEY` (AND/OR `ANTHROPIC_API_KEY`) environment variable. If you don't have an OpenAI account, register at [https://platform.openai.com/signup](https://platform.openai.com/signup). For Anthropic, register at [https://www.anthropic.com](https://www.anthropic.com).
 
-If you don't want to get an `OPENAI_API_KEY`, you may also [use it with ChatGPT](#using-with-chatgpt).
+If you don't want to get an API key, you may also [use it with ChatGPT](#using-with-chatgpt).
 
 Ready to try? The following command generates code for a Hello World app and displays it:
 
@@ -60,7 +62,7 @@ codespin init
 ```
 
 This command creates a .codespin directory containing some default templates and configuration files.
-You may edit these templates are required, but the default template is fairly good.
+You may edit these templates as required, but the default template is fairly good.
 
 In addition, it is also recommended to do a global init, which stores the config files under $HOME/.codespin.
 The global init also creates openai.json and anthropic.json under $HOME/.codespin where you can save your api keys.
@@ -69,7 +71,7 @@ The global init also creates openai.json and anthropic.json under $HOME/.codespi
 codespin init --global
 ```
 
-💡: It is recommeded to store the api keys globally, to avoid accidentally committing the api keys to git.
+💡 It is recommeded to store the api keys globally, to avoid accidentally committing the api keys to git.
 
 ### codespin generate
 
@@ -90,7 +92,7 @@ includes:
 
 - main.py
 
-Print Hello, World!
+Print Hello, World!  
 Include a shebang to make it directly executable.
 ```
 
@@ -119,7 +121,7 @@ Use ExpressJS. Use Postgres for the database.
 Place database code in a different file (a database layer).
 ```
 
-#### Include External Files 
+#### Include External Files
 
 For the code generator to better understand the context, you must pass the relevant external files (such as dependencies) with the `--include` (or `-i`) option.
 
@@ -152,7 +154,7 @@ Generate a Python CLI script named index.py that accepts arguments, calls calcul
 
 #### In-place Includes in Prompt Files
 
-It's quite a common requirement to mention a standard set of rules in all prompt files; such as mentioning coding convetions for a project. The include directive (`codespin:include:<path>`) let's you write common rules in a file, and include them in prompts as needed.
+It's quite a common requirement to mention a standard set of rules in all prompt files; such as mentioning coding conventions for a project. The include directive (`codespin:include:<path>`) let's you write common rules in a file, and include them in prompts as needed.
 
 For example, if you had a `./conventions.txt` file:
 
@@ -194,7 +196,7 @@ codespin gen main.py.md --spec myrules.txt
 #### Executing code in Prompt Files
 
 The exec directive executes a command and replaces the line with the output of the command.
-This powerful techique can be used to make your templates smarter.
+This powerful technique can be used to make your templates smarter.
 
 For example, if you want to include the diff of a file in your prompt, you could do this:
 
@@ -215,7 +217,7 @@ Write a function named calculate_area(l, b) which returns l\*b.
 You could rewrite it as:
 
 ```markdown
-Change the function calculate_area to take an additional parameter shape_type (as the first param), and return the correct caculations. The subsequent parameters are dimensions of the shape, and there could be one (for a circle) or more dimensions (for a multi-sided shape).
+Change the function calculate_area to take an additional parameter shape_type (as the first param), and return the correct calculations. The subsequent parameters are dimensions of the shape, and there could be one (for a circle) or more dimensions (for a multi-sided shape).
 ```
 
 And run the gen command as usual:
@@ -259,22 +261,24 @@ This command above will ignore the latest edits to main.py and use content from 
 
 - `-c, --config <file path>`: Path to a config directory (.codespin).
 - `-e, --exec <script path>`: Execute a command for each generated file.
-- `-i, --include <file path>`: List of files to include in the prompt for additional context.
+- `-i, --include <file path>`: List of files to include in the prompt for additional context. Supports version specifiers and wildcards.
 - `-o, --out <output file path>`: Specify the output file name to generate.
 - `-p, --prompt <some text>`: Specify the prompt directly on the command line.
 - `-t, --template <template name or path>`: Path to the template file.
 - `-w, --write`: Write generated code to source file(s).
 - `--debug`: Enable debug mode. Prints debug messages for every step.
 - `--exclude <file path>`: List of files to exclude from the prompt. Used to override automatically included source files.
-- `--maxTokens`: Maximum number of tokens for generated code.
+- `--maxTokens <number>`: Maximum number of tokens for generated code.
 - `--model <model name>`: Name of the model to use, such as 'openai:gpt-4' or 'anthropic:claude-3-haiku-20240307'.
+- `--multi <number>`: Maximum number of API calls to make if the output exceeds token limit.
 - `--outDir <dir path>`: Path to directory relative to which files are generated. Defaults to the directory of the prompt file.
 - `--parse`: Whether the LLM response needs to be processed. Defaults to true. Use `--no-parse` to disable parsing.
 - `--parser <path to js file>`: Use a custom script to parse LLM response.
 - `--pp, --printPrompt`: Print the generated prompt to the screen. Does not call the API.
-- `--spec`: Specify a spec (prompt template) file.
-- `--templateArgs <argument>`: An argument passed to a custom template. Can pass many by repeating `-a`.
-- `--writePrompt`: Write the generated prompt out to the specified path. Does not call the API.
+- `--spec <spec file>`: Specify a spec (prompt template) file.
+- `-a, --templateArgs <argument>`: An argument passed to a custom template. Can pass multiple by repeating `-a`.
+- `--writePrompt <file>`: Write the generated prompt out to the specified path. Does not call the API.
+- `--maxi, --maxInput <bytes>`: Maximum number of input bytes to send to the API. Defaults to 40000.
 - `-h, --help`: Display help.
 
 ## Inline Prompting
@@ -293,20 +297,25 @@ A CodeSpin Template is a JS file (an ES6 Module) exporting a default function wi
 
 ```ts
 // The templating function that generates the LLM prompt.
-export default function generate(args: TemplateArgs): TemplateResult {
+export default async function generate(
+  args: TemplateArgs,
+  config: CodespinConfig
+): Promise<TemplateResult> {
   // Return the prompt to send to the LLM.
 }
 ```
 
-where TemplateResult and TemplateArgs is the following:
+where TemplateResult and TemplateArgs are defined as:
 
 ```ts
 // Output of the template
 export type TemplateResult = {
   // The generated prompt
   prompt: string;
-  //Optional. Which type of parser should parse the response?
-  responseParser?: "file-block" | "diff" | undefined; 
+
+  // Optional. Which type of parser should parse the response?
+  // Possible values are "file-block", "diff" or omit for default.
+  responseParser?: "file-block" | "diff";
 };
 
 // Arguments to the templating function
@@ -349,13 +358,13 @@ When generating code, specify custom templates with the `--template` (or `-t`) o
 codespin gen main.py.md --out main.py --template mypythontemplate.mjs --include main.py -w
 ```
 
-💡: Your template should the extension `mjs` instead of `js`.
+💡 Your template should have the extension `mjs` instead of `js`.
 
 Once you do `codespin init`, you should be able to see example templates under the "codespin/templates" directory.
 
-There are two ways to pass custom args to a custom template.
+There are two ways to pass custom args to a custom template:
 
-1. frontMatter in a prompt file goes under args.promptSettings
+1. frontMatter in a prompt file goes under `args.promptSettings`
 
 ```markdown
 ---
@@ -366,7 +375,7 @@ out: main.py
 ---
 ```
 
-2. CLI args can be passed to the template with the `-a` (or `--template-args`), and they'll be available in args.templateArgs as a string array.
+2. CLI args can be passed to the template with the `-a` (or `--template-args`) option, and they'll be available in `args.customArgs` as a string array.
 
 ```sh
 codespin gen main.py.md \
@@ -401,7 +410,7 @@ Then, use the `codespin parse` command to parse the content:
 codespin parse gptresponse.txt --write
 ```
 
-💡: When copying the response from ChatGPT, use the copy icon. Selecting text and copying doesn't retain formatting.
+💡 When copying the response from ChatGPT, use the copy icon. Selecting text and copying doesn't retain formatting.
 
 ## One more thing - Piping into the LLM!
 
