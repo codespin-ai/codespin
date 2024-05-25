@@ -1,6 +1,6 @@
 {
   "name": "codespin",
-  "version": "0.0.200",
+  "version": "0.0.201",
   "description": "Source code generation with LLM prompts",
   "main": "dist/index.js",
   "scripts": {
@@ -34,12 +34,12 @@
     "glob": "^10.3.12",
     "js-yaml": "^4.1.0",
     "openai": "^4.33.0",
-    "yargs": "^17.7.2"
+    "yargs": "^17.7.2",
+    "typescript": "^5.4.5"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
     "jest": "^29.7.0",
-    "ts-jest": "^29.1.2",
-    "typescript": "^5.4.5"
+    "ts-jest": "^29.1.2"
   }
 }
