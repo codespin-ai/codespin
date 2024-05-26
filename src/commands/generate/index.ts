@@ -230,7 +230,6 @@ export async function generate(
       model,
       maxTokens,
       responseStreamCallback: args.responseStreamCallback,
-      responseCallback: args.responseCallback,
       cancelCallback: (cancel) => {
         cancelCompletion = cancel;
       },
@@ -241,6 +240,8 @@ export async function generate(
     const generatedFiles: {
       [path: string]: string;
     } = {};
+
+    const allResponses: string[] = [];
 
     while (continuationCount <= multi) {
       continuationCount++;
@@ -278,6 +279,8 @@ export async function generate(
           completionResult.finishReason === "STOP" ||
           completionResult.finishReason === "MAX_TOKENS"
         ) {
+          allResponses.push(completionResult.message);
+
           const newlyGeneratedFiles = await (responseParser === "diff"
             ? diffParser
             : fileBlockParser)(
@@ -289,6 +292,10 @@ export async function generate(
           updateFiles(generatedFiles, newlyGeneratedFiles);
 
           if (completionResult.finishReason === "STOP") {
+            if (args.responseCallback) {
+              args.responseCallback(allResponses.join("\n---CONTINUING---\n"));
+            }
+
             const files = toSourceFileList(generatedFiles);
 
             if (args.parseCallback) {
@@ -318,6 +325,13 @@ export async function generate(
             }
           } else if (completionResult.finishReason === "MAX_TOKENS") {
             if (multi === 0) {
+              if (args.responseCallback) {
+                args.responseCallback(
+                  allResponses.join("\n---CONTINUING---\n") +
+                    "ERROR: MAX_TOKENS"
+                );
+              }
+
               return exception(
                 `MAX_TOKENS: Maximum number of tokens exceeded and the multi-step param (--multi) is set to zero.`
               );
@@ -338,6 +352,12 @@ export async function generate(
           `${completionResult.error.code}: ${completionResult.error.message}`
         );
       }
+    }
+
+    if (args.responseCallback) {
+      args.responseCallback(
+        allResponses.join("\n---CONTINUING---\n") + "ERROR: MAX_MULTI_QUERY"
+      );
     }
 
     return exception(`MAX_MULTI_QUERY: Maximum number of LLM calls exceeded.`);

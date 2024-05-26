@@ -12,46 +12,33 @@ export default async function defaultTemplate(
   config: CodespinConfig
 ): Promise<TemplateResult> {
   const prompt =
-    args.generatedFiles.length === 0
-      ? (args.outPath
-          ? printLine(
-              `Generate source code for the file "${relativePath(
-                args.outPath,
-                args.workingDir
-              )}" based on the following instructions (enclosed between "-----").`,
-              true
-            )
-          : "") +
-        (args.outPath ? printLine("-----", true) : "") +
-        printLine(printPrompt(args, false), args.outPath ? false : true) +
-        (args.outPath ? printLine("-----", true) : "") +
-        printIncludeFiles(args.includes, args.workingDir, false) +
-        printFileTemplate(args, config)
-      : // This is a continuation
-        // In included files, we'll exclude previously generated files
-        (args.outPath
-          ? printLine(
-              `Generate source code for the file "${relativePath(
-                args.outPath,
-                args.workingDir
-              )}" based on the following instructions (enclosed between "-----").`,
-              true
-            )
-          : "") +
-        (args.outPath ? printLine("-----", true) : "") +
-        printLine(printPrompt(args, false), args.outPath ? false : true) +
-        (args.outPath ? printLine("-----", true) : "") +
-        printIncludeFiles(
+    (args.outPath
+      ? printLine(
+          `Generate source code for the file "${relativePath(
+            args.outPath,
+            args.workingDir
+          )}" based on the following instructions (enclosed between "-----").`,
+          true
+        )
+      : "") +
+    (args.outPath ? printLine("-----", true) : "") +
+    printLine(printPrompt(args, false), args.outPath ? false : true) +
+    (args.outPath ? printLine("-----", true) : "") +
+    printIncludeFiles(
+      args.generatedFiles.length === 0
+        ? args.includes
+        : // This is a continuation
+          // In included files, we'll exclude previously generated files
           filterIncludes(
             args.includes,
             (args.generatedFiles ?? []).map((x) => x.path),
             args.workingDir
           ),
-          args.workingDir,
-          false
-        ) +
-        printGeneratedFiles(args.generatedFiles, args.workingDir) +
-        printFileTemplate(args, config);
+      args.workingDir,
+      false
+    ) +
+    printGeneratedFiles(args.generatedFiles, args.workingDir) +
+    printFileTemplate(args, config);
 
   return { prompt, responseParser: "file-block" };
 }
@@ -176,7 +163,7 @@ function printGeneratedFiles(generatedFiles: SourceFile[], workingDir: string) {
   } else {
     const text =
       printLine(
-        "The following files have already been fixed, and do not need to be re-generated.",
+        "The following files have already been fixed. You must skip generating them in your response.",
         true
       ) +
       generatedFiles

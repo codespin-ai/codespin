@@ -92,10 +92,6 @@ export async function completion(
     finishReason = chunk.choices[0]?.finish_reason;
   }
 
-  if (options.responseCallback) {
-    options.responseCallback(responseText);
-  }
-
   writeDebug("---OPENAI RESPONSE---");
   writeDebug(responseText);
 

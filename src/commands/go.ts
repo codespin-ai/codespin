@@ -86,7 +86,6 @@ export async function go(
     model,
     maxTokens: args.maxTokens,
     responseStreamCallback: args.responseStreamCallback,
-    responseCallback: args.responseCallback,
     cancelCallback: (cancel) => {
       cancelCompletion = cancel;
     },
@@ -105,6 +104,10 @@ export async function go(
     completionOptions,
     context.workingDir
   );
+
+  if (completionResult.ok && args.responseCallback) {
+    args.responseCallback(completionResult.message);
+  }
 
   return completionResult.ok
     ? { response: completionResult.message }

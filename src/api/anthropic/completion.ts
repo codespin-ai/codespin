@@ -82,10 +82,6 @@ export async function completion(
 
   const fullMessage = await stream.finalMessage();
 
-  if (options.responseCallback) {
-    options.responseCallback(responseText);
-  }
-
   writeDebug("---ANTHROPIC RESPONSE---");
   writeDebug(responseText);
 
