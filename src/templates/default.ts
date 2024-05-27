@@ -66,25 +66,19 @@ function printFileTemplate(args: TemplateArgs, config: CodespinConfig) {
 
   File path:./some/path/greet.ts
   \`\`\`
-  export function greet() {
-    console.log("hello, world!");
-  }
+  source code for greet.ts goes here...
   \`\`\`
 
   If there are multiple files to be generated (as in "some/path/lorem.ts" and "some/path/ipsum.ts" in the example below), you should repeat blocks like this:
 
   File path:./some/path/lorem.ts
   \`\`\`
-  export function printLorem() {
-    console.log("lorem!");
-  }
+  source code for lorem.ts goes here...
   \`\`\`
 
   File path:./some/path/ipsum.ts
   \`\`\`
-  export function printIpsum() {
-    console.log("ipsum!");
-  }
+  source code for ipsum.ts goes here...
   \`\`\`
 
   You must respond with the complete contents of each file. DO NOT omit any line.
