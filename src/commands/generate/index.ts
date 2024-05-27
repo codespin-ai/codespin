@@ -289,6 +289,19 @@ export async function generate(
             config
           );
 
+          if (newlyGeneratedFiles.length === 0) {
+            if (args.responseCallback) {
+              args.responseCallback(
+                allResponses.join("\n---CONTINUING---\n") +
+                  "\nERROR: FILE_LENGTH_EXCEEDS_MAX_TOKENS"
+              );
+            }
+
+            return exception(
+              `FILE_LENGTH_EXCEEDS_MAX_TOKENS: The length of a single file exceeded max tokens and cannot be retried. Try increasing max tokens if possible or split the file.`
+            );
+          }
+
           updateFiles(generatedFiles, newlyGeneratedFiles);
 
           if (completionResult.finishReason === "STOP") {
@@ -328,7 +341,7 @@ export async function generate(
               if (args.responseCallback) {
                 args.responseCallback(
                   allResponses.join("\n---CONTINUING---\n") +
-                    "ERROR: MAX_TOKENS"
+                    "\nERROR: MAX_TOKENS"
                 );
               }
 
@@ -356,7 +369,7 @@ export async function generate(
 
     if (args.responseCallback) {
       args.responseCallback(
-        allResponses.join("\n---CONTINUING---\n") + "ERROR: MAX_MULTI_QUERY"
+        allResponses.join("\n---CONTINUING---\n") + "\nERROR: MAX_MULTI_QUERY"
       );
     }
 
