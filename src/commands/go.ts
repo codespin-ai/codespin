@@ -22,9 +22,9 @@ export type GoArgs = {
   maxTokens?: number;
   debug?: boolean;
   config: string | undefined;
-  responseCallback?: (text: string) => void;
+  responseCallback?: (text: string) => Promise<void>;
   responseStreamCallback?: (text: string) => void;
-  promptCallback?: (prompt: string) => void;
+  promptCallback?: (prompt: string) => Promise<void>;
   cancelCallback?: (cancel: () => void) => void;
 };
 
@@ -65,7 +65,7 @@ export async function go(
   );
 
   if (args.promptCallback) {
-    args.promptCallback(evaluatedPrompt);
+    await args.promptCallback(evaluatedPrompt);
   }
 
   let cancelCompletion: (() => void) | undefined;
@@ -106,7 +106,7 @@ export async function go(
   );
 
   if (completionResult.ok && args.responseCallback) {
-    args.responseCallback(completionResult.message);
+    await args.responseCallback(completionResult.message);
   }
 
   return completionResult.ok

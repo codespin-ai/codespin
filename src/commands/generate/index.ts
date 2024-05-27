@@ -52,10 +52,10 @@ export type GenerateArgs = {
   go?: boolean;
   spec?: string;
   multi?: number;
-  responseCallback?: (text: string) => void;
+  responseCallback?: (text: string) => Promise<void>;
   responseStreamCallback?: (text: string) => void;
-  promptCallback?: (prompt: string) => void;
-  parseCallback?: (files: GeneratedSourceFile[]) => void;
+  promptCallback?: (prompt: string) => Promise<void>;
+  parseCallback?: (files: GeneratedSourceFile[]) => Promise<void>;
   cancelCallback?: (cancel: () => void) => void;
 };
 
@@ -77,7 +77,7 @@ export type FilesResult = {
 
 export type UnparsedResult = {
   type: "unparsed";
-  text: string;
+  responses: string[];
 };
 
 export type GenerateResult =
@@ -185,7 +185,7 @@ export async function generate(
   );
 
   if (args.promptCallback) {
-    args.promptCallback(evaluatedPrompt);
+    await args.promptCallback(evaluatedPrompt);
   }
 
   // No files to be generated. Just print/save the prompt.
@@ -291,7 +291,7 @@ export async function generate(
 
           if (newlyGeneratedFiles.length === 0) {
             if (args.responseCallback) {
-              args.responseCallback(
+              await args.responseCallback(
                 allResponses.join("\n---CONTINUING---\n") +
                   "\nERROR: FILE_LENGTH_EXCEEDS_MAX_TOKENS"
               );
@@ -306,7 +306,9 @@ export async function generate(
 
           if (completionResult.finishReason === "STOP") {
             if (args.responseCallback) {
-              args.responseCallback(allResponses.join("\n---CONTINUING---\n"));
+              await args.responseCallback(
+                allResponses.join("\n---CONTINUING---\n")
+              );
             }
 
             const files = toSourceFileList(generatedFiles);
@@ -316,30 +318,37 @@ export async function generate(
                 files,
                 context.workingDir
               );
-              args.parseCallback(generatedFilesDetail);
+              await args.parseCallback(generatedFilesDetail);
             }
 
-            if (args.write) {
-              await writeFilesToDisk(
-                args.outDir || context.workingDir,
-                files,
-                args.exec,
-                context.workingDir
-              );
-              return {
-                type: "saved" as const,
-                files,
-              };
+            if (args.parse ?? true) {
+              if (args.write) {
+                await writeFilesToDisk(
+                  args.outDir || context.workingDir,
+                  files,
+                  args.exec,
+                  context.workingDir
+                );
+                return {
+                  type: "saved" as const,
+                  files,
+                };
+              } else {
+                return {
+                  type: "files" as const,
+                  files,
+                };
+              }
             } else {
               return {
-                type: "files" as const,
-                files,
+                type: "unparsed" as const,
+                responses: allResponses,
               };
             }
           } else if (completionResult.finishReason === "MAX_TOKENS") {
             if (multi === 0) {
               if (args.responseCallback) {
-                args.responseCallback(
+                await args.responseCallback(
                   allResponses.join("\n---CONTINUING---\n") +
                     "\nERROR: MAX_TOKENS"
                 );
@@ -368,7 +377,7 @@ export async function generate(
     }
 
     if (args.responseCallback) {
-      args.responseCallback(
+      await args.responseCallback(
         allResponses.join("\n---CONTINUING---\n") + "\nERROR: MAX_MULTI_QUERY"
       );
     }

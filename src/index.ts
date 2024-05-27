@@ -177,7 +177,9 @@ export async function main() {
             writeToConsole(`Wrote prompt to ${result.filePath}`);
           }
         } else if (result.type === "unparsed") {
-          writeToConsole(result.text);
+          for (const text of result.responses) {
+            writeToConsole(text);
+          }
         }
       }
     )
