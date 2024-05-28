@@ -227,8 +227,8 @@ function printIncludeFiles(args: TemplateArgs, useLineNumbers: boolean) {
     const text =
       printLine(
         useLineNumbers
-          ? "Including relevant files below with line numbers added:"
-          : "Including relevant files below:",
+          ? "Contents of files (with line numbers added) are included below."
+          : "Contents of files are included below.",
         true
       ) +
       args.includes
@@ -254,10 +254,7 @@ function printIncludeFiles(args: TemplateArgs, useLineNumbers: boolean) {
             if (file.contents && file.contents.trim().length > 0) {
               const text =
                 printLine(
-                  `Contents of the file ${relativePath(
-                    file.path,
-                    args.workingDir
-                  )}:`
+                  `File path:${relativePath(file.path, args.workingDir)}`
                 ) +
                 printLine("```") +
                 printLine(

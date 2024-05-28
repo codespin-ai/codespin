@@ -39,8 +39,8 @@ function printIncludeFiles(
     const text =
       printLine(
         useLineNumbers
-          ? "Including relevant files below with line numbers added:"
-          : "Including relevant files below:",
+          ? "Contents of files (with line numbers added) are included below."
+          : "Contents of files are included below.",
         true
       ) +
       includes
@@ -48,9 +48,7 @@ function printIncludeFiles(
           if (file.type === "diff") {
             const text =
               // Print the contents first
-              printLine(
-                `Contents of the file ${relativePath(file.path, workingDir)}:`
-              ) +
+              printLine(`File path:${relativePath(file.path, workingDir)}`) +
               printLine("```") +
               printLine(addLineNumbers(file.version2 ?? "")) +
               printLine("```", true) +
@@ -72,9 +70,7 @@ function printIncludeFiles(
           } else {
             if (file.contents && file.contents.trim().length > 0) {
               const text =
-                printLine(
-                  `Contents of the file ${relativePath(file.path, workingDir)}:`
-                ) +
+                printLine(`File path:${relativePath(file.path, workingDir)}`) +
                 printLine("```") +
                 printLine(
                   useLineNumbers ? addLineNumbers(file.contents) : file.contents

@@ -14,7 +14,7 @@ export default async function defaultTemplate(
   const prompt =
     (args.outPath
       ? printLine(
-          `Generate source code for the file "${relativePath(
+          `Generate the content of the file "${relativePath(
             args.outPath,
             args.workingDir
           )}" based on the following instructions (enclosed between "-----").`,
@@ -98,8 +98,8 @@ function printIncludeFiles(
     const text =
       printLine(
         useLineNumbers
-          ? "Including relevant files below with line numbers added:"
-          : "Including relevant files below:",
+          ? "Contents of files (with line numbers added) are included below."
+          : "Contents of files are included below.",
         true
       ) +
       includes
@@ -108,7 +108,7 @@ function printIncludeFiles(
             const text =
               // Print the contents first
               printLine(
-                `Contents of the file ${relativePath(file.path, workingDir)}:`
+                `File path:${relativePath(file.path, workingDir)}`
               ) +
               printLine("```") +
               printLine(addLineNumbers(file.version2 ?? "")) +
@@ -132,7 +132,7 @@ function printIncludeFiles(
             if (file.contents && file.contents.trim().length > 0) {
               const text =
                 printLine(
-                  `Contents of the file ${relativePath(file.path, workingDir)}:`
+                  `File path:${relativePath(file.path, workingDir)}`
                 ) +
                 printLine("```") +
                 printLine(
@@ -157,7 +157,7 @@ function printGeneratedFiles(generatedFiles: SourceFile[], workingDir: string) {
   } else {
     const text =
       printLine(
-        "The following files have already been fixed. You must skip generating them in your response.",
+        "The following files have already been generated. You must skip generating them in your response.",
         true
       ) +
       generatedFiles
@@ -165,7 +165,7 @@ function printGeneratedFiles(generatedFiles: SourceFile[], workingDir: string) {
           if (file.contents && file.contents.trim().length > 0) {
             const text =
               printLine(
-                `Contents of the file ${relativePath(file.path, workingDir)}:`
+                `File path:${relativePath(file.path, workingDir)}`
               ) +
               printLine("```") +
               printLine(file.contents) +
