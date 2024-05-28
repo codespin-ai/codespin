@@ -1,6 +1,6 @@
 import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
 
-export type FilesTemplateArgs = {
+export type FormatterTemplateArgs = {
   prompt: string;
   includes: VersionedFileInfo[];
   workingDir: string;

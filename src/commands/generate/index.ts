@@ -5,29 +5,25 @@ import { getCompletionAPI } from "../../api/getCompletionAPI.js";
 import { writeDebug } from "../../console.js";
 import { setDebugFlag } from "../../debugMode.js";
 import { exception } from "../../exception.js";
-import { VersionedPath } from "../../fs/VersionedPath.js";
-import { getVersionedPath } from "../../fs/getVersionedPath.js";
 import { writeFilesToDisk } from "../../fs/writeFilesToDisk.js";
 import { writeToFile } from "../../fs/writeToFile.js";
-import { readPrompt } from "../../prompts/readPrompt.js";
+import { BuildPromptArgs, buildPrompt } from "../../prompts/buildPrompt.js";
 import { readPromptSettings } from "../../prompts/readPromptSettings.js";
+import { diffParser } from "../../responseParsing/diffParser.js";
 import { fileBlockParser } from "../../responseParsing/fileBlockParser.js";
 import { validateMaxInputLength } from "../../safety/validateMaxInputLength.js";
 import { getApiAndModel } from "../../settings/getApiAndModel.js";
 import { readCodespinConfig } from "../../settings/readCodespinConfig.js";
 import { GeneratedSourceFile } from "../../sourceCode/GeneratedSourceFile.js";
 import { SourceFile } from "../../sourceCode/SourceFile.js";
-import { evalSpec } from "../../specs/evalSpec.js";
 import { TemplateArgs } from "../../templates/TemplateArgs.js";
 import { TemplateResult } from "../../templates/TemplateResult.js";
 import defaultTemplate from "../../templates/default.js";
+import diffTemplate from "../../templates/diff.js";
 import { getCustomTemplate } from "../../templating/getCustomTemplate.js";
 import { addLineNumbers } from "../../text/addLineNumbers.js";
 import { getGeneratedFiles } from "./getGeneratedFiles.js";
-import { getIncludedFiles } from "./getIncludedFiles.js";
 import { getOutPath } from "./getOutPath.js";
-import diffTemplate from "../../templates/diff.js";
-import { diffParser } from "../../responseParsing/diffParser.js";
 
 export type GenerateArgs = {
   promptFile?: string;
@@ -94,28 +90,35 @@ export async function generate(
     setDebugFlag();
   }
 
-  // Convert everything to absolute paths
-  const promptFilePath = args.promptFile
-    ? await path.resolve(context.workingDir, args.promptFile)
-    : undefined;
-
-  const includesFromCLI: VersionedPath[] = await Promise.all(
-    (args.include || []).map((x) =>
-      getVersionedPath(x, context.workingDir, false, context.workingDir)
-    )
-  );
-  const excludesFromCLI = await Promise.all(
-    (args.exclude || []).map((x) => path.resolve(context.workingDir, x))
-  );
+  const buildPromptArgs: BuildPromptArgs = {
+    exclude: args.exclude ?? [],
+    include: args.include ?? [],
+    prompt: args.prompt,
+    promptFile: args.promptFile,
+    spec: args.spec,
+    template: args.template ?? "files",
+    customConfigDir: args.config,
+  };
 
   const config = await readCodespinConfig(args.config, context.workingDir);
-
-  // This is in bytes
-  const maxInput = args.maxInput ?? config.maxInput;
 
   if (config.debug) {
     setDebugFlag();
   }
+
+  const { prompt, includes } = await buildPrompt(
+    buildPromptArgs,
+    config,
+    context
+  );
+
+  // This is in bytes
+  const maxInput = args.maxInput ?? config.maxInput;
+
+  // Convert everything to absolute paths
+  const promptFilePath = args.promptFile
+    ? await path.resolve(context.workingDir, args.promptFile)
+    : undefined;
 
   const promptSettings = promptFilePath
     ? await readPromptSettings(promptFilePath)
@@ -128,14 +131,6 @@ export async function generate(
 
   const maxTokens =
     args.maxTokens ?? promptSettings?.maxTokens ?? config?.maxTokens;
-
-  const includes = await getIncludedFiles(
-    includesFromCLI,
-    excludesFromCLI,
-    promptFilePath,
-    promptSettings,
-    context.workingDir
-  );
 
   const outPath = await getOutPath(
     args.out,
@@ -153,17 +148,6 @@ export async function generate(
       ? diffTemplate
       : defaultTemplate
     : defaultTemplate;
-
-  const basicPrompt = await readPrompt(
-    promptFilePath,
-    args.prompt,
-    context.workingDir
-  );
-
-  // If the spec option is specified, evaluate the spec
-  const prompt = args.spec
-    ? await evalSpec(basicPrompt, args.spec, context.workingDir, config)
-    : basicPrompt;
 
   const promptWithLineNumbers = addLineNumbers(prompt);
 

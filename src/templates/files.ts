@@ -2,14 +2,15 @@ import path from "path";
 import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
 import { CodespinConfig } from "../settings/CodespinConfig.js";
 import { addLineNumbers } from "../text/addLineNumbers.js";
-import { FilesTemplateArgs } from "./FilesTemplateArgs.js";
-import { FilesTemplateResult } from "./FilesTemplateResult.js";
+import { FormatterTemplateArgs } from "./FormatterTemplateArgs.js";
+import { FormatterTemplateResult } from "./FormatterTemplateResult.js";
+import { CodespinContext } from "../CodeSpinContext.js";
 
 export default async function filesTemplate(
-  args: FilesTemplateArgs,
+  args: FormatterTemplateArgs,
   config: CodespinConfig,
-  context: CodespinConfig
-): Promise<FilesTemplateResult> {
+  context: CodespinContext
+): Promise<FormatterTemplateResult> {
   const prompt =
     printLine(args.prompt, true) +
     printIncludeFiles(args.includes, args.workingDir, false);
