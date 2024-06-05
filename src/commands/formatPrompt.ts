@@ -1,7 +1,7 @@
-import { CodespinContext } from "../CodeSpinContext.js";
+import { CodeSpinContext } from "../CodeSpinContext.js";
 import { setDebugFlag } from "../debugMode.js";
 import { BuildPromptArgs, buildPrompt } from "../prompts/buildPrompt.js";
-import { readCodespinConfig } from "../settings/readCodespinConfig.js";
+import { readCodeSpinConfig } from "../settings/readCodeSpinConfig.js";
 
 export type FormatPromptArgs = {
   promptFile?: string;
@@ -20,13 +20,13 @@ export type FormatPromptResult = {
 
 export async function formatPrompt(
   args: FormatPromptArgs,
-  context: CodespinContext
+  context: CodeSpinContext
 ): Promise<FormatPromptResult> {
   if (args.debug) {
     setDebugFlag();
   }
 
-  const config = await readCodespinConfig(args.config, context.workingDir);
+  const config = await readCodeSpinConfig(args.config, context.workingDir);
 
   if (config.debug) {
     setDebugFlag();

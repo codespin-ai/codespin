@@ -1,8 +1,8 @@
 import { promises as fs } from "fs";
-import { CodespinContext } from "../CodeSpinContext.js";
+import { CodeSpinContext } from "../CodeSpinContext.js";
 import { setDebugFlag } from "../debugMode.js";
 import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
-import { readCodespinConfig } from "../settings/readCodespinConfig.js";
+import { readCodeSpinConfig } from "../settings/readCodeSpinConfig.js";
 import { FilesResult, SavedFilesResult } from "./generate/index.js";
 import { ParseFunc } from "../responseParsing/ParseFunc.js";
 import { diffParser } from "../responseParsing/diffParser.js";
@@ -23,13 +23,13 @@ export type ParseResult = SavedFilesResult | FilesResult;
 
 export async function parse(
   args: ParseArgs,
-  context: CodespinContext
+  context: CodeSpinContext
 ): Promise<ParseResult> {
   if (args.debug) {
     setDebugFlag();
   }
 
-  const config = await readCodespinConfig(args.config, context.workingDir);
+  const config = await readCodeSpinConfig(args.config, context.workingDir);
 
   if (config.debug) {
     setDebugFlag();

@@ -1,4 +1,4 @@
-import { CodespinConfig } from "../settings/CodespinConfig.js";
+import { CodeSpinConfig } from "../settings/CodeSpinConfig.js";
 import { DependenciesTemplateArgs } from "./DependenciesTemplateArgs.js";
 import { DependenciesTemplateResult } from "./DependenciesTemplateResult.js";
 
@@ -76,7 +76,7 @@ Print only the JSON and no other text. Enclose it in a JSON codeblock.
 
 export default async function dependencies(
   args: DependenciesTemplateArgs,
-  config: CodespinConfig
+  config: CodeSpinConfig
 ): Promise<DependenciesTemplateResult> {
   const prompt = makePrompt(args.filePath, args.sourceCode);
   return { prompt };

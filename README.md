@@ -299,7 +299,7 @@ A CodeSpin Template is a JS file (an ES6 Module) exporting a default function wi
 // The templating function that generates the LLM prompt.
 export default async function generate(
   args: TemplateArgs,
-  config: CodespinConfig
+  config: CodeSpinConfig
 ): Promise<TemplateResult> {
   // Return the prompt to send to the LLM.
 }

@@ -1,7 +1,7 @@
 import path from "path";
 import { TemplateArgs } from "./TemplateArgs.js";
 import { addLineNumbers } from "../text/addLineNumbers.js";
-import { CodespinConfig } from "../settings/CodespinConfig.js";
+import { CodeSpinConfig } from "../settings/CodeSpinConfig.js";
 import { trimWhitespace } from "../templating/trimWhitespace.js";
 import { TemplateResult } from "./TemplateResult.js";
 import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
@@ -9,7 +9,7 @@ import { SourceFile } from "../sourceCode/SourceFile.js";
 
 export default async function defaultTemplate(
   args: TemplateArgs,
-  config: CodespinConfig
+  config: CodeSpinConfig
 ): Promise<TemplateResult> {
   const prompt =
     (args.outPath
@@ -60,7 +60,7 @@ function relativePath(filePath: string, workingDir: string) {
   return "./" + path.relative(workingDir, filePath);
 }
 
-function printFileTemplate(args: TemplateArgs, config: CodespinConfig) {
+function printFileTemplate(args: TemplateArgs, config: CodeSpinConfig) {
   const tmpl = `
   Respond with just the code (but exclude invocation examples etc) in the following format:
 

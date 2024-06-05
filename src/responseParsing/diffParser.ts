@@ -1,6 +1,6 @@
 import { promises as fs } from "fs";
 import * as path from "path";
-import { CodespinConfig } from "../settings/CodespinConfig.js";
+import { CodeSpinConfig } from "../settings/CodeSpinConfig.js";
 import {
   getDeleteLinesRegex,
   getEndInsertLinesRegex,
@@ -53,7 +53,7 @@ type Operation = DeleteLinesOperation | InsertLinesOperation;
 
 const parseUpdates = (
   updates: string,
-  config: CodespinConfig
+  config: CodeSpinConfig
 ): { path: string; operations: Operation[] }[] => {
   const fileUpdates = updates
     .split(getEndUpdatesRegex(config))
@@ -105,7 +105,7 @@ const parseUpdates = (
 export async function diffParser(
   updateString: string,
   workingDir: string,
-  config: CodespinConfig
+  config: CodeSpinConfig
 ): Promise<SourceFile[]> {
   const updates = parseUpdates(updateString, config);
 

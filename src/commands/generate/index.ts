@@ -1,5 +1,5 @@
 import path from "path";
-import { CodespinContext } from "../../CodeSpinContext.js";
+import { CodeSpinContext } from "../../CodeSpinContext.js";
 import { CompletionOptions } from "../../api/CompletionOptions.js";
 import { getCompletionAPI } from "../../api/getCompletionAPI.js";
 import { writeDebug } from "../../console.js";
@@ -13,7 +13,7 @@ import { diffParser } from "../../responseParsing/diffParser.js";
 import { fileBlockParser } from "../../responseParsing/fileBlockParser.js";
 import { validateMaxInputLength } from "../../safety/validateMaxInputLength.js";
 import { getApiAndModel } from "../../settings/getApiAndModel.js";
-import { readCodespinConfig } from "../../settings/readCodespinConfig.js";
+import { readCodeSpinConfig } from "../../settings/readCodeSpinConfig.js";
 import { GeneratedSourceFile } from "../../sourceCode/GeneratedSourceFile.js";
 import { SourceFile } from "../../sourceCode/SourceFile.js";
 import { TemplateArgs } from "../../templates/TemplateArgs.js";
@@ -84,7 +84,7 @@ export type GenerateResult =
 
 export async function generate(
   args: GenerateArgs,
-  context: CodespinContext
+  context: CodeSpinContext
 ): Promise<GenerateResult> {
   if (args.debug) {
     setDebugFlag();
@@ -100,7 +100,7 @@ export async function generate(
     customConfigDir: args.config,
   };
 
-  const config = await readCodespinConfig(args.config, context.workingDir);
+  const config = await readCodeSpinConfig(args.config, context.workingDir);
 
   if (config.debug) {
     setDebugFlag();

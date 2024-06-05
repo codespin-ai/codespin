@@ -8,12 +8,12 @@ import {
 } from "../fs/pathNames.js";
 
 import { homedir } from "os";
-import { CodespinContext } from "../CodeSpinContext.js";
+import { CodeSpinContext } from "../CodeSpinContext.js";
 import { setDebugFlag } from "../debugMode.js";
 import { createDirIfMissing } from "../fs/createDirIfMissing.js";
 import { writeToFile } from "../fs/writeToFile.js";
 import { getGitRoot } from "../git/getGitRoot.js";
-import { CodespinConfig } from "../settings/CodespinConfig.js";
+import { CodeSpinConfig } from "../settings/CodeSpinConfig.js";
 
 export type InitArgs = {
   force?: boolean;
@@ -21,7 +21,7 @@ export type InitArgs = {
   global?: boolean;
 };
 
-const DEFAULT_JSON_CONTENT: CodespinConfig = {
+const DEFAULT_JSON_CONTENT: CodeSpinConfig = {
   version: "0.0.1",
   model: "openai:gpt-3.5-turbo",
   models: {
@@ -46,7 +46,7 @@ const DEFAULT_ANTHROPIC_CONFIG = {
 
 export async function init(
   args: InitArgs,
-  context: CodespinContext
+  context: CodeSpinContext
 ): Promise<void> {
   if (args.debug) {
     setDebugFlag();

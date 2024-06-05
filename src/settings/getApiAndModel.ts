@@ -1,9 +1,9 @@
 import { exception } from "../exception.js";
-import { CodespinConfig } from "./CodespinConfig.js";
+import { CodeSpinConfig } from "./CodeSpinConfig.js";
 
 export function getApiAndModel(
   models: (string | undefined)[],
-  config: CodespinConfig
+  config: CodeSpinConfig
 ): [string, string] {
   for (const modelAndApi of models) {
     if (modelAndApi) {

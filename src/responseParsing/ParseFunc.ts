@@ -1,8 +1,8 @@
-import { CodespinConfig } from "../settings/CodespinConfig.js";
+import { CodeSpinConfig } from "../settings/CodeSpinConfig.js";
 import { SourceFile } from "../sourceCode/SourceFile.js";
 
 export type ParseFunc = (
   response: string,
   workingDir: string,
-  config: CodespinConfig
+  config: CodeSpinConfig
 ) => Promise<SourceFile[]>;

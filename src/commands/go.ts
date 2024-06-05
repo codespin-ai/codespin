@@ -1,4 +1,4 @@
-import { CodespinContext } from "../CodeSpinContext.js";
+import { CodeSpinContext } from "../CodeSpinContext.js";
 import { CompletionOptions } from "../api/CompletionOptions.js";
 import { CompletionResult } from "../api/CompletionResult.js";
 import { getCompletionAPI } from "../api/getCompletionAPI.js";
@@ -8,7 +8,7 @@ import { exception } from "../exception.js";
 import { stdinDirective } from "../prompts/stdinDirective.js";
 import { validateMaxInputLength } from "../safety/validateMaxInputLength.js";
 import { getApiAndModel } from "../settings/getApiAndModel.js";
-import { readCodespinConfig } from "../settings/readCodespinConfig.js";
+import { readCodeSpinConfig } from "../settings/readCodeSpinConfig.js";
 import { PlainTemplateArgs } from "../templates/PlainTemplateArgs.js";
 import { PlainTemplateResult } from "../templates/PlainTemplateResult.js";
 import plainTemplate from "../templates/plain.js";
@@ -34,9 +34,9 @@ export type GoResult = {
 
 export async function go(
   args: GoArgs,
-  context: CodespinContext
+  context: CodeSpinContext
 ): Promise<GoResult> {
-  const config = await readCodespinConfig(args.config, context.workingDir);
+  const config = await readCodeSpinConfig(args.config, context.workingDir);
 
   // This is in bytes
   const maxInput = args.maxInput ?? config.maxInput ?? 40000;

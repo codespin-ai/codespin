@@ -1,6 +1,6 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { CodespinContext } from "../CodeSpinContext.js";
+import { CodeSpinContext } from "../CodeSpinContext.js";
 import { CompletionOptions } from "../api/CompletionOptions.js";
 import { getCompletionAPI } from "../api/getCompletionAPI.js";
 import { writeDebug } from "../console.js";
@@ -10,7 +10,7 @@ import { getLanguageService } from "../languageServices/getLanguageService.js";
 import { extractFromMarkdownCodeBlock } from "../responseParsing/codeBlocks.js";
 import { validateMaxInputLength } from "../safety/validateMaxInputLength.js";
 import { getApiAndModel } from "../settings/getApiAndModel.js";
-import { readCodespinConfig } from "../settings/readCodespinConfig.js";
+import { readCodeSpinConfig } from "../settings/readCodeSpinConfig.js";
 import { Dependency } from "../sourceCode/Dependency.js";
 import { DependenciesTemplateArgs } from "../templates/DependenciesTemplateArgs.js";
 import { DependenciesTemplateResult } from "../templates/DependenciesTemplateResult.js";
@@ -32,7 +32,7 @@ export type DependenciesResult = {
 
 export async function dependencies(
   args: DependenciesArgs,
-  context: CodespinContext
+  context: CodeSpinContext
 ): Promise<DependenciesResult> {
   if (args.debug) {
     setDebugFlag();
@@ -52,7 +52,7 @@ export async function dependencies(
 
   // No language service.
   else {
-    const config = await readCodespinConfig(args.config, context.workingDir);
+    const config = await readCodeSpinConfig(args.config, context.workingDir);
 
     // This is in bytes
     const maxInput = args.maxInput ?? config.maxInput;

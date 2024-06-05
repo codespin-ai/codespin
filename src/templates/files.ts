@@ -1,15 +1,15 @@
 import path from "path";
 import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
-import { CodespinConfig } from "../settings/CodespinConfig.js";
+import { CodeSpinConfig } from "../settings/CodeSpinConfig.js";
 import { addLineNumbers } from "../text/addLineNumbers.js";
 import { FormatterTemplateArgs } from "./FormatterTemplateArgs.js";
 import { FormatterTemplateResult } from "./FormatterTemplateResult.js";
-import { CodespinContext } from "../CodeSpinContext.js";
+import { CodeSpinContext } from "../CodeSpinContext.js";
 
 export default async function filesTemplate(
   args: FormatterTemplateArgs,
-  config: CodespinConfig,
-  context: CodespinContext
+  config: CodeSpinConfig,
+  context: CodeSpinContext
 ): Promise<FormatterTemplateResult> {
   const prompt =
     printLine(args.prompt, true) +

@@ -1,11 +1,11 @@
 import path from "path";
-import { CodespinContext } from "../CodeSpinContext.js";
+import { CodeSpinContext } from "../CodeSpinContext.js";
 import { getIncludedFiles } from "../commands/generate/getIncludedFiles.js";
 import { exception } from "../exception.js";
 import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
 import { VersionedPath } from "../fs/VersionedPath.js";
 import { getVersionedPath } from "../fs/getVersionedPath.js";
-import { CodespinConfig } from "../settings/CodespinConfig.js";
+import { CodeSpinConfig } from "../settings/CodeSpinConfig.js";
 import { evalSpec } from "../specs/evalSpec.js";
 import { FormatterTemplateArgs } from "../templates/FormatterTemplateArgs.js";
 import { FormatterTemplateResult } from "../templates/FormatterTemplateResult.js";
@@ -31,8 +31,8 @@ export type BuildPromptResult = {
 
 export async function buildPrompt(
   args: BuildPromptArgs,
-  config: CodespinConfig,
-  context: CodespinContext
+  config: CodeSpinConfig,
+  context: CodeSpinContext
 ): Promise<BuildPromptResult> {
   // Convert everything to absolute paths
   const promptFilePath = args.promptFile

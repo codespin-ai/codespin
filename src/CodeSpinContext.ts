@@ -1,4 +1,4 @@
 
-export type CodespinContext = {
+export type CodeSpinContext = {
   workingDir: string;
 };

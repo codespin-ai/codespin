@@ -1,7 +1,7 @@
 import path from "path";
 import { TemplateArgs } from "./TemplateArgs.js";
 import { addLineNumbers } from "../text/addLineNumbers.js";
-import { CodespinConfig } from "../settings/CodespinConfig.js";
+import { CodeSpinConfig } from "../settings/CodeSpinConfig.js";
 import {
   getEndUpdatesMarker,
   getStartUpdatesMarker,
@@ -14,7 +14,7 @@ import { fixTemplateWhitespace } from "../text/fixTemplateWhitespace.js";
 
 export default async function diffTemplate(
   args: TemplateArgs,
-  config: CodespinConfig
+  config: CodeSpinConfig
 ): Promise<TemplateResult> {
   const prompt =
     (args.outPath
@@ -52,7 +52,7 @@ function relativePath(filePath: string, workingDir: string) {
   return "./" + path.relative(workingDir, filePath);
 }
 
-function printFileTemplate(args: TemplateArgs, config: CodespinConfig) {
+function printFileTemplate(args: TemplateArgs, config: CodeSpinConfig) {
   const START_UPDATES_MARKER = getStartUpdatesMarker(config);
   const END_UPDATES_MARKER = getEndUpdatesMarker(config);
   const DELETE_LINES_MARKER = getDeleteLinesMarker(config);
