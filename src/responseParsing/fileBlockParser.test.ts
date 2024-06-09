@@ -36,6 +36,22 @@ export function readJson() {}
     ]);
   });
 
+  it("parses a single code block with language specified after File path:", async () => {
+    const input = `
+File path:./src/files/readJson.ts
+\`\`\`typescript
+export function readJson() {}
+\`\`\`
+`;
+    const result = await fileBlockParser(input, "", mockConfig);
+    expect(result).toEqual([
+      {
+        path: "./src/files/readJson.ts",
+        contents: "export function readJson() {}",
+      },
+    ]);
+  });
+
   it("parses multiple code blocks with and without spaces", async () => {
     const input = `
 File path: ./src/files/readJson.ts

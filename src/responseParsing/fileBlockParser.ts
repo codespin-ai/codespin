@@ -9,7 +9,7 @@ export async function fileBlockParser(
   return parseFileContents(response);
 }
 
-const filePathRegex = /File path:\s*(\.\/[\w./-]+)\s*\n^```([\s\S]*?)^```/gm;
+const filePathRegex = /File path:\s*(\.\/[\w./-]+)\s*\n^```(?:\w*\n)?([\s\S]*?)^```/gm;
 
 function parseFileContents(input: string): SourceFile[] {
   const results: SourceFile[] = [];
