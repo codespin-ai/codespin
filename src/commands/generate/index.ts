@@ -24,6 +24,11 @@ import { getCustomTemplate } from "../../templating/getCustomTemplate.js";
 import { addLineNumbers } from "../../text/addLineNumbers.js";
 import { getGeneratedFiles } from "./getGeneratedFiles.js";
 import { getOutPath } from "./getOutPath.js";
+import { VersionedPath } from "../../fs/VersionedPath.js";
+import { getVersionedPath } from "../../fs/getVersionedPath.js";
+import { getIncludedFiles } from "./getIncludedFiles.js";
+import { readPrompt } from "../../prompts/readPrompt.js";
+import { evalSpec } from "../../specs/evalSpec.js";
 
 export type GenerateArgs = {
   promptFile?: string;
@@ -106,12 +111,6 @@ export async function generate(
     setDebugFlag();
   }
 
-  const { prompt, includes } = await buildPrompt(
-    buildPromptArgs,
-    config,
-    context
-  );
-
   // This is in bytes
   const maxInput = args.maxInput ?? config.maxInput;
 
@@ -149,11 +148,36 @@ export async function generate(
       : defaultTemplate
     : defaultTemplate;
 
-  const promptWithLineNumbers = addLineNumbers(prompt);
+  const includesFromCLI: VersionedPath[] = await Promise.all(
+    (args.include || []).map((x) =>
+      getVersionedPath(x, context.workingDir, false, context.workingDir)
+    )
+  );
+
+  const excludesFromCLI = await Promise.all(
+    (args.exclude || []).map((x) => path.resolve(context.workingDir, x))
+  );
+
+  const includes = await getIncludedFiles(
+    includesFromCLI,
+    excludesFromCLI,
+    promptFilePath,
+    promptSettings,
+    context.workingDir
+  );
+
+  const basicPrompt = await readPrompt(
+    promptFilePath,
+    args.prompt,
+    context.workingDir
+  );
+
+  const prompt = args.spec
+    ? await evalSpec(basicPrompt, args.spec, context.workingDir, config)
+    : basicPrompt;
 
   const templateArgs: TemplateArgs = {
     prompt,
-    promptWithLineNumbers,
     includes,
     outPath,
     promptSettings,

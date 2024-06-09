@@ -43,7 +43,7 @@ function printLine(line: string | undefined, addBlankLine = false): string {
 
 function printPrompt(args: TemplateArgs, useLineNumbers: boolean) {
   return printLine(
-    useLineNumbers ? args.promptWithLineNumbers : args.prompt,
+    useLineNumbers ? addLineNumbers(args.prompt) : args.prompt,
     true
   );
 }

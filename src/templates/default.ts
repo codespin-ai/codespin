@@ -51,7 +51,7 @@ function printLine(line: string | undefined, addBlankLine = false): string {
 
 function printPrompt(args: TemplateArgs, useLineNumbers: boolean) {
   return printLine(
-    useLineNumbers ? args.promptWithLineNumbers : args.prompt,
+    useLineNumbers ? addLineNumbers(args.prompt) : args.prompt,
     true
   );
 }
@@ -107,9 +107,7 @@ function printIncludeFiles(
           if (file.type === "diff") {
             const text =
               // Print the contents first
-              printLine(
-                `File path:${relativePath(file.path, workingDir)}`
-              ) +
+              printLine(`File path:${relativePath(file.path, workingDir)}`) +
               printLine("```") +
               printLine(addLineNumbers(file.version2 ?? "")) +
               printLine("```", true) +
@@ -131,9 +129,7 @@ function printIncludeFiles(
           } else {
             if (file.contents && file.contents.trim().length > 0) {
               const text =
-                printLine(
-                  `File path:${relativePath(file.path, workingDir)}`
-                ) +
+                printLine(`File path:${relativePath(file.path, workingDir)}`) +
                 printLine("```") +
                 printLine(
                   useLineNumbers ? addLineNumbers(file.contents) : file.contents
@@ -164,9 +160,7 @@ function printGeneratedFiles(generatedFiles: SourceFile[], workingDir: string) {
         .map((file) => {
           if (file.contents && file.contents.trim().length > 0) {
             const text =
-              printLine(
-                `File path:${relativePath(file.path, workingDir)}`
-              ) +
+              printLine(`File path:${relativePath(file.path, workingDir)}`) +
               printLine("```") +
               printLine(file.contents) +
               printLine("```", true);

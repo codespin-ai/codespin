@@ -3,7 +3,6 @@ import { SourceFile } from "../sourceCode/SourceFile.js";
 
 export type TemplateArgs = {
   prompt: string;
-  promptWithLineNumbers: string;
   includes: VersionedFileInfo[];
   generatedFiles: SourceFile[];
   outPath: string | undefined;

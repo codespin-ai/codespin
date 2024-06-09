@@ -29,10 +29,30 @@ export type BuildPromptResult = {
   includes: VersionedFileInfo[];
 };
 
-export async function buildPrompt(
-  args: BuildPromptArgs,
+// Utility type to infer the argument type of a function and exclude specific properties
+type ExcludeProps<T, K extends keyof any> = Omit<T, K>;
+
+// Utility type to infer the argument type of TFunc and exclude specific properties
+type InferTemplateArgs<TFunc> = TFunc extends (
+  args: infer T,
   config: CodeSpinConfig,
   context: CodeSpinContext
+) => Promise<FormatterTemplateResult>
+  ? ExcludeProps<T, "prompt" | "includes">
+  : never;
+
+export async function buildPrompt<
+  TFunc extends (
+    args: any,
+    config: CodeSpinConfig,
+    context: CodeSpinContext
+  ) => Promise<FormatterTemplateResult>
+>(
+  args: BuildPromptArgs,
+  config: CodeSpinConfig,
+  context: CodeSpinContext,
+  templateFunc: TFunc,
+  templateArgs: InferTemplateArgs<TFunc>
 ): Promise<BuildPromptResult> {
   // Convert everything to absolute paths
   const promptFilePath = args.promptFile
@@ -71,23 +91,13 @@ export async function buildPrompt(
     ? await evalSpec(basicPrompt, args.spec, context.workingDir, config)
     : basicPrompt;
 
-  const templateArgs: FormatterTemplateArgs = {
+  const fullTemplateArgs = {
+    ...templateArgs,
     prompt,
     includes,
-    workingDir: context.workingDir,
   };
 
-  const templateFunc =
-    (await getCustomTemplate<FormatterTemplateArgs, FormatterTemplateResult>(
-      args.template,
-      args.customConfigDir,
-      context.workingDir
-    )) ??
-    (args.template === "files"
-      ? filesTemplate
-      : exception(`Unknown template ${args.template}.`));
-
-  const templateResult = await templateFunc(templateArgs, config, context);
+  const templateResult = await templateFunc(fullTemplateArgs, config, context);
 
   return {
     prompt: templateResult.prompt,
