@@ -1,4 +1,4 @@
-# codespin-cli
+# codespin
 
 CodeSpin.AI Code Generation Tools. Open Source and MIT-licensed.
 

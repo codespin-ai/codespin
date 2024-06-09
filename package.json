@@ -1,6 +1,6 @@
 {
   "name": "codespin",
-  "version": "0.0.217",
+  "version": "0.0.219",
   "description": "Source code generation with LLM prompts",
   "main": "dist/index.js",
   "scripts": {
@@ -13,7 +13,7 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/codespin-ai/codespin-cli.git"
+    "url": "git+https://github.com/codespin-ai/codespin.git"
   },
   "keywords": [
     "llm",
@@ -22,9 +22,9 @@
   "license": "MIT",
   "author": "CodeSpin.AI",
   "bugs": {
-    "url": "https://github.com/codespin-ai/codespin-cli/issues"
+    "url": "https://github.com/codespin-ai/codespin/issues"
   },
-  "homepage": "https://github.com/codespin-ai/codespin-cli#readme",
+  "homepage": "https://github.com/codespin-ai/codespin#readme",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.22.0",
     "@types/js-yaml": "^4.0.9",
