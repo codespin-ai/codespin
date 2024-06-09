@@ -155,11 +155,15 @@ export async function generate(
     customConfigDir: args.config,
   };
 
-  const x =await buildPrompt(buildPromptArgs, config, context, templateFunc , templateArgs);
-  
-  const { prompt: evaluatedPrompt, responseParser } = await templateFunc(
+  const {
+    templateResult: { prompt: evaluatedPrompt, responseParser },
+    includes,
+  } = await buildPrompt(
+    buildPromptArgs,
+    templateFunc,
     templateArgs,
-    config
+    config,
+    context
   );
 
   if (args.promptCallback) {
@@ -233,6 +237,8 @@ export async function generate(
                 await templateFunc(
                   {
                     ...templateArgs,
+                    prompt: evaluatedPrompt,
+                    includes,
                     generatedFiles: toSourceFileList(generatedFiles),
                   },
                   config
