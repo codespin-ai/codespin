@@ -1,31 +1,26 @@
 import path from "path";
 import { CodeSpinContext } from "../CodeSpinContext.js";
 import { getIncludedFiles } from "../commands/generate/getIncludedFiles.js";
-import { exception } from "../exception.js";
 import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
 import { VersionedPath } from "../fs/VersionedPath.js";
 import { getVersionedPath } from "../fs/getVersionedPath.js";
 import { CodeSpinConfig } from "../settings/CodeSpinConfig.js";
 import { evalSpec } from "../specs/evalSpec.js";
-import { FormatterTemplateArgs } from "../templates/FormatterTemplateArgs.js";
 import { FormatterTemplateResult } from "../templates/FormatterTemplateResult.js";
-import filesTemplate from "../templates/files.js";
-import { getCustomTemplate } from "../templating/getCustomTemplate.js";
 import { readPrompt } from "./readPrompt.js";
 import { readPromptSettings } from "./readPromptSettings.js";
 
 export type BuildPromptArgs = {
   prompt: string | undefined;
   promptFile: string | undefined;
-  template: string;
   include: string[];
   exclude: string[];
   spec: string | undefined;
   customConfigDir: string | undefined;
 };
 
-export type BuildPromptResult = {
-  prompt: string;
+export type BuildPromptResult<TTemplateResult> = {
+  templateResult: TTemplateResult;
   includes: VersionedFileInfo[];
 };
 
@@ -41,19 +36,22 @@ type InferTemplateArgs<TFunc> = TFunc extends (
   ? ExcludeProps<T, "prompt" | "includes">
   : never;
 
+// Utility type to infer the resolved type of a Promise
+type UnwrapPromise<T> = T extends Promise<infer U> ? U : T;
+
 export async function buildPrompt<
   TFunc extends (
     args: any,
     config: CodeSpinConfig,
     context: CodeSpinContext
-  ) => Promise<FormatterTemplateResult>
+  ) => Promise<any>
 >(
   args: BuildPromptArgs,
-  config: CodeSpinConfig,
-  context: CodeSpinContext,
   templateFunc: TFunc,
-  templateArgs: InferTemplateArgs<TFunc>
-): Promise<BuildPromptResult> {
+  templateArgs: InferTemplateArgs<TFunc>,
+  config: CodeSpinConfig,
+  context: CodeSpinContext
+): Promise<BuildPromptResult<UnwrapPromise<ReturnType<TFunc>>>> {
   // Convert everything to absolute paths
   const promptFilePath = args.promptFile
     ? await path.resolve(context.workingDir, args.promptFile)
@@ -100,7 +98,7 @@ export async function buildPrompt<
   const templateResult = await templateFunc(fullTemplateArgs, config, context);
 
   return {
-    prompt: templateResult.prompt,
+    templateResult,
     includes,
   };
 }

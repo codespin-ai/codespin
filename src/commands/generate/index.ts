@@ -5,9 +5,12 @@ import { getCompletionAPI } from "../../api/getCompletionAPI.js";
 import { writeDebug } from "../../console.js";
 import { setDebugFlag } from "../../debugMode.js";
 import { exception } from "../../exception.js";
+import { VersionedPath } from "../../fs/VersionedPath.js";
+import { getVersionedPath } from "../../fs/getVersionedPath.js";
 import { writeFilesToDisk } from "../../fs/writeFilesToDisk.js";
 import { writeToFile } from "../../fs/writeToFile.js";
 import { BuildPromptArgs, buildPrompt } from "../../prompts/buildPrompt.js";
+import { readPrompt } from "../../prompts/readPrompt.js";
 import { readPromptSettings } from "../../prompts/readPromptSettings.js";
 import { diffParser } from "../../responseParsing/diffParser.js";
 import { fileBlockParser } from "../../responseParsing/fileBlockParser.js";
@@ -16,19 +19,15 @@ import { getApiAndModel } from "../../settings/getApiAndModel.js";
 import { readCodeSpinConfig } from "../../settings/readCodeSpinConfig.js";
 import { GeneratedSourceFile } from "../../sourceCode/GeneratedSourceFile.js";
 import { SourceFile } from "../../sourceCode/SourceFile.js";
+import { evalSpec } from "../../specs/evalSpec.js";
 import { TemplateArgs } from "../../templates/TemplateArgs.js";
 import { TemplateResult } from "../../templates/TemplateResult.js";
 import defaultTemplate from "../../templates/default.js";
 import diffTemplate from "../../templates/diff.js";
 import { getCustomTemplate } from "../../templating/getCustomTemplate.js";
-import { addLineNumbers } from "../../text/addLineNumbers.js";
 import { getGeneratedFiles } from "./getGeneratedFiles.js";
-import { getOutPath } from "./getOutPath.js";
-import { VersionedPath } from "../../fs/VersionedPath.js";
-import { getVersionedPath } from "../../fs/getVersionedPath.js";
 import { getIncludedFiles } from "./getIncludedFiles.js";
-import { readPrompt } from "../../prompts/readPrompt.js";
-import { evalSpec } from "../../specs/evalSpec.js";
+import { getOutPath } from "./getOutPath.js";
 
 export type GenerateArgs = {
   promptFile?: string;
@@ -95,16 +94,6 @@ export async function generate(
     setDebugFlag();
   }
 
-  const buildPromptArgs: BuildPromptArgs = {
-    exclude: args.exclude ?? [],
-    include: args.include ?? [],
-    prompt: args.prompt,
-    promptFile: args.promptFile,
-    spec: args.spec,
-    template: args.template ?? "files",
-    customConfigDir: args.config,
-  };
-
   const config = await readCodeSpinConfig(args.config, context.workingDir);
 
   if (config.debug) {
@@ -148,37 +137,7 @@ export async function generate(
       : defaultTemplate
     : defaultTemplate;
 
-  const includesFromCLI: VersionedPath[] = await Promise.all(
-    (args.include || []).map((x) =>
-      getVersionedPath(x, context.workingDir, false, context.workingDir)
-    )
-  );
-
-  const excludesFromCLI = await Promise.all(
-    (args.exclude || []).map((x) => path.resolve(context.workingDir, x))
-  );
-
-  const includes = await getIncludedFiles(
-    includesFromCLI,
-    excludesFromCLI,
-    promptFilePath,
-    promptSettings,
-    context.workingDir
-  );
-
-  const basicPrompt = await readPrompt(
-    promptFilePath,
-    args.prompt,
-    context.workingDir
-  );
-
-  const prompt = args.spec
-    ? await evalSpec(basicPrompt, args.spec, context.workingDir, config)
-    : basicPrompt;
-
-  const templateArgs: TemplateArgs = {
-    prompt,
-    includes,
+  const templateArgs = {
     outPath,
     promptSettings,
     generatedFiles: [],
@@ -187,6 +146,17 @@ export async function generate(
     debug: args.debug,
   };
 
+  const buildPromptArgs: BuildPromptArgs = {
+    exclude: args.exclude ?? [],
+    include: args.include ?? [],
+    prompt: args.prompt,
+    promptFile: args.promptFile,
+    spec: args.spec,
+    customConfigDir: args.config,
+  };
+
+  const x =await buildPrompt(buildPromptArgs, config, context, templateFunc , templateArgs);
+  
   const { prompt: evaluatedPrompt, responseParser } = await templateFunc(
     templateArgs,
     config

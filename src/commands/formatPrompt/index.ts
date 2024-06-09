@@ -42,7 +42,6 @@ export async function formatPrompt(
     prompt: args.prompt,
     promptFile: args.promptFile,
     spec: args.spec,
-    template: args.template ?? "files",
     customConfigDir: args.config,
   };
 
@@ -63,11 +62,11 @@ export async function formatPrompt(
 
   const result = await buildPrompt(
     buildPromptArgs,
-    config,
-    context,
     templateFunc,
-    templateArgs
+    templateArgs,
+    config,
+    context
   );
 
-  return result;
+  return { prompt: result.templateResult.prompt };
 }
