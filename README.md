@@ -278,7 +278,7 @@ This command above will ignore the latest edits to main.py and use content from 
 - `--spec <spec file>`: Specify a spec (prompt template) file.
 - `-a, --templateArgs <argument>`: An argument passed to a custom template. Can pass multiple by repeating `-a`.
 - `--writePrompt <file>`: Write the generated prompt out to the specified path. Does not call the API.
-- `--maxi, --maxInput <bytes>`: Maximum number of input bytes to send to the API. Defaults to 40000.
+- `--maxi, --maxInput <bytes>`: Maximum number of input bytes to send to the API.
 - `-h, --help`: Display help.
 
 ## Inline Prompting
