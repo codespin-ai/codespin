@@ -88,15 +88,23 @@ export async function init(
       JSON.stringify(DEFAULT_JSON_CONTENT, null, 2)
     );
 
-    await fs.writeFile(
-      openaiConfigFile,
-      JSON.stringify(DEFAULT_OPENAI_CONFIG, null, 2)
-    );
+    if (!(await pathExists(openaiConfigFile))) {
+      await fs.writeFile(
+        openaiConfigFile,
+        JSON.stringify(DEFAULT_OPENAI_CONFIG, null, 2)
+      );
+    } else {
+      console.log("Existing openai.json found - not overwriting. You may delete this file to overwrite.");
+    }
 
-    await fs.writeFile(
-      anthropicConfigFile,
-      JSON.stringify(DEFAULT_ANTHROPIC_CONFIG, null, 2)
-    );
+    if (!(await pathExists(anthropicConfigFile))) {
+      await fs.writeFile(
+        anthropicConfigFile,
+        JSON.stringify(DEFAULT_ANTHROPIC_CONFIG, null, 2)
+      );
+    } else {
+      console.log("Existing anthropic.json found - not overwriting. You may delete this file to overwrite.");
+    }
   } else {
     // If we are under a git directory, we'll make .codespin under the git dir root.
     // Otherwise, we'll make .codespin under the current dir.
