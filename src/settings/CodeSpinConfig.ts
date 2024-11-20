@@ -1,3 +1,10 @@
+export type ModelDescription = {
+  name: string;
+  alias?: string;
+  provider: string;
+  maxOutputTokens: number;
+};
+
 export type CodeSpinConfig = {
   version?: string;
   template?: string;
@@ -6,9 +13,7 @@ export type CodeSpinConfig = {
   debug?: boolean;
   multi?: number;
   maxInput?: number;
-  models?: {
-    [key: string]: string;
-  };
+  models?: ModelDescription[];
   markers?: {
     START_UPDATES?: string;
     END_UPDATES?: string;

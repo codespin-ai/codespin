@@ -9,13 +9,13 @@ import { pathExists } from "../fs/pathExists.js";
 import { getLanguageService } from "../languageServices/getLanguageService.js";
 import { extractFromMarkdownCodeBlock } from "../responseParsing/codeBlocks.js";
 import { validateMaxInputLength } from "../safety/validateMaxInputLength.js";
-import { getApiAndModel } from "../settings/getApiAndModel.js";
 import { readCodeSpinConfig } from "../settings/readCodeSpinConfig.js";
 import { Dependency } from "../sourceCode/Dependency.js";
 import { DependenciesTemplateArgs } from "../templates/DependenciesTemplateArgs.js";
 import { DependenciesTemplateResult } from "../templates/DependenciesTemplateResult.js";
 import dependenciesTemplate from "../templates/dependencies.js";
 import { getCustomTemplate } from "../templating/getCustomTemplate.js";
+import { getModel } from "../settings/getModel.js";
 
 export type DependenciesArgs = {
   file: string;
@@ -61,7 +61,7 @@ export async function dependencies(
       setDebugFlag();
     }
 
-    const [api, model] = getApiAndModel([args.model, config.model], config);
+    const model = getModel([args.model, config.model], config);
 
     const sourceCode = await fs.readFile(
       path.resolve(context.workingDir, args.file),
@@ -91,7 +91,7 @@ export async function dependencies(
     writeDebug("--- PROMPT ---");
     writeDebug(prompt);
 
-    const completion = getCompletionAPI(api);
+    const completion = getCompletionAPI(model.provider);
 
     validateMaxInputLength(prompt, maxInput);
 

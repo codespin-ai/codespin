@@ -22,18 +22,32 @@ export type InitArgs = {
 };
 
 const DEFAULT_JSON_CONTENT: CodeSpinConfig = {
-  version: "0.0.1",
-  model: "openai:gpt-3.5-turbo",
-  models: {
-    "gpt-3.5": "openai:gpt-3.5-turbo",
-    "gpt-4": "openai:gpt-4",
-    "gpt-4-turbo": "openai:gpt-4-turbo",
-    "gpt-4o": "openai:gpt-4o",
-    "claude-3-haiku": "anthropic:claude-3-haiku-20240307",
-    "claude-3-sonnet": "anthropic:claude-3-sonnet-20240229",
-    "claude-3-opus": "anthropic:claude-3-opus-20240229",
-  },
-  maxInput: 40000,
+  version: "0.0.2",
+  model: "claude-3-5-haiku-latest",
+  models: [
+    {
+      name: "gpt-4o",
+      provider: "openai",
+      maxOutputTokens: 16000,
+    },
+    {
+      name: "gpt-4o-mini",
+      provider: "openai",
+      maxOutputTokens: 16000,
+    },
+    {
+      name: "claude-3-5-sonnet-latest",
+      alias: "claude-3-5-sonnet",
+      provider: "anthropic",
+      maxOutputTokens: 8000,
+    },
+    {
+      name: "claude-3-5-haiku-latest",
+      alias: "claude-3-5-haiku",
+      provider: "anthropic",
+      maxOutputTokens: 8000,
+    },
+  ],
 };
 
 const DEFAULT_OPENAI_CONFIG = {

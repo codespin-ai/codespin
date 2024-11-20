@@ -141,7 +141,7 @@ You can also define the `--include`, `--template`, `--parser`, `--model`, and `-
 
 ```markdown
 ---
-model: openai:gpt-3.5-turbo-16k
+model: gpt-4o
 maxTokens: 8000
 out: main.py
 includes:
@@ -269,7 +269,7 @@ This command above will ignore the latest edits to main.py and use content from 
 - `--debug`: Enable debug mode. Prints debug messages for every step.
 - `--exclude <file path>`: List of files to exclude from the prompt. Used to override automatically included source files.
 - `--maxTokens <number>`: Maximum number of tokens for generated code.
-- `--model <model name>`: Name of the model to use, such as 'openai:gpt-4' or 'anthropic:claude-3-haiku-20240307'.
+- `--model <model name>`: Name of the model to use, such as 'gpt-4o' or 'claude-3-5-haiku-latest'.
 - `--multi <number>`: Maximum number of API calls to make if the output exceeds token limit.
 - `--outDir <dir path>`: Path to directory relative to which files are generated. Defaults to the directory of the prompt file.
 - `--parse`: Whether the LLM response needs to be processed. Defaults to true. Use `--no-parse` to disable parsing.
@@ -368,7 +368,7 @@ There are two ways to pass custom args to a custom template:
 
 ```markdown
 ---
-model: openai:gpt-3.5-turbo-16k
+model: gpt-4o
 maxTokens: 8000
 useJDK: true //custom arg
 out: main.py

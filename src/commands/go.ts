@@ -1,13 +1,12 @@
 import { CodeSpinContext } from "../CodeSpinContext.js";
 import { CompletionOptions } from "../api/CompletionOptions.js";
-import { CompletionResult } from "../api/CompletionResult.js";
 import { getCompletionAPI } from "../api/getCompletionAPI.js";
 import { writeDebug } from "../console.js";
 import { setDebugFlag } from "../debugMode.js";
 import { exception } from "../exception.js";
 import { stdinDirective } from "../prompts/stdinDirective.js";
 import { validateMaxInputLength } from "../safety/validateMaxInputLength.js";
-import { getApiAndModel } from "../settings/getApiAndModel.js";
+import { getModel } from "../settings/getModel.js";
 import { readCodeSpinConfig } from "../settings/readCodeSpinConfig.js";
 import { PlainTemplateArgs } from "../templates/PlainTemplateArgs.js";
 import { PlainTemplateResult } from "../templates/PlainTemplateResult.js";
@@ -39,9 +38,9 @@ export async function go(
   const config = await readCodeSpinConfig(args.config, context.workingDir);
 
   // This is in bytes
-  const maxInput = args.maxInput ?? config.maxInput ?? 40000;
+  const maxInput = args.maxInput ?? config.maxInput;
 
-  const [api, model] = getApiAndModel([args.model], config);
+  const model = getModel([args.model], config);
 
   if (config.debug) {
     setDebugFlag();
@@ -80,7 +79,7 @@ export async function go(
     args.cancelCallback(generateCommandCancel);
   }
 
-  const completion = getCompletionAPI(api);
+  const completion = getCompletionAPI(model.provider);
 
   const completionOptions: CompletionOptions = {
     model,

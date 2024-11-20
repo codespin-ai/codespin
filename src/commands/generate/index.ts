@@ -15,7 +15,7 @@ import { readPromptSettings } from "../../prompts/readPromptSettings.js";
 import { diffParser } from "../../responseParsing/diffParser.js";
 import { fileBlockParser } from "../../responseParsing/fileBlockParser.js";
 import { validateMaxInputLength } from "../../safety/validateMaxInputLength.js";
-import { getApiAndModel } from "../../settings/getApiAndModel.js";
+import { getModel } from "../../settings/getModel.js";
 import { readCodeSpinConfig } from "../../settings/readCodeSpinConfig.js";
 import { GeneratedSourceFile } from "../../sourceCode/GeneratedSourceFile.js";
 import { SourceFile } from "../../sourceCode/SourceFile.js";
@@ -112,7 +112,7 @@ export async function generate(
     ? await readPromptSettings(promptFilePath)
     : undefined;
 
-  const [api, model] = getApiAndModel(
+  const model = getModel(
     [args.model, promptSettings?.model, config.model],
     config
   );
@@ -206,7 +206,7 @@ export async function generate(
       args.cancelCallback(generateCommandCancel);
     }
 
-    const completion = getCompletionAPI(api);
+    const completion = getCompletionAPI(model.provider);
 
     const completionOptions: CompletionOptions = {
       model,

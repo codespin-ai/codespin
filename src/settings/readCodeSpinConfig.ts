@@ -8,11 +8,15 @@ export async function readCodeSpinConfig(
   const config = await readConfig("codespin.json", customConfigDir, workingDir);
 
   if (config) {
+    if ((config as CodeSpinConfig).version === "0.0.1") {
+      throw new Error(
+        `codespin.json version 0.0.1 is not supported any more. You must do a codespin init to generated new config files. Type "codespin init --help" for more information.`
+      );
+    }
     return config;
   } else {
     const defaultConfig: CodeSpinConfig = {
-      maxTokens: 2000,
-      model: "openai:gpt-3.5-turbo",
+      model: "gpt-4o",
       template: "default.mjs",
     };
 

@@ -56,17 +56,20 @@ export async function completion(
   }
 
   writeDebug(`OPENAI: model=${options.model}`);
-  if (options.maxTokens) {
-    writeDebug(`OPENAI: maxTokens=${options.maxTokens}`);
+
+  const maxTokens = options.maxTokens ?? options.model.maxOutputTokens;
+
+  if (maxTokens) {
+    writeDebug(`OPENAI: maxTokens=${maxTokens}`);
   }
 
   const stream = await openaiClient.chat.completions.create({
-    model: options.model,
+    model: options.model.name,
     messages: messages.map((x) => ({
       role: x.role,
       content: x.content,
     })),
-    max_tokens: options.maxTokens,
+    max_tokens: maxTokens,
     stream: true,
   });
 
