@@ -24,7 +24,7 @@ async function loadConfigIfRequired(
     );
 
     // Environment variables have higher priority
-    const apiKey = process.env.OPENAI_API_KEY ?? openaiConfig?.apiKey;
+    const apiKey = process.env.OPENAI_API_KEY ?? openaiConfig.config?.apiKey;
 
     if (!apiKey) {
       throw new Error(

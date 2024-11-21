@@ -26,7 +26,7 @@ async function loadConfigIfRequired(
     );
     // Environment variables have higher priority
     ANTHROPIC_API_KEY =
-      process.env.ANTHROPIC_API_KEY ?? anthropicConfig?.apiKey;
+      process.env.ANTHROPIC_API_KEY ?? anthropicConfig.config?.apiKey;
   }
   configLoaded = true;
 }

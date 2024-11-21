@@ -42,14 +42,14 @@ export async function readConfig<T>(
   pathFragment: string,
   customConfigDir: string | undefined,
   workingDir: string
-): Promise<T | undefined> {
+): Promise<{ config: T | undefined; files: Array<string> }> {
   const homeConfigPath = (await pathExists(
     path.join(homedir(), CODESPIN_DIRNAME, pathFragment)
   ))
     ? path.join(homedir(), CODESPIN_DIRNAME, pathFragment)
     : undefined;
 
-  const homeConfig = homeConfigPath
+  const homeConfig: T | undefined = homeConfigPath
     ? JSON.parse(await fs.readFile(homeConfigPath, "utf8"))
     : undefined;
 
@@ -61,9 +61,19 @@ export async function readConfig<T>(
 
   if (filePath) {
     const fileContents = await fs.readFile(filePath, "utf8");
-    const jsonConfig = JSON.parse(fileContents);
-    return homeConfig ? { ...homeConfig, ...jsonConfig } : jsonConfig;
+    const jsonConfig: T | undefined = JSON.parse(fileContents);
+    return {
+      config: homeConfig ? { ...homeConfig, ...jsonConfig } : jsonConfig,
+      files: [homeConfigPath, filePath].filter(isString),
+    };
   } else {
-    return homeConfig;
+    return {
+      config: homeConfig,
+      files: [homeConfigPath].filter(isString),
+    };
   }
+}
+
+function isString(x: string | undefined): x is string {
+  return Boolean(x);
 }

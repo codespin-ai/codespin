@@ -5,15 +5,22 @@ export async function readCodeSpinConfig(
   customConfigDir: string | undefined,
   workingDir: string
 ): Promise<CodeSpinConfig> {
-  const config = await readConfig("codespin.json", customConfigDir, workingDir);
+  const configInfo = await readConfig<CodeSpinConfig>(
+    "codespin.json",
+    customConfigDir,
+    workingDir
+  );
 
-  if (config) {
-    if ((config as CodeSpinConfig).version === "0.0.1") {
+  if (configInfo.config) {
+    const version = (configInfo as CodeSpinConfig).version;
+    if (version === "0.0.2") {
       throw new Error(
-        `codespin.json version 0.0.1 is not supported any more. You must do a codespin init to generated new config files. Type "codespin init --help" for more information.`
+        `codespin.json version ${version} is not supported any more. You must do a "codespin init" to generate these files: ${configInfo.files.join(
+          ", "
+        )}. Type "codespin init --help" for more information.`
       );
     }
-    return config;
+    return configInfo.config;
   } else {
     const defaultConfig: CodeSpinConfig = {
       model: "gpt-4o",
