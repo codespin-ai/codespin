@@ -11,22 +11,34 @@ export async function readCodeSpinConfig(
     workingDir
   );
 
-  if (configInfo.config) {
-    const version = (configInfo as CodeSpinConfig).version;
-    if (version === "0.0.2") {
-      throw new Error(
-        `codespin.json version ${version} is not supported any more. You must do a "codespin init" to generate these files: ${configInfo.files.join(
-          ", "
-        )}. Type "codespin init --help" for more information.`
-      );
-    }
-    return configInfo.config;
-  } else {
-    const defaultConfig: CodeSpinConfig = {
-      model: "gpt-4o",
-      template: "default.mjs",
-    };
-
-    return defaultConfig;
+  if (!configInfo) {
+    throw new Error(
+      `Could not find the configuration file codespin.json. Have you done a codespin init?`
+    );
   }
+
+  const { config, filePath }: { config: CodeSpinConfig; filePath: string } =
+    configInfo;
+
+  if (config.version !== "0.0.2") {
+    throw new Error(
+      `codespin.json version ${config.version} is not supported any more. You must do a "codespin init" to generate the configuration. Type "codespin init --help" for more information.`
+    );
+  }
+
+  if (!config.model) {
+    throw new Error(`The model property is not specified in ${filePath}.`);
+  }
+
+  if (
+    !config.models.find(
+      (x) => x.alias === config.model || x.name === config.model
+    )
+  ) {
+    throw new Error(
+      `The model ${config.model} does not match any of the models defined in ${filePath}.`
+    );
+  }
+
+  return configInfo.config;
 }

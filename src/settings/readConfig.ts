@@ -5,6 +5,7 @@ import { CODESPIN_DIRNAME } from "../fs/pathNames.js";
 
 import { homedir } from "os";
 import { getGitRoot } from "../git/getGitRoot.js";
+import { exception } from "../exception.js";
 
 async function getConfigFilePath(
   pathFragment: string,
@@ -42,17 +43,7 @@ export async function readConfig<T>(
   pathFragment: string,
   customConfigDir: string | undefined,
   workingDir: string
-): Promise<{ config: T | undefined; files: Array<string> }> {
-  const homeConfigPath = (await pathExists(
-    path.join(homedir(), CODESPIN_DIRNAME, pathFragment)
-  ))
-    ? path.join(homedir(), CODESPIN_DIRNAME, pathFragment)
-    : undefined;
-
-  const homeConfig: T | undefined = homeConfigPath
-    ? JSON.parse(await fs.readFile(homeConfigPath, "utf8"))
-    : undefined;
-
+): Promise<{ config: T; filePath: string } | undefined> {
   const filePath = await getConfigFilePath(
     pathFragment,
     customConfigDir,
@@ -61,19 +52,30 @@ export async function readConfig<T>(
 
   if (filePath) {
     const fileContents = await fs.readFile(filePath, "utf8");
-    const jsonConfig: T | undefined = JSON.parse(fileContents);
-    return {
-      config: homeConfig ? { ...homeConfig, ...jsonConfig } : jsonConfig,
-      files: [homeConfigPath, filePath].filter(isString),
-    };
+    return { config: JSON.parse(fileContents), filePath: filePath };
   } else {
-    return {
-      config: homeConfig,
-      files: [homeConfigPath].filter(isString),
-    };
+    const homeConfigPath = (await pathExists(
+      path.join(homedir(), CODESPIN_DIRNAME, pathFragment)
+    ))
+      ? path.join(homedir(), CODESPIN_DIRNAME, pathFragment)
+      : undefined;
+
+    if (homeConfigPath) {
+      return {
+        config: JSON.parse(await fs.readFile(homeConfigPath, "utf8")),
+        filePath: homeConfigPath,
+      };
+    }
   }
+
+  return undefined;
 }
 
-function isString(x: string | undefined): x is string {
-  return Boolean(x);
+export async function readNonEmptyConfig<T>(
+  pathFragment: string,
+  customConfigDir: string | undefined,
+  workingDir: string
+): Promise<{ config: T; filePath: string }> {
+  const config = await readConfig<T>(pathFragment, customConfigDir, workingDir);
+  return config ?? exception(`The config file ${pathFragment} does not exist.`);
 }

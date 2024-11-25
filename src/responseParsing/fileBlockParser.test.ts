@@ -1,7 +1,7 @@
 import { fileBlockParser } from "./fileBlockParser.js";
 import { CodeSpinConfig } from "../settings/CodeSpinConfig.js";
 
-const mockConfig: CodeSpinConfig = {};
+const mockConfig: CodeSpinConfig = {} as any;
 
 describe("fileBlockParser", () => {
   it("parses a single code block with space after File path:", async () => {

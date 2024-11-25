@@ -5,28 +5,21 @@ import { getCompletionAPI } from "../../api/getCompletionAPI.js";
 import { writeDebug } from "../../console.js";
 import { setDebugFlag } from "../../debugMode.js";
 import { exception } from "../../exception.js";
-import { VersionedPath } from "../../fs/VersionedPath.js";
-import { getVersionedPath } from "../../fs/getVersionedPath.js";
 import { writeFilesToDisk } from "../../fs/writeFilesToDisk.js";
 import { writeToFile } from "../../fs/writeToFile.js";
 import { BuildPromptArgs, buildPrompt } from "../../prompts/buildPrompt.js";
-import { readPrompt } from "../../prompts/readPrompt.js";
 import { readPromptSettings } from "../../prompts/readPromptSettings.js";
-import { diffParser } from "../../responseParsing/diffParser.js";
 import { fileBlockParser } from "../../responseParsing/fileBlockParser.js";
 import { validateMaxInputLength } from "../../safety/validateMaxInputLength.js";
 import { getModel } from "../../settings/getModel.js";
 import { readCodeSpinConfig } from "../../settings/readCodeSpinConfig.js";
 import { GeneratedSourceFile } from "../../sourceCode/GeneratedSourceFile.js";
 import { SourceFile } from "../../sourceCode/SourceFile.js";
-import { evalSpec } from "../../specs/evalSpec.js";
 import { TemplateArgs } from "../../templates/TemplateArgs.js";
 import { TemplateResult } from "../../templates/TemplateResult.js";
 import defaultTemplate from "../../templates/default.js";
-import diffTemplate from "../../templates/diff.js";
 import { getCustomTemplate } from "../../templating/getCustomTemplate.js";
 import { getGeneratedFiles } from "./getGeneratedFiles.js";
-import { getIncludedFiles } from "./getIncludedFiles.js";
 import { getOutPath } from "./getOutPath.js";
 
 export type GenerateArgs = {
@@ -117,8 +110,7 @@ export async function generate(
     config
   );
 
-  const maxTokens =
-    args.maxTokens ?? promptSettings?.maxTokens ?? config?.maxTokens;
+  const maxTokens = args.maxTokens ?? promptSettings?.maxTokens;
 
   const outPath = await getOutPath(
     args.out,
@@ -132,9 +124,7 @@ export async function generate(
         args.template,
         args.config,
         context.workingDir
-      )) ?? args.template === "diff"
-      ? diffTemplate
-      : defaultTemplate
+      )) ?? defaultTemplate
     : defaultTemplate;
 
   const templateArgs = {
@@ -265,9 +255,7 @@ export async function generate(
         ) {
           allResponses.push(completionResult.message);
 
-          const newlyGeneratedFiles = await (responseParser === "diff"
-            ? diffParser
-            : fileBlockParser)(
+          const newlyGeneratedFiles = await fileBlockParser(
             completionResult.message,
             context.workingDir,
             config

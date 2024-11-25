@@ -9,7 +9,7 @@ export function getModel(
 
   if (modelName) {
     const maybeModel = config.models?.find(
-      (x) => (x.alias ?? x.name) === modelName
+      (x) => x.alias === modelName || x.name === modelName
     );
     return (
       maybeModel ||
@@ -19,9 +19,7 @@ export function getModel(
     );
   }
 
-  return {
-    name: "gpt-4o",
-    provider: "openai",
-    maxOutputTokens: 16000,
-  };
+  throw new Error(
+    `The model ${modelName} could not be found. Have you done "codespin init"?.`
+  );
 }

@@ -3,7 +3,6 @@ import { exception } from "../exception.js";
 import { pathExists } from "../fs/pathExists.js";
 import { CodeSpinConfig } from "../settings/CodeSpinConfig.js";
 import { getTemplatesDir } from "../settings/getTemplatesDir.js";
-import { TemplateResult } from "../templates/TemplateResult.js";
 
 export type TemplateFunc<TArgs, TResult> = (
   args: TArgs,

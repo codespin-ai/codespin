@@ -22,30 +22,30 @@ export type InitArgs = {
 };
 
 const DEFAULT_JSON_CONTENT: CodeSpinConfig = {
-  version: "0.0.2",
-  model: "claude-3-5-haiku-latest",
+  version: "0.0.3",
+  model: "claude-3-5-haiku",
   models: [
     {
       name: "gpt-4o",
       provider: "openai",
-      maxOutputTokens: 16000,
+      maxOutputTokens: 16384,
     },
     {
       name: "gpt-4o-mini",
       provider: "openai",
-      maxOutputTokens: 16000,
+      maxOutputTokens: 16384,
     },
     {
       name: "claude-3-5-sonnet-latest",
       alias: "claude-3-5-sonnet",
       provider: "anthropic",
-      maxOutputTokens: 8000,
+      maxOutputTokens: 8192,
     },
     {
       name: "claude-3-5-haiku-latest",
       alias: "claude-3-5-haiku",
       provider: "anthropic",
-      maxOutputTokens: 8000,
+      maxOutputTokens: 8192,
     },
   ],
 };

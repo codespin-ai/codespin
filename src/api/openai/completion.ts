@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import { writeDebug } from "../../console.js";
-import { readConfig } from "../../settings/readConfig.js";
+import { readNonEmptyConfig } from "../../settings/readConfig.js";
 import { CompletionOptions } from "../CompletionOptions.js";
 import { CompletionResult } from "../CompletionResult.js";
 import { CompletionInputMessage } from "../types.js";
@@ -17,7 +17,7 @@ async function loadConfigIfRequired(
   workingDir: string
 ) {
   if (!configLoaded) {
-    const openaiConfig = await readConfig<OpenAIConfig>(
+    const openaiConfig = await readNonEmptyConfig<OpenAIConfig>(
       "openai.json",
       customConfigDir,
       workingDir

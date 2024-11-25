@@ -1,7 +1,7 @@
 // Import necessary modules and types
 import Anthropic from "@anthropic-ai/sdk";
 import { writeDebug } from "../../console.js";
-import { readConfig } from "../../settings/readConfig.js";
+import { readNonEmptyConfig } from "../../settings/readConfig.js";
 import { CompletionOptions } from "../CompletionOptions.js";
 import { CompletionResult } from "../CompletionResult.js";
 import { CompletionInputMessage } from "../types.js";
@@ -19,7 +19,7 @@ async function loadConfigIfRequired(
   workingDir: string
 ) {
   if (!configLoaded) {
-    const anthropicConfig = await readConfig<AnthropicConfig>(
+    const anthropicConfig = await readNonEmptyConfig<AnthropicConfig>(
       "anthropic.json",
       customConfigDir,
       workingDir

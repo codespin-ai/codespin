@@ -40,7 +40,7 @@ export async function go(
   // This is in bytes
   const maxInput = args.maxInput ?? config.maxInput;
 
-  const model = getModel([args.model], config);
+  const model = getModel([args.model, config.model], config);
 
   if (config.debug) {
     setDebugFlag();

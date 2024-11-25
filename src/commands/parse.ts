@@ -2,12 +2,9 @@ import { promises as fs } from "fs";
 import { CodeSpinContext } from "../CodeSpinContext.js";
 import { setDebugFlag } from "../debugMode.js";
 import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
+import { fileBlockParser } from "../responseParsing/fileBlockParser.js";
 import { readCodeSpinConfig } from "../settings/readCodeSpinConfig.js";
 import { FilesResult, SavedFilesResult } from "./generate/index.js";
-import { ParseFunc } from "../responseParsing/ParseFunc.js";
-import { diffParser } from "../responseParsing/diffParser.js";
-import { fileBlockParser } from "../responseParsing/fileBlockParser.js";
-import { exception } from "../exception.js";
 
 export type ParseArgs = {
   file: string;
@@ -36,13 +33,7 @@ export async function parse(
   }
 
   const llmResponse = await fs.readFile(args.file, "utf-8");
-  const parseFunc: ParseFunc =
-    args.responseParser === "diff"
-      ? diffParser
-      : args.responseParser === "file-block" ||
-        args.responseParser === undefined
-      ? fileBlockParser
-      : exception(`Unknown response parser ${args.responseParser}`);
+  const parseFunc = fileBlockParser;
 
   const files = await parseFunc(llmResponse, context.workingDir, config);
 
