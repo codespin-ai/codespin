@@ -22,7 +22,7 @@ export async function readCodeSpinConfig(
   const { config, filePath }: { config: CodeSpinConfig; filePath: string } =
     configInfo;
 
-  if (config.version !== "0.0.2") {
+  if (config.version !== "0.0.3") {
     exception(
       "UNSUPPORTED_CONFIG_VERSION",
       `codespin.json version ${config.version} is not supported any more. You must do a "codespin init" to generate the configuration. Type "codespin init --help" for more information.`
