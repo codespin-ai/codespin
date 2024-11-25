@@ -165,7 +165,8 @@ export async function generate(
     if (typeof args.writePrompt !== "undefined") {
       // If --write-prompt is specified but no file is mentioned
       if (!args.writePrompt) {
-        throw new Error(
+        exception(
+          "MISSING_FILE_PATH",
           `Specify a file path for the --write-prompt parameter.`
         );
       }
@@ -270,7 +271,8 @@ export async function generate(
             }
 
             return exception(
-              `FILE_LENGTH_EXCEEDS_MAX_TOKENS: The length of a single file exceeded max tokens and cannot be retried. Try increasing max tokens if possible or split the file.`
+              "FILE_LENGTH_EXCEEDS_MAX_TOKENS",
+              `The length of a single file exceeded max tokens and cannot be retried. Try increasing max tokens if possible or split the file.`
             );
           }
 
@@ -327,23 +329,27 @@ export async function generate(
               }
 
               return exception(
-                `MAX_TOKENS: Maximum number of tokens exceeded and the multi-step param (--multi) is set to zero.`
+                "MAX_TOKENS",
+                `Maximum number of tokens exceeded and the multi-step param (--multi) is set to zero.`
               );
             }
             if (responseParser !== "file-block") {
               return exception(
-                `CANNOT_MERGE_DIFF_RESPONSE: Diff responses cannot be merged. Remove the diff flag.`
+                "CANNOT_MERGE_DIFF_RESPONSE",
+                `Diff responses cannot be merged. Remove the diff flag.`
               );
             }
           }
         } else {
           return exception(
-            `UNKNOWN_FINISH_REASON: ${completionResult.finishReason}`
+            "UNKNOWN_FINISH_REASON",
+            completionResult.finishReason
           );
         }
       } else {
         return exception(
-          `${completionResult.error.code}: ${completionResult.error.message}`
+          completionResult.error.code,
+          completionResult.error.message
         );
       }
     }
@@ -354,7 +360,10 @@ export async function generate(
       );
     }
 
-    return exception(`MAX_MULTI_QUERY: Maximum number of LLM calls exceeded.`);
+    return exception(
+      "MAX_MULTI_QUERY",
+      `Maximum number of LLM calls exceeded.`
+    );
   }
 }
 

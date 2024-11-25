@@ -21,5 +21,5 @@ export function extractFromMarkdownCodeBlock(
         language: undefined,
         contents: input,
       }
-    : exception("No valid markdown code block found.");
+    : exception("MISSING_CODE_BLOCK", "No valid markdown code block found.");
 }

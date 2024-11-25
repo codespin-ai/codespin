@@ -20,11 +20,11 @@ export async function diffStrings(
 
     return diff
       .replaceAll(
-        `${tempPathCommitted}`,
+        tempPathCommitted,
         `/${path.relative(workingDir, filePath)}`
       )
       .replaceAll(
-        `${tempPathCurrent}`,
+        tempPathCurrent,
         `/${path.relative(workingDir, filePath)}`
       );
   } finally {

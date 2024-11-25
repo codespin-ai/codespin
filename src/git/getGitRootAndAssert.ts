@@ -6,6 +6,7 @@ export async function getGitRootAndAssert(workingDir: string): Promise<string> {
   return (
     gitRoot ||
     exception(
+      "UNKNOWN_GIT_ROOT",
       `You need to do "codespin init" (or "codespin init --force") from the root of the project.`
     )
   );

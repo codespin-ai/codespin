@@ -14,12 +14,14 @@ export function getModel(
     return (
       maybeModel ||
       exception(
+        "INVALID_MODEL",
         `Invalid model ${modelName}. It should be something like "gpt-4o".`
       )
     );
   }
 
-  throw new Error(
+  exception(
+    "MISSING_MODEL_NAME",
     `The model ${modelName} could not be found. Have you done "codespin init"?.`
   );
 }

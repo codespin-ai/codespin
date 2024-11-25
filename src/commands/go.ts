@@ -110,7 +110,5 @@ export async function go(
 
   return completionResult.ok
     ? { response: completionResult.message }
-    : exception(
-        `${completionResult.error.code}: ${completionResult.error.message}`
-      );
+    : exception(completionResult.error.code, completionResult.error.message);
 }

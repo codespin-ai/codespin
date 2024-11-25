@@ -24,7 +24,10 @@ export async function getVersionedFileInfo(
                 : version2 === undefined
                 ? await getDiff(filePath, version1, undefined, workingDir)
                 : version1 === undefined
-                ? exception(`The version cannot be undefined in a diff.`)
+                ? exception(
+                    "UNDEFINED_DIFF_VERSION",
+                    `The version cannot be undefined in a diff.`
+                  )
                 : await getDiff(filePath, version1, version2, workingDir);
 
             return {
@@ -52,6 +55,6 @@ export async function getVersionedFileInfo(
           version: "current",
         };
   } else {
-    exception(`File ${filePath} was not found.`);
+    exception("FILE_NOT_FOUND", `File ${filePath} was not found.`);
   }
 }

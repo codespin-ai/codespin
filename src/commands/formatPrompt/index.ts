@@ -57,8 +57,8 @@ export async function formatPrompt(
       )) ??
       (args.template === "files"
         ? filesTemplate
-        : exception(`Unknown template ${args.template}.`))
-    : exception(`Unknown template ${args.template}.`);
+        : exception("UNKNOWN_TEMPLATE", `Unknown template ${args.template}.`))
+    : exception("UNKNOWN_TEMPLATE", `Unknown template ${args.template}.`);
 
   const result = await buildPrompt(
     buildPromptArgs,

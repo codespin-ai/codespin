@@ -16,6 +16,7 @@ import { DependenciesTemplateResult } from "../templates/DependenciesTemplateRes
 import dependenciesTemplate from "../templates/dependencies.js";
 import { getCustomTemplate } from "../templating/getCustomTemplate.js";
 import { getModel } from "../settings/getModel.js";
+import { exception } from "../exception.js";
 
 export type DependenciesArgs = {
   file: string;
@@ -131,9 +132,7 @@ export async function dependencies(
 
       return { dependencies };
     } else {
-      throw new Error(
-        `${completionResult.error.code}: ${completionResult.error.message}`
-      );
+      exception(completionResult.error.code, completionResult.error.message);
     }
   }
 }

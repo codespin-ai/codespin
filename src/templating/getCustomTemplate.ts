@@ -26,7 +26,10 @@ export async function getCustomTemplate<TArgs, TResult>(
         : projectTemplateDir &&
           (await pathExists(path.join(projectTemplateDir, template!)))
         ? path.join(projectTemplateDir, template!)
-        : exception(`The template ${template} was not found.`);
+        : exception(
+            "MISSING_TEMPLATE",
+            `The template ${template} was not found.`
+          );
 
     const templateModule = await import(templatePath);
     return templateModule.default;

@@ -22,6 +22,7 @@ export async function readPrompt(
     return prompt;
   } else {
     exception(
+      "MISSING_PROMPT",
       "The prompt file must be specified, or otherwise specify a prompt inline with '-p'. See 'codespin generate help'."
     );
   }

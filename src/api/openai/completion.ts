@@ -4,6 +4,7 @@ import { readNonEmptyConfig } from "../../settings/readConfig.js";
 import { CompletionOptions } from "../CompletionOptions.js";
 import { CompletionResult } from "../CompletionResult.js";
 import { CompletionInputMessage } from "../types.js";
+import { exception } from "../../exception.js";
 
 type OpenAIConfig = {
   apiKey: string;
@@ -27,8 +28,9 @@ async function loadConfigIfRequired(
     const apiKey = process.env.OPENAI_API_KEY ?? openaiConfig.config?.apiKey;
 
     if (!apiKey) {
-      throw new Error(
-        "OPENAI_API_KEY is not set in the environment variables."
+      exception(
+        "MISSING_OPENAI_API_KEY",
+        "OPENAI_API_KEY environment variable is not set."
       );
     }
 

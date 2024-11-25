@@ -14,6 +14,7 @@ import { createDirIfMissing } from "../fs/createDirIfMissing.js";
 import { writeToFile } from "../fs/writeToFile.js";
 import { getGitRoot } from "../git/getGitRoot.js";
 import { CodeSpinConfig } from "../settings/CodeSpinConfig.js";
+import { exception } from "../exception.js";
 
 export type InitArgs = {
   force?: boolean;
@@ -74,7 +75,8 @@ export async function init(
 
     // Check if .codespin already exists
     if (!args.force && (await pathExists(configDir))) {
-      throw new Error(
+      exception(
+        "DIR_ALREADY_EXISTS",
         `${configDir} already exists. Use the --force option to overwrite.`
       );
     }
@@ -94,7 +96,9 @@ export async function init(
         JSON.stringify(DEFAULT_OPENAI_CONFIG, null, 2)
       );
     } else {
-      console.log("Existing openai.json found - not overwriting. You may delete this file to overwrite.");
+      console.log(
+        "Existing openai.json found - not overwriting. You may delete this file to overwrite."
+      );
     }
 
     if (!(await pathExists(anthropicConfigFile))) {
@@ -103,7 +107,9 @@ export async function init(
         JSON.stringify(DEFAULT_ANTHROPIC_CONFIG, null, 2)
       );
     } else {
-      console.log("Existing anthropic.json found - not overwriting. You may delete this file to overwrite.");
+      console.log(
+        "Existing anthropic.json found - not overwriting. You may delete this file to overwrite."
+      );
     }
   } else {
     // If we are under a git directory, we'll make .codespin under the git dir root.
@@ -118,7 +124,8 @@ export async function init(
 
     // Check if .codespin already exists
     if (!args.force && (await pathExists(configDir))) {
-      throw new Error(
+      exception(
+        "DIR_ALREADY_EXISTS",
         `${configDir} already exists. Use the --force option to overwrite.`
       );
     }

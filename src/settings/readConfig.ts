@@ -77,5 +77,11 @@ export async function readNonEmptyConfig<T>(
   workingDir: string
 ): Promise<{ config: T; filePath: string }> {
   const config = await readConfig<T>(pathFragment, customConfigDir, workingDir);
-  return config ?? exception(`The config file ${pathFragment} does not exist.`);
+  return (
+    config ??
+    exception(
+      "MISSING_CONFIG",
+      `The config file ${pathFragment} does not exist.`
+    )
+  );
 }

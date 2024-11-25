@@ -18,6 +18,9 @@ export function getCompletionAPI(name: string): CompletionFunc {
   } else if (name === "anthropic") {
     return anthropicCompletion;
   } else {
-    exception("Only openai is supported as of now.");
+    exception(
+      "INVALID_AI_PROVIDER",
+      "Only OpenAI and Anthropic are supported as of now."
+    );
   }
 }
