@@ -64,21 +64,21 @@ function printFileTemplate(args: TemplateArgs, config: CodeSpinConfig) {
   const tmpl = `
   Respond with just the code (but exclude invocation examples etc) in the following format:
 
-  File path:./some/path/greet.ts
+  File path:./some/path/file.ext
   \`\`\`
-  source code for greet.ts goes here...
-  \`\`\`
-
-  If there are multiple files to be generated (as in "some/path/lorem.ts" and "some/path/ipsum.ts" in the example below), you should repeat blocks like this:
-
-  File path:./some/path/lorem.ts
-  \`\`\`
-  source code for lorem.ts goes here...
+  source code for file.ext goes here...
   \`\`\`
 
-  File path:./some/path/ipsum.ts
+  If there are multiple files to be generated (as in "./some/path/lorem.ext" and "./another/path/ipsum.ext" in the example below), you should repeat blocks like this:
+
+  File path:./some/path/lorem.ext
   \`\`\`
-  source code for ipsum.ts goes here...
+  source code for lorem.ext goes here...
+  \`\`\`
+
+  File path:./some/path/ipsum.ext
+  \`\`\`
+  source code for ipsum.ext goes here...
   \`\`\`
 
   You must respond with the complete contents of each file. DO NOT omit any line.
