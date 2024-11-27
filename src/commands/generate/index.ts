@@ -182,8 +182,11 @@ export async function generate(
 
   // Hit the LLM.
   else {
-    const multi =
+    const uncheckedMulti =
       args.multi && responseParser === "file-block" ? args.multi : 0;
+
+    // Max value for multi is 5. To prevent shooting yourself in the foot.
+    const multi = uncheckedMulti <= 5 ? uncheckedMulti : 5;
 
     let cancelCompletion: (() => void) | undefined;
 
@@ -272,7 +275,7 @@ export async function generate(
 
             return exception(
               "FILE_LENGTH_EXCEEDS_MAX_TOKENS",
-              `The length of a single file exceeded max tokens and cannot be retried. Try increasing max tokens if possible or split the file.`
+              `The length of a single file exceeded max tokens and cannot be retried. Try increasing max tokens if possible or make your code mode modular.`
             );
           }
 
