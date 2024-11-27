@@ -313,9 +313,8 @@ export type TemplateResult = {
   // The generated prompt
   prompt: string;
 
-  // Optional. Which type of parser should parse the response?
-  // Possible values are "file-block", "diff" or omit for default.
-  responseParser?: "file-block" | "diff";
+  // Defaults to "file-block", and that's the only available option.
+  responseParser?: "file-block";
 };
 
 // Arguments to the templating function

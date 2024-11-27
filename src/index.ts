@@ -202,7 +202,7 @@ export async function main() {
           .option("responseParser", {
             type: "string",
             describe:
-              "Based on the response from the LLM. Defaults to 'file-block' but can be 'diff' if the prompt was generated with the 'diff' template.",
+              "Based on the response from the LLM. Defaults to 'file-block'.",
           })
           .option("exec", {
             type: "string",

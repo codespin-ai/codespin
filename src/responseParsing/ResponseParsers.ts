@@ -1,1 +1,1 @@
-export type ResponseParsers = "file-block" | "diff";
+export type ResponseParsers = "file-block";
