@@ -5,6 +5,7 @@ import { CompletionOptions } from "../CompletionOptions.js";
 import { CompletionResult } from "../CompletionResult.js";
 import { CompletionInputMessage } from "../types.js";
 import { exception } from "../../exception.js";
+import { createStreamingFileParser } from "../../responseParsing/streamingFileParser.js";
 
 type OpenAIConfig = {
   apiKey: string;
@@ -86,11 +87,20 @@ export async function completion(
   let finishReason: OpenAI.Chat.Completions.ChatCompletionChunk.Choice["finish_reason"] =
     null;
 
+  const streamingFileResponseCallback = options.fileStreamCallback
+    ? createStreamingFileParser(options.fileStreamCallback)
+    : undefined;
+
   for await (const chunk of stream) {
     const content = chunk.choices[0]?.delta?.content || "";
     responseText += content;
+
     if (options.responseStreamCallback) {
       options.responseStreamCallback(content);
+    }
+
+    if (streamingFileResponseCallback) {
+      streamingFileResponseCallback(content);
     }
 
     // Check for finish_reason

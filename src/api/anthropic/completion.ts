@@ -5,6 +5,7 @@ import { readNonEmptyConfig } from "../../settings/readConfig.js";
 import { CompletionOptions } from "../CompletionOptions.js";
 import { CompletionResult } from "../CompletionResult.js";
 import { CompletionInputMessage } from "../types.js";
+import { createStreamingFileParser } from "../../responseParsing/streamingFileParser.js";
 
 type AnthropicConfig = {
   apiKey: string;
@@ -73,10 +74,17 @@ export async function completion(
     });
   }
 
+  const streamingFileResponseCallback = options.fileStreamCallback
+    ? createStreamingFileParser(options.fileStreamCallback)
+    : undefined;
+
   stream.on("text", (text) => {
     responseText += text;
     if (options.responseStreamCallback) {
       options.responseStreamCallback(text);
+    }
+    if (streamingFileResponseCallback) {
+      streamingFileResponseCallback(text);
     }
   });
 

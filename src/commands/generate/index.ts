@@ -21,6 +21,7 @@ import defaultTemplate from "../../templates/default.js";
 import { getCustomTemplate } from "../../templating/getCustomTemplate.js";
 import { getGeneratedFiles } from "./getGeneratedFiles.js";
 import { getOutPath } from "./getOutPath.js";
+import { StreamingFileParseResult } from "../../responseParsing/streamingFileParser.js";
 
 export type GenerateArgs = {
   promptFile?: string;
@@ -47,6 +48,7 @@ export type GenerateArgs = {
   multi?: number;
   responseCallback?: (text: string) => Promise<void>;
   responseStreamCallback?: (text: string) => void;
+  fileStreamCallback?: (data: StreamingFileParseResult) => void;
   promptCallback?: (prompt: string) => Promise<void>;
   parseCallback?: (files: GeneratedSourceFile[]) => Promise<void>;
   cancelCallback?: (cancel: () => void) => void;
@@ -206,6 +208,7 @@ export async function generate(
       model,
       maxTokens,
       responseStreamCallback: args.responseStreamCallback,
+      fileStreamCallback: args.fileStreamCallback,
       cancelCallback: (cancel) => {
         cancelCompletion = cancel;
       },

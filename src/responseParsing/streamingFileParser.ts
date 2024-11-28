@@ -3,7 +3,8 @@ import { SourceFile } from "../sourceCode/SourceFile.js";
 export type StreamingFileParseResult =
   | { type: "text"; content: string }
   | { type: "file"; file: SourceFile }
-  | { type: "new-file-block"; path: string };
+  | { type: "new-file-block"; path: string }
+  | { type: "markdown"; content: string };
 
 type ParserState = {
   buffer: string;
@@ -19,43 +20,37 @@ export const createStreamingFileParser = (
   };
 
   const filePathRegex =
-    /File path:\s*(\.\/[\w./-]+)\s*\n^```(?:\w*\n)?([\s\S]*?)^```/gm;
+    /File path:\s*(\.\/[\w./-]+)\s*\n```(?:\w*\n)?([\s\S]*?)```\n?/gm;
 
   return function processChunk(chunk: string): void {
+    // Immediately emit the chunk as text for streaming display
+    callback({ type: "text", content: chunk });
+
     state.buffer += chunk;
 
-    while (true) {
-      if (!state.currentFilePath) {
-        const pathMatch = /File path:\s*(\.\/[\w./-]+)/.exec(state.buffer);
-        if (pathMatch) {
-          state.currentFilePath = pathMatch[1].trim();
-          callback({ type: "new-file-block", path: state.currentFilePath });
-        }
+    let lastIndex = 0;
+    const matches = Array.from(state.buffer.matchAll(filePathRegex));
+
+    for (const match of matches) {
+      // Emit markdown block with content up to the file marker
+      const markdownContent = state.buffer.slice(lastIndex, match.index);
+      if (markdownContent) {
+        callback({ type: "markdown", content: markdownContent });
       }
 
-      const match = filePathRegex.exec(state.buffer);
-
-      if (!match) {
-        if (!state.currentFilePath) {
-          callback({ type: "text", content: chunk });
-        }
-        break;
-      }
-
-      const [fullMatch, path, contents] = match;
+      callback({ type: "new-file-block", path: match[1] });
       callback({
         type: "file",
-        file: { path: path.trim(), contents: contents.trim() },
+        file: {
+          path: match[1],
+          contents: match[2].trim() + "\n",
+        },
       });
 
-      state.currentFilePath = null;
-      const remaining = state.buffer.substring(match.index + fullMatch.length);
-      if (remaining.length > 0) {
-        callback({ type: "text", content: remaining });
-      }
-
-      state.buffer = remaining;
-      filePathRegex.lastIndex = 0;
+      lastIndex = match.index + match[0].length;
     }
+
+    // Only keep unprocessed content in buffer
+    state.buffer = state.buffer.slice(lastIndex);
   };
 };

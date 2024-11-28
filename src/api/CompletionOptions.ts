@@ -1,3 +1,4 @@
+import { StreamingFileParseResult } from "../responseParsing/streamingFileParser.js";
 import { ModelDescription } from "../settings/CodeSpinConfig.js";
 
 export type CompletionOptions = {
@@ -5,4 +6,5 @@ export type CompletionOptions = {
   maxTokens: number | undefined;
   cancelCallback?: (cancel: () => void) => void;
   responseStreamCallback?: (data: string) => void;
+  fileStreamCallback?: (data: StreamingFileParseResult) => void;
 };
