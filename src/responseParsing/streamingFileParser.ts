@@ -9,6 +9,7 @@ export type StreamingFileParseResult =
 type ParserState = {
   buffer: string;
   currentFilePath: string | null;
+  insideFileBlock: boolean;
 };
 
 export const createStreamingFileParser = (
@@ -17,40 +18,57 @@ export const createStreamingFileParser = (
   const state: ParserState = {
     buffer: "",
     currentFilePath: null,
+    insideFileBlock: false,
   };
 
   const filePathRegex =
     /File path:\s*(\.\/[\w./-]+)\s*\n```(?:\w*\n)?([\s\S]*?)```\n?/gm;
 
-  return function processChunk(chunk: string): void {
-    // Immediately emit the chunk as text for streaming display
-    callback({ type: "text", content: chunk });
+  const flushBufferAsText = () => {
+    if (state.buffer.trim()) {
+      const content = state.buffer;
+      callback({ type: "text", content });
+      callback({ type: "markdown", content });
+    }
+    state.buffer = "";
+  };
 
+  return function processChunk(chunk: string): void {
     state.buffer += chunk;
 
     let lastIndex = 0;
     const matches = Array.from(state.buffer.matchAll(filePathRegex));
 
     for (const match of matches) {
-      // Emit markdown block with content up to the file marker
-      const markdownContent = state.buffer.slice(lastIndex, match.index);
-      if (markdownContent) {
-        callback({ type: "markdown", content: markdownContent });
+      // Flush any preceding content as text and markdown
+      const preFileContent = state.buffer.slice(lastIndex, match.index);
+      if (preFileContent.trim()) {
+        state.buffer = preFileContent;
+        flushBufferAsText();
       }
 
-      callback({ type: "new-file-block", path: match[1] });
+      // Process the file block
+      const filePath = match[1];
+      const fileContent = match[2].trim() + "\n";
+
+      callback({ type: "new-file-block", path: filePath });
+      callback({ type: "text", content: fileContent });
       callback({
         type: "file",
         file: {
-          path: match[1],
-          contents: match[2].trim() + "\n",
+          path: filePath,
+          contents: fileContent,
         },
       });
 
       lastIndex = match.index + match[0].length;
     }
 
-    // Only keep unprocessed content in buffer
+    // Process remaining content after the last match
     state.buffer = state.buffer.slice(lastIndex);
+
+    if (!state.buffer.trim()) {
+      state.buffer = "";
+    }
   };
 };

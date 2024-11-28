@@ -18,9 +18,10 @@ export function test() {}
     parser(input);
 
     const expected = [
-      { type: "text", content: input },
+      { type: "text", content: "\n" },
       { type: "markdown", content: "\n" },
       { type: "new-file-block", path: "./src/test.ts" },
+      { type: "text", content: "export function test() {}\n" },
       {
         type: "file",
         file: {
@@ -30,6 +31,7 @@ export function test() {}
       },
     ];
 
+    console.log({ expected, results });
     expect(results).toEqual(expected);
   });
 
@@ -52,9 +54,10 @@ function b() {}
     parser(input);
 
     const expected = [
-      { type: "text", content: input },
+      { type: "text", content: "\n" },
       { type: "markdown", content: "\n" },
       { type: "new-file-block", path: "./src/a.ts" },
+      { type: "text", content: "function a() {}\n" },
       {
         type: "file",
         file: {
@@ -62,8 +65,10 @@ function b() {}
           contents: "function a() {}\n",
         },
       },
+      { type: "text", content: "Some text\n" },
       { type: "markdown", content: "Some text\n" },
       { type: "new-file-block", path: "./src/b.ts" },
+      { type: "text", content: "function b() {}\n" },
       {
         type: "file",
         file: {
@@ -73,6 +78,7 @@ function b() {}
       },
     ];
 
+    console.log({ expected, results });
     expect(results).toEqual(expected);
   });
 
@@ -86,11 +92,8 @@ function b() {}
     parser(" test() {}\n```\n");
 
     const expected = [
-      { type: "text", content: "File path:./sr" },
-      { type: "text", content: "c/test.ts\n```\n" },
-      { type: "text", content: "export function" },
-      { type: "text", content: " test() {}\n```\n" },
       { type: "new-file-block", path: "./src/test.ts" },
+      { type: "text", content: "export function test() {}\n" },
       {
         type: "file",
         file: {
@@ -100,6 +103,7 @@ function b() {}
       },
     ];
 
+    console.log({ expected, results });
     expect(results).toEqual(expected);
   });
 
@@ -120,16 +124,16 @@ export function test() {}
     parser(input);
 
     const expected = [
-      { type: "text", content: input },
+      {
+        type: "text",
+        content: `Here's some markdown with a code block:\n\`\`\`typescript\nconst x = 1;\n\`\`\`\n`,
+      },
       {
         type: "markdown",
-        content: `Here's some markdown with a code block:
-\`\`\`typescript
-const x = 1;
-\`\`\`
-`,
+        content: `Here's some markdown with a code block:\n\`\`\`typescript\nconst x = 1;\n\`\`\`\n`,
       },
       { type: "new-file-block", path: "./src/test.ts" },
+      { type: "text", content: "export function test() {}\n" },
       {
         type: "file",
         file: {
@@ -139,6 +143,7 @@ const x = 1;
       },
     ];
 
+    console.log({ expected, results });
     expect(results).toEqual(expected);
   });
 
@@ -154,12 +159,10 @@ const x = 1;
     parser("File path:./other.ts\n```\nmore code\n```\n");
 
     const expected = [
-      { type: "text", content: "# Header\nSome " },
-      { type: "text", content: "content\n" },
-      { type: "text", content: "File path:./test.ts\n```\n" },
-      { type: "text", content: "code\n```\n" },
+      { type: "text", content: "# Header\nSome content\n" },
       { type: "markdown", content: "# Header\nSome content\n" },
       { type: "new-file-block", path: "./test.ts" },
+      { type: "text", content: "code\n" },
       {
         type: "file",
         file: {
@@ -168,9 +171,9 @@ const x = 1;
         },
       },
       { type: "text", content: "More content\n" },
-      { type: "text", content: "File path:./other.ts\n```\nmore code\n```\n" },
       { type: "markdown", content: "More content\n" },
       { type: "new-file-block", path: "./other.ts" },
+      { type: "text", content: "more code\n" },
       {
         type: "file",
         file: {
@@ -180,6 +183,7 @@ const x = 1;
       },
     ];
 
+    console.log({ expected, results });
     expect(results).toEqual(expected);
   });
 
@@ -193,12 +197,10 @@ const x = 1;
     parser("content\n```\n");
 
     const expected = [
-      { type: "text", content: "Some text\nFile " },
-      { type: "text", content: "path:" },
-      { type: "text", content: "./split.ts\n```\n" },
-      { type: "text", content: "content\n```\n" },
+      { type: "text", content: "Some text\n" },
       { type: "markdown", content: "Some text\n" },
       { type: "new-file-block", path: "./split.ts" },
+      { type: "text", content: "content\n" },
       {
         type: "file",
         file: {
@@ -208,6 +210,7 @@ const x = 1;
       },
     ];
 
+    console.log({ expected, results });
     expect(results).toEqual(expected);
   });
 
@@ -228,8 +231,8 @@ code b
     parser(input);
 
     const expected = [
-      { type: "text", content: input },
       { type: "new-file-block", path: "./a.ts" },
+      { type: "text", content: "code a\n" },
       {
         type: "file",
         file: {
@@ -238,6 +241,7 @@ code b
         },
       },
       { type: "new-file-block", path: "./b.ts" },
+      { type: "text", content: "code b\n" },
       {
         type: "file",
         file: {
@@ -247,6 +251,7 @@ code b
       },
     ];
 
+    console.log({ expected, results });
     expect(results).toEqual(expected);
   });
 
@@ -263,11 +268,10 @@ code b
     parser("```\ncode b\n```\n");
 
     const expected = [
-      { type: "text", content: "Here's file 1:\nFile " },
-      { type: "text", content: "path:./a.ts\n```\n" },
-      { type: "text", content: "code a\n```\n" },
+      { type: "text", content: "Here's file 1:\n" },
       { type: "markdown", content: "Here's file 1:\n" },
       { type: "new-file-block", path: "./a.ts" },
+      { type: "text", content: "code a\n" },
       {
         type: "file",
         file: {
@@ -276,11 +280,9 @@ code b
         },
       },
       { type: "text", content: "And here's file 2:\n" },
-      { type: "text", content: "File path:" },
-      { type: "text", content: "./b.ts\n" },
-      { type: "text", content: "```\ncode b\n```\n" },
       { type: "markdown", content: "And here's file 2:\n" },
       { type: "new-file-block", path: "./b.ts" },
+      { type: "text", content: "code b\n" },
       {
         type: "file",
         file: {
@@ -290,6 +292,7 @@ code b
       },
     ];
 
+    console.log({ expected, results });
     expect(results).toEqual(expected);
   });
 });
