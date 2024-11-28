@@ -18,12 +18,10 @@ export function test() {}
     parser(input);
 
     const expected = [
-      { type: "text", content: "\n" },
-      { type: "markdown", content: "\n" },
-      { type: "new-file-block", path: "./src/test.ts" },
+      { type: "start-file-block", path: "./src/test.ts" },
       { type: "text", content: "export function test() {}\n" },
       {
-        type: "file",
+        type: "end-file-block",
         file: {
           path: "./src/test.ts",
           contents: "export function test() {}\n",
@@ -31,7 +29,7 @@ export function test() {}
       },
     ];
 
-    console.log({ expected, results });
+    
     expect(results).toEqual(expected);
   });
 
@@ -54,12 +52,10 @@ function b() {}
     parser(input);
 
     const expected = [
-      { type: "text", content: "\n" },
-      { type: "markdown", content: "\n" },
-      { type: "new-file-block", path: "./src/a.ts" },
+      { type: "start-file-block", path: "./src/a.ts" },
       { type: "text", content: "function a() {}\n" },
       {
-        type: "file",
+        type: "end-file-block",
         file: {
           path: "./src/a.ts",
           contents: "function a() {}\n",
@@ -67,10 +63,10 @@ function b() {}
       },
       { type: "text", content: "Some text\n" },
       { type: "markdown", content: "Some text\n" },
-      { type: "new-file-block", path: "./src/b.ts" },
+      { type: "start-file-block", path: "./src/b.ts" },
       { type: "text", content: "function b() {}\n" },
       {
-        type: "file",
+        type: "end-file-block",
         file: {
           path: "./src/b.ts",
           contents: "function b() {}\n",
@@ -78,7 +74,7 @@ function b() {}
       },
     ];
 
-    console.log({ expected, results });
+    
     expect(results).toEqual(expected);
   });
 
@@ -92,10 +88,10 @@ function b() {}
     parser(" test() {}\n```\n");
 
     const expected = [
-      { type: "new-file-block", path: "./src/test.ts" },
+      { type: "start-file-block", path: "./src/test.ts" },
       { type: "text", content: "export function test() {}\n" },
       {
-        type: "file",
+        type: "end-file-block",
         file: {
           path: "./src/test.ts",
           contents: "export function test() {}\n",
@@ -103,7 +99,7 @@ function b() {}
       },
     ];
 
-    console.log({ expected, results });
+    
     expect(results).toEqual(expected);
   });
 
@@ -132,10 +128,10 @@ export function test() {}
         type: "markdown",
         content: `Here's some markdown with a code block:\n\`\`\`typescript\nconst x = 1;\n\`\`\`\n`,
       },
-      { type: "new-file-block", path: "./src/test.ts" },
+      { type: "start-file-block", path: "./src/test.ts" },
       { type: "text", content: "export function test() {}\n" },
       {
-        type: "file",
+        type: "end-file-block",
         file: {
           path: "./src/test.ts",
           contents: "export function test() {}\n",
@@ -143,7 +139,7 @@ export function test() {}
       },
     ];
 
-    console.log({ expected, results });
+    
     expect(results).toEqual(expected);
   });
 
@@ -161,10 +157,10 @@ export function test() {}
     const expected = [
       { type: "text", content: "# Header\nSome content\n" },
       { type: "markdown", content: "# Header\nSome content\n" },
-      { type: "new-file-block", path: "./test.ts" },
+      { type: "start-file-block", path: "./test.ts" },
       { type: "text", content: "code\n" },
       {
-        type: "file",
+        type: "end-file-block",
         file: {
           path: "./test.ts",
           contents: "code\n",
@@ -172,10 +168,10 @@ export function test() {}
       },
       { type: "text", content: "More content\n" },
       { type: "markdown", content: "More content\n" },
-      { type: "new-file-block", path: "./other.ts" },
+      { type: "start-file-block", path: "./other.ts" },
       { type: "text", content: "more code\n" },
       {
-        type: "file",
+        type: "end-file-block",
         file: {
           path: "./other.ts",
           contents: "more code\n",
@@ -183,7 +179,7 @@ export function test() {}
       },
     ];
 
-    console.log({ expected, results });
+    
     expect(results).toEqual(expected);
   });
 
@@ -199,10 +195,10 @@ export function test() {}
     const expected = [
       { type: "text", content: "Some text\n" },
       { type: "markdown", content: "Some text\n" },
-      { type: "new-file-block", path: "./split.ts" },
+      { type: "start-file-block", path: "./split.ts" },
       { type: "text", content: "content\n" },
       {
-        type: "file",
+        type: "end-file-block",
         file: {
           path: "./split.ts",
           contents: "content\n",
@@ -210,7 +206,7 @@ export function test() {}
       },
     ];
 
-    console.log({ expected, results });
+    
     expect(results).toEqual(expected);
   });
 
@@ -231,19 +227,19 @@ code b
     parser(input);
 
     const expected = [
-      { type: "new-file-block", path: "./a.ts" },
+      { type: "start-file-block", path: "./a.ts" },
       { type: "text", content: "code a\n" },
       {
-        type: "file",
+        type: "end-file-block",
         file: {
           path: "./a.ts",
           contents: "code a\n",
         },
       },
-      { type: "new-file-block", path: "./b.ts" },
+      { type: "start-file-block", path: "./b.ts" },
       { type: "text", content: "code b\n" },
       {
-        type: "file",
+        type: "end-file-block",
         file: {
           path: "./b.ts",
           contents: "code b\n",
@@ -251,7 +247,7 @@ code b
       },
     ];
 
-    console.log({ expected, results });
+    
     expect(results).toEqual(expected);
   });
 
@@ -270,10 +266,10 @@ code b
     const expected = [
       { type: "text", content: "Here's file 1:\n" },
       { type: "markdown", content: "Here's file 1:\n" },
-      { type: "new-file-block", path: "./a.ts" },
+      { type: "start-file-block", path: "./a.ts" },
       { type: "text", content: "code a\n" },
       {
-        type: "file",
+        type: "end-file-block",
         file: {
           path: "./a.ts",
           contents: "code a\n",
@@ -281,10 +277,10 @@ code b
       },
       { type: "text", content: "And here's file 2:\n" },
       { type: "markdown", content: "And here's file 2:\n" },
-      { type: "new-file-block", path: "./b.ts" },
+      { type: "start-file-block", path: "./b.ts" },
       { type: "text", content: "code b\n" },
       {
-        type: "file",
+        type: "end-file-block",
         file: {
           path: "./b.ts",
           contents: "code b\n",
@@ -292,7 +288,47 @@ code b
       },
     ];
 
-    console.log({ expected, results });
+    
+    expect(results).toEqual(expected);
+  });
+  it("handles non-file content split across multiple chunks", () => {
+    const results: StreamingFileParseResult[] = [];
+    const parser = createStreamingFileParser((result) => results.push(result));
+
+    // Define the chunks
+    const chunk1 = "Some initial text that is split ";
+    const chunk2 = "across two chunks.\nFile path:./src/splitTest.ts\n```\n";
+    const chunk3 = "export const splitTest = () => {};\n```\n";
+
+    // Feed the chunks to the parser
+    parser(chunk1);
+    parser(chunk2);
+    parser(chunk3);
+
+    // Define the expected results
+    const expected = [
+      {
+        type: "text",
+        content: "Some initial text that is split across two chunks.\n",
+      },
+      {
+        type: "markdown",
+        content: "Some initial text that is split across two chunks.\n",
+      },
+      { type: "start-file-block", path: "./src/splitTest.ts" },
+      { type: "text", content: "export const splitTest = () => {};\n" },
+      {
+        type: "end-file-block",
+        file: {
+          path: "./src/splitTest.ts",
+          contents: "export const splitTest = () => {};\n",
+        },
+      },
+    ];
+
+    
+
+    // Assertion
     expect(results).toEqual(expected);
   });
 });

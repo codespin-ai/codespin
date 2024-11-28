@@ -2,8 +2,8 @@ import { SourceFile } from "../sourceCode/SourceFile.js";
 
 export type StreamingFileParseResult =
   | { type: "text"; content: string }
-  | { type: "file"; file: SourceFile }
-  | { type: "new-file-block"; path: string }
+  | { type: "end-file-block"; file: SourceFile }
+  | { type: "start-file-block"; path: string }
   | { type: "markdown"; content: string };
 
 type ParserState = {
@@ -51,10 +51,10 @@ export const createStreamingFileParser = (
       const filePath = match[1];
       const fileContent = match[2].trim() + "\n";
 
-      callback({ type: "new-file-block", path: filePath });
+      callback({ type: "start-file-block", path: filePath });
       callback({ type: "text", content: fileContent });
       callback({
-        type: "file",
+        type: "end-file-block",
         file: {
           path: filePath,
           contents: fileContent,
