@@ -6,21 +6,43 @@ export type StreamingFileParseResult =
   | { type: "start-file-block"; path: string }
   | { type: "markdown"; content: string };
 
-// Regex to match the start of a file block
-const startFileRegex = /File path:\s*(\.\/[\w./-]+)\s*\n\s*```(?:\w*\n)?/g;
+// Regex to match the start of a file block with backticks
+const startFileRegexBackticks =
+  /File path:\s*(\.\/[\w./-]+)\s*\n\s*```(?:\w*\n)?/g;
 
-// Regex to match the end of a file block
-const endFileRegex = /\s*```\n?/g;
+// Regex to match the end of a file block with backticks
+const endFileRegexBackticks = /\s*```\n?/g;
+
+// Function to create start regex for XML tags
+const createStartFileRegexXml = (xmlElement: string) =>
+  new RegExp(
+    `File path:\\s*(\\.\/[\\w./-]+)\\s*\\n\\s*<${xmlElement}>(?:\\n)?`,
+    "g"
+  );
+
+// Function to create end regex for XML tags
+const createEndFileRegexXml = (xmlElement: string) =>
+  new RegExp(`\\s*</${xmlElement}>\\n?`, "g");
 
 // Regex to match language identifier line
 const languageLineRegex = /^\w+\n/;
 
 export function createStreamingFileParser(
-  callback: (result: StreamingFileParseResult) => void
+  callback: (result: StreamingFileParseResult) => void,
+  xmlCodeBlockElement?: string
 ): (chunk: string) => void {
   let buffer: string = ""; // Buffer to accumulate incoming text
   let insideFileBlock: boolean = false; // Flag to track if we're inside a file block
   let currentFilePath: string = ""; // Variable to store the current file path
+
+  // Choose the appropriate regex based on whether XML mode is enabled
+  const startFileRegex = xmlCodeBlockElement
+    ? createStartFileRegexXml(xmlCodeBlockElement)
+    : startFileRegexBackticks;
+
+  const endFileRegex = xmlCodeBlockElement
+    ? createEndFileRegexXml(xmlCodeBlockElement)
+    : endFileRegexBackticks;
 
   return function processChunk(chunk: string): void {
     // Emit the incoming chunk as a "text" event immediately and unconditionally
@@ -78,16 +100,18 @@ export function createStreamingFileParser(
           // Extract the file content up to the end of the block
           let fileContent = buffer.slice(0, matchStartIndex);
 
-          // Strip out language identifier if present
-          const languageMatch = languageLineRegex.exec(fileContent);
-          if (languageMatch) {
-            fileContent = fileContent.slice(languageMatch[0].length);
+          // Strip out language identifier if not in XML mode
+          if (!xmlCodeBlockElement) {
+            const languageMatch = languageLineRegex.exec(fileContent);
+            if (languageMatch) {
+              fileContent = fileContent.slice(languageMatch[0].length);
+            }
           }
 
           // Emit the end of the file block with the correct path
           const sourceFile: SourceFile = {
             path: currentFilePath,
-            contents: fileContent.trim(),  // Also trim any extra whitespace
+            contents: fileContent.trim(), // Also trim any extra whitespace
           };
           callback({ type: "end-file-block", file: sourceFile });
 
