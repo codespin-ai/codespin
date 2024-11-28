@@ -4,12 +4,20 @@ import { SourceFile } from "../sourceCode/SourceFile.js";
 export async function fileBlockParser(
   response: string,
   workingDir: string,
+  xmlCodeBlockElement: string | undefined,
   config: CodeSpinConfig
 ): Promise<SourceFile[]> {
+  if (xmlCodeBlockElement) {
+    return parseXmlContents(response, xmlCodeBlockElement);
+  }
   return parseFileContents(response);
 }
 
-const filePathRegex = /File path:\s*(\.\/[\w./-]+)\s*\n^```(?:\w*\n)?([\s\S]*?)^```/gm;
+const filePathRegex =
+  /File path:\s*(\.\/[\w./-]+)\s*\n^```(?:\w*\n)?([\s\S]*?)^```/gm;
+
+// This regex captures anything that looks like "File path:./path" format
+const filePathExtractor = /File path:\s*(\.\/[\w./-]+)/;
 
 function parseFileContents(input: string): SourceFile[] {
   const results: SourceFile[] = [];
@@ -31,6 +39,45 @@ function parseFileContents(input: string): SourceFile[] {
       filePathRegex.lastIndex = 0; // Reset the lastIndex to ensure the regex starts from the beginning of the new string slice
     } else {
       break; // No more matches, exit the loop
+    }
+  }
+
+  return results;
+}
+
+function parseXmlContents(input: string, xmlElement: string): SourceFile[] {
+  const results: SourceFile[] = [];
+
+  // Create a regex that matches the XML tags and captures their content
+  const xmlRegex = new RegExp(
+    `<${xmlElement}>([\\s\\S]*?)</${xmlElement}>`,
+    "g"
+  );
+
+  let match;
+  while ((match = xmlRegex.exec(input)) !== null) {
+    const contents = match[1]?.trim();
+    if (!contents) continue;
+
+    // Split input into lines and look backwards from the match for the file path
+    const upToMatch = input.substring(0, match.index);
+    const lines = upToMatch.split("\n");
+
+    // Find the last non-empty line before the XML block
+    let pathLine = "";
+    for (let i = lines.length - 1; i >= 0; i--) {
+      const line = lines[i].trim();
+      if (line) {
+        pathLine = line;
+        break;
+      }
+    }
+
+    // Extract the file path using the existing pattern
+    const pathMatch = filePathExtractor.exec(pathLine);
+    if (pathMatch) {
+      const path = pathMatch[1].trim();
+      results.push({ path, contents });
     }
   }
 

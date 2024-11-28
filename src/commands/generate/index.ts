@@ -46,6 +46,7 @@ export type GenerateArgs = {
   go?: boolean;
   spec?: string;
   multi?: number;
+  xmlCodeBlockElement?: string;
   responseCallback?: (text: string) => Promise<void>;
   responseStreamCallback?: (text: string) => void;
   fileResultStreamCallback?: (data: StreamingFileParseResult) => void;
@@ -112,6 +113,9 @@ export async function generate(
     config
   );
 
+  const xmlCodeBlockElement =
+    args.xmlCodeBlockElement ?? config.xmlCodeBlockElement;
+
   const maxTokens = args.maxTokens ?? promptSettings?.maxTokens;
 
   const outPath = await getOutPath(
@@ -136,6 +140,7 @@ export async function generate(
     customArgs: args.customArgs,
     workingDir: context.workingDir,
     debug: args.debug,
+    xmlCodeBlockElement,
   };
 
   const buildPromptArgs: BuildPromptArgs = {
@@ -265,6 +270,7 @@ export async function generate(
           const newlyGeneratedFiles = await fileBlockParser(
             completionResult.message,
             context.workingDir,
+            xmlCodeBlockElement,
             config
           );
 

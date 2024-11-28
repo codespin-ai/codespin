@@ -219,6 +219,12 @@ export async function main() {
             describe:
               "Path to directory relative to which files are generated. Defaults to the directory of the prompt file.",
           })
+          .option("xmlCodeBlockElement", {
+            type: "string",
+            alias: "xml",
+            describe:
+              "Specify xmlCodeBlockElement if a custom element was used (optional).",
+          })
           .option("debug", {
             type: "boolean",
             describe:

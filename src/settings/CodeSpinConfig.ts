@@ -16,4 +16,5 @@ export type CodeSpinConfig = {
   markers?: {
     PROMPT?: string;
   };
+  xmlCodeBlockElement?: string;
 };

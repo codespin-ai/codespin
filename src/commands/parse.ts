@@ -14,6 +14,7 @@ export type ParseArgs = {
   outDir?: string;
   debug?: boolean;
   responseParser?: string;
+  xmlCodeBlockElement?: string;
 };
 
 export type ParseResult = SavedFilesResult | FilesResult;
@@ -35,7 +36,12 @@ export async function parse(
   const llmResponse = await fs.readFile(args.file, "utf-8");
   const parseFunc = fileBlockParser;
 
-  const files = await parseFunc(llmResponse, context.workingDir, config);
+  const files = await parseFunc(
+    llmResponse,
+    context.workingDir,
+    args.xmlCodeBlockElement,
+    config
+  );
 
   if (args.write) {
     const savedFiles = await writeFilesToDisk(

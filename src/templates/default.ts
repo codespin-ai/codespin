@@ -35,9 +35,14 @@ export default async function defaultTemplate(
             args.workingDir
           ),
       args.workingDir,
-      false
+      false,
+      args.xmlCodeBlockElement
     ) +
-    printGeneratedFiles(args.generatedFiles, args.workingDir) +
+    printGeneratedFiles(
+      args.generatedFiles,
+      args.workingDir,
+      args.xmlCodeBlockElement
+    ) +
     printFileTemplate(args, config);
 
   return { prompt, responseParser: "file-block" };
@@ -60,26 +65,40 @@ function relativePath(filePath: string, workingDir: string) {
   return "./" + path.relative(workingDir, filePath);
 }
 
+function getCodeBlockDelimiters(xmlElement?: string) {
+  if (xmlElement) {
+    return {
+      start: `<${xmlElement}>`,
+      end: `</${xmlElement}>`,
+    };
+  }
+  return {
+    start: "```",
+    end: "```",
+  };
+}
+
 function printFileTemplate(args: TemplateArgs, config: CodeSpinConfig) {
+  const delimiters = getCodeBlockDelimiters(args.xmlCodeBlockElement);
   const tmpl = `
   Respond with just the code (but exclude invocation examples etc) in the following format:
 
   File path:./some/path/file.ext
-  \`\`\`
+  ${delimiters.start}
   source code for file.ext goes here...
-  \`\`\`
+  ${delimiters.end}
 
   If there are multiple files to be generated (as in "./some/path/lorem.ext" and "./another/path/ipsum.ext" in the example below), you should repeat blocks like this:
 
   File path:./some/path/lorem.ext
-  \`\`\`
+  ${delimiters.start}
   source code for lorem.ext goes here...
-  \`\`\`
+  ${delimiters.end}
 
   File path:./some/path/ipsum.ext
-  \`\`\`
+  ${delimiters.start}
   source code for ipsum.ext goes here...
-  \`\`\`
+  ${delimiters.end}
 
   You must respond with the complete contents of each file. DO NOT omit any line.
   `;
@@ -90,11 +109,13 @@ function printFileTemplate(args: TemplateArgs, config: CodeSpinConfig) {
 function printIncludeFiles(
   includes: VersionedFileInfo[],
   workingDir: string,
-  useLineNumbers: boolean
+  useLineNumbers: boolean,
+  xmlCodeBlockElement?: string
 ) {
   if (includes.length === 0) {
     return "";
   } else {
+    const delimiters = getCodeBlockDelimiters(xmlCodeBlockElement);
     const text =
       printLine(
         useLineNumbers
@@ -108,9 +129,9 @@ function printIncludeFiles(
             const text =
               // Print the contents first
               printLine(`File path:${relativePath(file.path, workingDir)}`) +
-              printLine("```") +
+              printLine(delimiters.start) +
               printLine(addLineNumbers(file.version2 ?? "")) +
-              printLine("```", true) +
+              printLine(delimiters.end, true) +
               printLine("") +
               // Print the diff
               (file.diff.trim().length > 0)
@@ -120,9 +141,9 @@ function printIncludeFiles(
                       workingDir
                     )} to help you understand the changes:`
                   ) +
-                  printLine("```") +
+                  printLine(delimiters.start) +
                   printLine(file.diff) +
-                  printLine("```", true)
+                  printLine(delimiters.end, true)
                 : "";
 
             return text;
@@ -130,11 +151,11 @@ function printIncludeFiles(
             if (file.contents && file.contents.trim().length > 0) {
               const text =
                 printLine(`File path:${relativePath(file.path, workingDir)}`) +
-                printLine("```") +
+                printLine(delimiters.start) +
                 printLine(
                   useLineNumbers ? addLineNumbers(file.contents) : file.contents
                 ) +
-                printLine("```", true);
+                printLine(delimiters.end, true);
 
               return text;
             } else {
@@ -147,10 +168,15 @@ function printIncludeFiles(
   }
 }
 
-function printGeneratedFiles(generatedFiles: SourceFile[], workingDir: string) {
+function printGeneratedFiles(
+  generatedFiles: SourceFile[],
+  workingDir: string,
+  xmlCodeBlockElement?: string
+) {
   if (generatedFiles.length === 0) {
     return "";
   } else {
+    const delimiters = getCodeBlockDelimiters(xmlCodeBlockElement);
     const text =
       printLine(
         "The following files have already been generated. You must skip generating them in your response.",
@@ -161,9 +187,9 @@ function printGeneratedFiles(generatedFiles: SourceFile[], workingDir: string) {
           if (file.contents && file.contents.trim().length > 0) {
             const text =
               printLine(`File path:${relativePath(file.path, workingDir)}`) +
-              printLine("```") +
+              printLine(delimiters.start) +
               printLine(file.contents) +
-              printLine("```", true);
+              printLine(delimiters.end, true);
 
             return text;
           } else {

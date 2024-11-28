@@ -10,4 +10,5 @@ export type TemplateArgs = {
   customArgs: string[] | undefined;
   workingDir: string;
   debug: boolean | undefined;
+  xmlCodeBlockElement?: string
 };

@@ -4,56 +4,57 @@ import { CodeSpinConfig } from "../settings/CodeSpinConfig.js";
 const mockConfig: CodeSpinConfig = {} as any;
 
 describe("fileBlockParser", () => {
-  it("parses a single code block with space after File path:", async () => {
-    const input = `
+  describe("backtick format", () => {
+    it("parses a single code block with space after File path:", async () => {
+      const input = `
 File path: ./src/files/readJson.ts
 \`\`\`
 export function readJson() {}
 \`\`\`
 `;
-    const result = await fileBlockParser(input, "", mockConfig);
-    expect(result).toEqual([
-      {
-        path: "./src/files/readJson.ts",
-        contents: "export function readJson() {}",
-      },
-    ]);
-  });
+      const result = await fileBlockParser(input, "", undefined, mockConfig);
+      expect(result).toEqual([
+        {
+          path: "./src/files/readJson.ts",
+          contents: "export function readJson() {}",
+        },
+      ]);
+    });
 
-  it("parses a single code block without space after File path:", async () => {
-    const input = `
+    it("parses a single code block without space after File path:", async () => {
+      const input = `
 File path:./src/files/readJson.ts
 \`\`\`
 export function readJson() {}
 \`\`\`
 `;
-    const result = await fileBlockParser(input, "", mockConfig);
-    expect(result).toEqual([
-      {
-        path: "./src/files/readJson.ts",
-        contents: "export function readJson() {}",
-      },
-    ]);
-  });
+      const result = await fileBlockParser(input, "", undefined, mockConfig);
+      expect(result).toEqual([
+        {
+          path: "./src/files/readJson.ts",
+          contents: "export function readJson() {}",
+        },
+      ]);
+    });
 
-  it("parses a single code block with language specified after File path:", async () => {
-    const input = `
+    it("parses a single code block with language specified after File path:", async () => {
+      const input = `
 File path:./src/files/readJson.ts
 \`\`\`typescript
 export function readJson() {}
 \`\`\`
 `;
-    const result = await fileBlockParser(input, "", mockConfig);
-    expect(result).toEqual([
-      {
-        path: "./src/files/readJson.ts",
-        contents: "export function readJson() {}",
-      },
-    ]);
-  });
+      const result = await fileBlockParser(input, "", undefined, mockConfig);
+      expect(result).toEqual([
+        {
+          path: "./src/files/readJson.ts",
+          contents: "export function readJson() {}",
+        },
+      ]);
+    });
 
-  it("parses multiple code blocks with and without spaces", async () => {
-    const input = `
+    it("parses multiple code blocks with and without spaces", async () => {
+      const input = `
 File path: ./src/files/readJson.ts
 \`\`\`
 export function readJson() {}
@@ -63,27 +64,27 @@ File path:./src/files/writeJson.ts
 export function writeJson() {}
 \`\`\`
 `;
-    const result = await fileBlockParser(input, "", mockConfig);
-    expect(result).toEqual([
-      {
-        path: "./src/files/readJson.ts",
-        contents: "export function readJson() {}",
-      },
-      {
-        path: "./src/files/writeJson.ts",
-        contents: "export function writeJson() {}",
-      },
-    ]);
-  });
+      const result = await fileBlockParser(input, "", undefined, mockConfig);
+      expect(result).toEqual([
+        {
+          path: "./src/files/readJson.ts",
+          contents: "export function readJson() {}",
+        },
+        {
+          path: "./src/files/writeJson.ts",
+          contents: "export function writeJson() {}",
+        },
+      ]);
+    });
 
-  it("handles empty input gracefully", async () => {
-    const input = ``;
-    const result = await fileBlockParser(input, "", mockConfig);
-    expect(result).toEqual([]);
-  });
+    it("handles empty input gracefully", async () => {
+      const input = ``;
+      const result = await fileBlockParser(input, "", undefined, mockConfig);
+      expect(result).toEqual([]);
+    });
 
-  it("ignores content between code blocks", async () => {
-    const input = `
+    it("ignores content between code blocks", async () => {
+      const input = `
 File path: ./src/files/readJson.ts
 \`\`\`
 export function readJson() {}
@@ -96,21 +97,21 @@ File path:./src/files/writeJson.ts
 export function writeJson() {}
 \`\`\`
 `;
-    const result = await fileBlockParser(input, "", mockConfig);
-    expect(result).toEqual([
-      {
-        path: "./src/files/readJson.ts",
-        contents: "export function readJson() {}",
-      },
-      {
-        path: "./src/files/writeJson.ts",
-        contents: "export function writeJson() {}",
-      },
-    ]);
-  });
+      const result = await fileBlockParser(input, "", undefined, mockConfig);
+      expect(result).toEqual([
+        {
+          path: "./src/files/readJson.ts",
+          contents: "export function readJson() {}",
+        },
+        {
+          path: "./src/files/writeJson.ts",
+          contents: "export function writeJson() {}",
+        },
+      ]);
+    });
 
-  it("ignores content between and after code blocks", async () => {
-    const input = `
+    it("ignores content between and after code blocks", async () => {
+      const input = `
 File path: ./src/files/readJson.ts
 \`\`\`
 export function readJson() {}
@@ -125,21 +126,21 @@ export function writeJson() {}
 
 More content here to be ignored.
 `;
-    const result = await fileBlockParser(input, "", mockConfig);
-    expect(result).toEqual([
-      {
-        path: "./src/files/readJson.ts",
-        contents: "export function readJson() {}",
-      },
-      {
-        path: "./src/files/writeJson.ts",
-        contents: "export function writeJson() {}",
-      },
-    ]);
-  });
+      const result = await fileBlockParser(input, "", undefined, mockConfig);
+      expect(result).toEqual([
+        {
+          path: "./src/files/readJson.ts",
+          contents: "export function readJson() {}",
+        },
+        {
+          path: "./src/files/writeJson.ts",
+          contents: "export function writeJson() {}",
+        },
+      ]);
+    });
 
-  it("ignores incomplete code blocks missing closing backticks", async () => {
-    const input = `
+    it("ignores incomplete code blocks missing closing backticks", async () => {
+      const input = `
 File path:./src/files/readJson.ts
 \`\`\`
 file 1 contents
@@ -150,15 +151,227 @@ File path:./src/files/another.ts
 file 2 partial
 
 File 2 should not be parsed since the closing triple backticks are missing.
-  `;
+    `;
 
-    const result = await fileBlockParser(input, "", mockConfig);
-    expect(result).toEqual([
-      {
-        path: "./src/files/readJson.ts",
-        contents: "file 1 contents",
-      },
-      // No entry for ./src/files/another.ts because it's missing closing backticks
-    ]);
+      const result = await fileBlockParser(input, "", undefined, mockConfig);
+      expect(result).toEqual([
+        {
+          path: "./src/files/readJson.ts",
+          contents: "file 1 contents",
+        },
+        // No entry for ./src/files/another.ts because it's missing closing backticks
+      ]);
+    });
+  });
+
+  describe("XML format", () => {
+    const xmlElement = "code";
+
+    it("parses a single code block with space after File path:", async () => {
+      const input = `
+File path: ./src/files/readJson.ts
+<code>
+export function readJson() {}
+</code>
+`;
+      const result = await fileBlockParser(input, "", xmlElement, mockConfig);
+      expect(result).toEqual([
+        {
+          path: "./src/files/readJson.ts",
+          contents: "export function readJson() {}",
+        },
+      ]);
+    });
+
+    it("parses a single code block without space after File path:", async () => {
+      const input = `
+File path:./src/files/readJson.ts
+<code>
+export function readJson() {}
+</code>
+`;
+      const result = await fileBlockParser(input, "", xmlElement, mockConfig);
+      expect(result).toEqual([
+        {
+          path: "./src/files/readJson.ts",
+          contents: "export function readJson() {}",
+        },
+      ]);
+    });
+
+    it("parses multiple code blocks with and without spaces", async () => {
+      const input = `
+File path: ./src/files/readJson.ts
+<code>
+export function readJson() {}
+</code>
+File path:./src/files/writeJson.ts
+<code>
+export function writeJson() {}
+</code>
+`;
+      const result = await fileBlockParser(input, "", xmlElement, mockConfig);
+      expect(result).toEqual([
+        {
+          path: "./src/files/readJson.ts",
+          contents: "export function readJson() {}",
+        },
+        {
+          path: "./src/files/writeJson.ts",
+          contents: "export function writeJson() {}",
+        },
+      ]);
+    });
+
+    it("handles empty input gracefully", async () => {
+      const input = ``;
+      const result = await fileBlockParser(input, "", xmlElement, mockConfig);
+      expect(result).toEqual([]);
+    });
+
+    it("ignores content between code blocks", async () => {
+      const input = `
+File path: ./src/files/readJson.ts
+<code>
+export function readJson() {}
+</code>
+
+Some content here which should be ignored.
+
+File path:./src/files/writeJson.ts
+<code>
+export function writeJson() {}
+</code>
+`;
+      const result = await fileBlockParser(input, "", xmlElement, mockConfig);
+      expect(result).toEqual([
+        {
+          path: "./src/files/readJson.ts",
+          contents: "export function readJson() {}",
+        },
+        {
+          path: "./src/files/writeJson.ts",
+          contents: "export function writeJson() {}",
+        },
+      ]);
+    });
+
+    it("ignores content between and after code blocks", async () => {
+      const input = `
+File path: ./src/files/readJson.ts
+<code>
+export function readJson() {}
+</code>
+
+Some content here which should be ignored.
+
+File path:./src/files/writeJson.ts
+<code>
+export function writeJson() {}
+</code>
+
+More content here to be ignored.
+`;
+      const result = await fileBlockParser(input, "", xmlElement, mockConfig);
+      expect(result).toEqual([
+        {
+          path: "./src/files/readJson.ts",
+          contents: "export function readJson() {}",
+        },
+        {
+          path: "./src/files/writeJson.ts",
+          contents: "export function writeJson() {}",
+        },
+      ]);
+    });
+
+    it("ignores incomplete code blocks missing closing tags", async () => {
+      const input = `
+File path:./src/files/readJson.ts
+<code>
+file 1 contents
+</code>
+
+File path:./src/files/another.ts
+<code>
+file 2 partial
+
+File 2 should not be parsed since the closing tag is missing.
+    `;
+
+      const result = await fileBlockParser(input, "", xmlElement, mockConfig);
+      expect(result).toEqual([
+        {
+          path: "./src/files/readJson.ts",
+          contents: "file 1 contents",
+        },
+        // No entry for ./src/files/another.ts because it's missing closing tag
+      ]);
+    });
+
+    it("ignores XML blocks without a preceding file path", async () => {
+      const input = `
+Some random content
+<code>
+export function readJson() {}
+</code>
+
+File path:./src/files/writeJson.ts
+<code>
+export function writeJson() {}
+</code>
+`;
+      const result = await fileBlockParser(input, "", xmlElement, mockConfig);
+      expect(result).toEqual([
+        {
+          path: "./src/files/writeJson.ts",
+          contents: "export function writeJson() {}",
+        },
+      ]);
+    });
+
+    it("handles self-closing and empty XML tags", async () => {
+      const input = `
+File path:./src/files/empty1.ts
+<code />
+
+File path:./src/files/empty2.ts
+<code></code>
+
+File path:./src/files/content.ts
+<code>
+actual content
+</code>
+`;
+      const result = await fileBlockParser(input, "", xmlElement, mockConfig);
+      expect(result).toEqual([
+        {
+          path: "./src/files/content.ts",
+          contents: "actual content",
+        },
+      ]);
+    });
+
+    it("works with different XML element names", async () => {
+      const customElement = "source";
+      const input = `
+File path:./src/files/test.ts
+<source>
+export function test() {}
+</source>
+`;
+      const result = await fileBlockParser(
+        input,
+        "",
+        customElement,
+        mockConfig
+      );
+      expect(result).toEqual([
+        {
+          path: "./src/files/test.ts",
+          contents: "export function test() {}",
+        },
+      ]);
+    });
   });
 });
