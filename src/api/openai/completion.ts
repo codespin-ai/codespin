@@ -87,8 +87,8 @@ export async function completion(
   let finishReason: OpenAI.Chat.Completions.ChatCompletionChunk.Choice["finish_reason"] =
     null;
 
-  const streamingFileResponseCallback = options.fileStreamCallback
-    ? createStreamingFileParser(options.fileStreamCallback)
+  const streamingFileResponseCallback = options.fileResultStreamCallback
+    ? createStreamingFileParser(options.fileResultStreamCallback)
     : undefined;
 
   for await (const chunk of stream) {

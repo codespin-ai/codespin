@@ -74,8 +74,8 @@ export async function completion(
     });
   }
 
-  const streamingFileResponseCallback = options.fileStreamCallback
-    ? createStreamingFileParser(options.fileStreamCallback)
+  const streamingFileResponseCallback = options.fileResultStreamCallback
+    ? createStreamingFileParser(options.fileResultStreamCallback)
     : undefined;
 
   stream.on("text", (text) => {

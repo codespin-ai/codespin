@@ -48,7 +48,7 @@ export type GenerateArgs = {
   multi?: number;
   responseCallback?: (text: string) => Promise<void>;
   responseStreamCallback?: (text: string) => void;
-  fileStreamCallback?: (data: StreamingFileParseResult) => void;
+  fileResultStreamCallback?: (data: StreamingFileParseResult) => void;
   promptCallback?: (prompt: string) => Promise<void>;
   parseCallback?: (files: GeneratedSourceFile[]) => Promise<void>;
   cancelCallback?: (cancel: () => void) => void;
@@ -208,7 +208,7 @@ export async function generate(
       model,
       maxTokens,
       responseStreamCallback: args.responseStreamCallback,
-      fileStreamCallback: args.fileStreamCallback,
+      fileResultStreamCallback: args.fileResultStreamCallback,
       cancelCallback: (cancel) => {
         cancelCompletion = cancel;
       },

@@ -6,5 +6,5 @@ export type CompletionOptions = {
   maxTokens: number | undefined;
   cancelCallback?: (cancel: () => void) => void;
   responseStreamCallback?: (data: string) => void;
-  fileStreamCallback?: (data: StreamingFileParseResult) => void;
+  fileResultStreamCallback?: (data: StreamingFileParseResult) => void;
 };
