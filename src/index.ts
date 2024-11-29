@@ -360,8 +360,4 @@ function writeToConsole(text?: string) {
   console.log(text ?? "");
 }
 
-function errorToConsole(text?: string) {
-  console.error(text ?? "");
-}
-
 main();

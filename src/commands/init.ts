@@ -15,6 +15,7 @@ import { writeToFile } from "../fs/writeToFile.js";
 import { getGitRoot } from "../git/getGitRoot.js";
 import { CodeSpinConfig } from "../settings/CodeSpinConfig.js";
 import { exception } from "../exception.js";
+import { writeError } from "../console.js";
 
 export type InitArgs = {
   force?: boolean;
@@ -96,7 +97,7 @@ export async function init(
         JSON.stringify(DEFAULT_OPENAI_CONFIG, null, 2)
       );
     } else {
-      console.log(
+      writeError(
         "Existing openai.json found - not overwriting. You may delete this file to overwrite."
       );
     }
@@ -107,7 +108,7 @@ export async function init(
         JSON.stringify(DEFAULT_ANTHROPIC_CONFIG, null, 2)
       );
     } else {
-      console.log(
+      writeError(
         "Existing anthropic.json found - not overwriting. You may delete this file to overwrite."
       );
     }

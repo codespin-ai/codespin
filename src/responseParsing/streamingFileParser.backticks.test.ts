@@ -29,6 +29,7 @@ More markdown`;
         { type: "text", content: input },
         { type: "markdown", content: "Some markdown text\n" },
         { type: "start-file-block", path: "./src/test.ts" },
+        { type: "text", content: "const x = 1;" },
         {
           type: "end-file-block",
           file: { path: "./src/test.ts", content: "const x = 1;" },
@@ -48,6 +49,7 @@ More markdown`;
         { type: "text", content: "c/test.ts\n```type" },
         { type: "text", content: "script\nconst x" },
         { type: "start-file-block", path: "./src/test.ts" },
+        { type: "text", content: "const x" },
         { type: "text", content: " = 1;\n```\n" },
         {
           type: "end-file-block",
@@ -75,6 +77,10 @@ const second = false;
         { type: "text", content: input },
         { type: "start-file-block", path: "./src/first.ts" },
         {
+          type: "text",
+          content: "const first = true;",
+        },
+        {
           type: "end-file-block",
           file: { path: "./src/first.ts", content: "const first = true;" },
         },
@@ -85,6 +91,7 @@ const second = false;
         },
         { type: "markdown", content: "Some markdown in between\n" },
         { type: "start-file-block", path: "./src/second.ts" },
+        { type: "text", content: "const second = false;" },
         {
           type: "end-file-block",
           file: { path: "./src/second.ts", content: "const second = false;" },
@@ -105,6 +112,7 @@ const x = 1;
       const expected: StreamingFileParseResult[] = [
         { type: "text", content: input },
         { type: "start-file-block", path: "./src/test.ts" },
+        { type: "text", content: "const x = 1;" },
         {
           type: "end-file-block",
           file: { path: "./src/test.ts", content: "const x = 1;" },
@@ -125,6 +133,7 @@ const x = 1;
       const expected: StreamingFileParseResult[] = [
         { type: "text", content: input },
         { type: "start-file-block", path: "./src/empty.ts" },
+        { type: "text", content: "" },
         {
           type: "end-file-block",
           file: { path: "./src/empty.ts", content: "" },
@@ -153,7 +162,7 @@ const x = 1;
       parser("File path: ./src/first.ts\n```\nconst x = 1;```\n");
       parser("Some markdown *with* ");
       parser("**formatting** and a [link](http://example.com)\n");
-      parser("File path: ./src/second.ts\n```\nconst y = 2;```");
+      parser("File path: ./src/second.ts\n```\nconst y = 2;\n```");
 
       const expected: StreamingFileParseResult[] = [
         {
@@ -161,6 +170,7 @@ const x = 1;
           content: "File path: ./src/first.ts\n```\nconst x = 1;```\n",
         },
         { type: "start-file-block", path: "./src/first.ts" },
+        { type: "text", content: "const x = 1;" },
         {
           type: "end-file-block",
           file: { path: "./src/first.ts", content: "const x = 1;" },
@@ -172,7 +182,7 @@ const x = 1;
         },
         {
           type: "text",
-          content: "File path: ./src/second.ts\n```\nconst y = 2;```",
+          content: "File path: ./src/second.ts\n```\nconst y = 2;\n```",
         },
         {
           type: "markdown",
@@ -180,6 +190,7 @@ const x = 1;
             "Some markdown *with* **formatting** and a [link](http://example.com)\n",
         },
         { type: "start-file-block", path: "./src/second.ts" },
+        { type: "text", content: "const y = 2;" },
         {
           type: "end-file-block",
           file: { path: "./src/second.ts", content: "const y = 2;" },
@@ -200,9 +211,11 @@ const x = 1;
           type: "text",
           content: input,
         },
+        { type: "start-file-block", path: "./src/first.ts" },
         {
-          type: "start-file-block",
-          path: "./src/first.ts",
+          type: "text",
+          content:
+            "const x = 1;",
         },
         {
           type: "end-file-block",
@@ -212,10 +225,8 @@ const x = 1;
           type: "text",
           content: "File path: ./src/second.ts\n```\nconst y = 2;```",
         },
-        {
-          type: "start-file-block",
-          path: "./src/second.ts",
-        },
+        { type: "start-file-block", path: "./src/second.ts" },
+        { type: "text", content: "const y = 2;" },
         {
           type: "end-file-block",
           file: { path: "./src/second.ts", content: "const y = 2;" },
@@ -235,6 +246,7 @@ const x = 1;
           content: "File path: ./src/test.ts\n```\nconst x = 1;``",
         },
         { type: "start-file-block", path: "./src/test.ts" },
+        { type: "text", content: "const x = 1;``" },
         { type: "text", content: "`\n" },
         {
           type: "end-file-block",
@@ -255,6 +267,7 @@ const x = 1;
         { type: "text", content: "path:" },
         { type: "text", content: " ./src/test.ts\n```\nconst x = 1;```" },
         { type: "start-file-block", path: "./src/test.ts" },
+        { type: "text", content: "const x = 1;" },
         {
           type: "end-file-block",
           file: { path: "./src/test.ts", content: "const x = 1;" },
@@ -345,6 +358,7 @@ const x = 1;
         { type: "text", content: "File path: ./src/a.ts\n``" },
         { type: "text", content: "`\nconst x = 1;``" },
         { type: "start-file-block", path: "./src/a.ts" },
+        { type: "text", content: "const x = 1;``" },
         { type: "text", content: "`\nFi" },
         {
           type: "end-file-block",
@@ -373,8 +387,12 @@ const x = 1;
 
       const expected: StreamingFileParseResult[] = [
         { type: "text", content: "File pa" },
-        { type: "text", content: "th: ./src/a.ts\n```\nconst x = 1;```\n" },
+        {
+          type: "text",
+          content: "th: ./src/a.ts\n```\nconst x = 1;```\n",
+        },
         { type: "start-file-block", path: "./src/a.ts" },
+        { type: "text", content: "const x = 1;" },
         {
           type: "end-file-block",
           file: { path: "./src/a.ts", content: "const x = 1;" },
@@ -382,6 +400,7 @@ const x = 1;
         { type: "text", content: "File path: ./src/b.ts\n``" },
         { type: "text", content: "`\nconst y = 2;```" },
         { type: "start-file-block", path: "./src/b.ts" },
+        { type: "text", content: "const y = 2;" },
         {
           type: "end-file-block",
           file: { path: "./src/b.ts", content: "const y = 2;" },

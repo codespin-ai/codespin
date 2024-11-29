@@ -1,10 +1,10 @@
 {
   "name": "codespin",
-  "version": "0.0.238",
+  "version": "0.0.239",
   "description": "Source code generation with LLM prompts",
   "main": "dist/index.js",
   "scripts": {
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --",
     "build": "rm -rf dist && npx tsc"
   },
   "bin": {

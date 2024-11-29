@@ -9,7 +9,7 @@ export type StreamingFileParseResult =
 // Regex to match the start of a file block with backticks
 const startFileRegexBackticks =
   /File path:\s*(\.\/[\w./-]+)\s*\n\s*```(?:\w*)\n/g;
-  
+
 // Regex to match the end of a file block with backticks
 const endFileRegexBackticks = /\s*```\n?/g;
 
@@ -80,6 +80,22 @@ export function createStreamingFileParser(
 
           // Update the buffer to remove the processed part
           buffer = buffer.slice(matchEndIndex);
+
+          // Emit the remaining as "text", but only up to the end marker if found
+          if (buffer.length) {
+            endFileRegex.lastIndex = 0;
+            const endMatch = endFileRegex.exec(buffer);
+
+            if (endMatch) {
+              callback({
+                type: "text",
+                content: buffer.slice(0, endMatch.index),
+              });
+            } else {
+              callback({ type: "text", content: buffer });
+            }
+          }
+
           insideFileBlock = true;
 
           // Continue the loop to check for more matches
