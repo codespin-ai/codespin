@@ -384,13 +384,13 @@ function updateFiles(
   newFiles: SourceFile[]
 ) {
   for (const file of newFiles) {
-    files[file.path] = file.contents;
+    files[file.path] = file.content;
   }
 }
 
 function toSourceFileList(files: { [path: string]: string }): SourceFile[] {
   return Object.keys(files).map((x) => ({
     path: x,
-    contents: files[x],
+    content: files[x],
   }));
 }

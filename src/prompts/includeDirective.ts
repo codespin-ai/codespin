@@ -4,7 +4,7 @@ import path from "path";
 import { resolvePathInProject } from "../fs/resolvePath.js";
 
 export async function includeDirective(
-  contents: string,
+  content: string,
   promptFilePath: string | undefined,
   workingDir: string
 ): Promise<string> {
@@ -12,7 +12,7 @@ export async function includeDirective(
   let match;
 
   // Using a while loop to iterate through all matches
-  while ((match = includePattern.exec(contents)) !== null) {
+  while ((match = includePattern.exec(content)) !== null) {
     const includedPath = match[1];
 
     const fullPath = await resolvePathInProject(
@@ -31,8 +31,8 @@ export async function includeDirective(
     );
 
     // Replace the matched pattern with the included content
-    contents = contents.replace(match[0], includedContent);
+    content = content.replace(match[0], includedContent);
   }
 
-  return contents;
+  return content;
 }

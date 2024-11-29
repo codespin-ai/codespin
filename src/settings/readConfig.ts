@@ -51,8 +51,8 @@ export async function readConfig<T>(
   );
 
   if (filePath) {
-    const fileContents = await fs.readFile(filePath, "utf8");
-    return { config: JSON.parse(fileContents), filePath: filePath };
+    const fileContent = await fs.readFile(filePath, "utf8");
+    return { config: JSON.parse(fileContent), filePath: filePath };
   } else {
     const homeConfigPath = (await pathExists(
       path.join(homedir(), CODESPIN_DIRNAME, pathFragment)

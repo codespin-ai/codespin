@@ -3,7 +3,7 @@ import path from "path";
 import { execString } from "../process/execString.js";
 
 export async function execDirective(
-  contents: string,
+  content: string,
   promptFilePath: string | undefined,
   workingDir: string
 ): Promise<string> {
@@ -11,7 +11,7 @@ export async function execDirective(
   let match;
 
   // Using a while loop to iterate through all matches
-  while ((match = execPattern.exec(contents)) !== null) {
+  while ((match = execPattern.exec(content)) !== null) {
     const command = match[1];
 
     const commandDir = promptFilePath
@@ -21,8 +21,8 @@ export async function execDirective(
     const commandOutput = await execString(command, commandDir);
 
     // Replace the matched pattern with the command output
-    contents = contents.replace(match[0], commandOutput);
+    content = content.replace(match[0], commandOutput);
   }
 
-  return contents;
+  return content;
 }

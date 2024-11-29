@@ -8,10 +8,10 @@ export async function readPrompt(
   workingDir: string
 ): Promise<string> {
   if (promptFile) {
-    const promptFileContents = await readFile(promptFile, "utf-8");
+    const promptFileContent = await readFile(promptFile, "utf-8");
 
     const prompt = await processPrompt(
-      promptFileContents,
+      promptFileContent,
       promptFile,
       workingDir
     );

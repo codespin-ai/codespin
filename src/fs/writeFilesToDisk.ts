@@ -14,7 +14,7 @@ export async function writeFilesToDisk(
     sourceFiles.map(async (file) => {
       const generatedFilePath = path.resolve(outDir, file.path);
       await ensureDirExists(generatedFilePath);
-      await writeFile(generatedFilePath, file.contents);
+      await writeFile(generatedFilePath, file.content);
 
       if (exec) {
         await execString(`${exec} ${generatedFilePath}`, workingDir);

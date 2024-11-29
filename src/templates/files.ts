@@ -39,8 +39,8 @@ function printIncludeFiles(
     const text =
       printLine(
         useLineNumbers
-          ? "Contents of files (with line numbers added) are included below."
-          : "Contents of files are included below.",
+          ? "Content of files (with line numbers added) are included below."
+          : "Content of files are included below.",
         true
       ) +
       includes
@@ -68,12 +68,12 @@ function printIncludeFiles(
 
             return text;
           } else {
-            if (file.contents && file.contents.trim().length > 0) {
+            if (file.content && file.content.trim().length > 0) {
               const text =
                 printLine(`File path:${relativePath(file.path, workingDir)}`) +
                 printLine("```") +
                 printLine(
-                  useLineNumbers ? addLineNumbers(file.contents) : file.contents
+                  useLineNumbers ? addLineNumbers(file.content) : file.content
                 ) +
                 printLine("```", true);
 

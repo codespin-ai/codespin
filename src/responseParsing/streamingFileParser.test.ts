@@ -31,7 +31,7 @@ More markdown`;
         { type: "start-file-block", path: "./src/test.ts" },
         {
           type: "end-file-block",
-          file: { path: "./src/test.ts", contents: "const x = 1;" },
+          file: { path: "./src/test.ts", content: "const x = 1;" },
         },
         { type: "text", content: "More markdown" },
       ]);
@@ -66,7 +66,7 @@ More markdown`;
         { type: "text", content: " = 1;\n```\n" },
         {
           type: "end-file-block",
-          file: { path: "./src/test.ts", contents: "const x = 1;" },
+          file: { path: "./src/test.ts", content: "const x = 1;" },
         },
       ]);
     });
@@ -89,7 +89,7 @@ const second = false;
         { type: "start-file-block", path: "./src/first.ts" },
         {
           type: "end-file-block",
-          file: { path: "./src/first.ts", contents: "const first = true;" },
+          file: { path: "./src/first.ts", content: "const first = true;" },
         },
         {
           type: "text",
@@ -100,7 +100,7 @@ const second = false;
         { type: "start-file-block", path: "./src/second.ts" },
         {
           type: "end-file-block",
-          file: { path: "./src/second.ts", contents: "const second = false;" },
+          file: { path: "./src/second.ts", content: "const second = false;" },
         },
       ];
 
@@ -120,14 +120,14 @@ const x = 1;
         { type: "start-file-block", path: "./src/test.ts" },
         {
           type: "end-file-block",
-          file: { path: "./src/test.ts", contents: "const x = 1;" },
+          file: { path: "./src/test.ts", content: "const x = 1;" },
         },
       ];
 
       expect(results).toEqual(expected);
     });
 
-    test("handles empty file contents", () => {
+    test("handles empty file content", () => {
       const input = `File path: ./src/empty.ts
   \`\`\`typescript
 
@@ -140,7 +140,7 @@ const x = 1;
         { type: "start-file-block", path: "./src/empty.ts" },
         {
           type: "end-file-block",
-          file: { path: "./src/empty.ts", contents: "" },
+          file: { path: "./src/empty.ts", content: "" },
         },
       ];
 
@@ -188,7 +188,7 @@ const x = 1;
         },
         {
           type: "end-file-block",
-          file: { path: "./src/first.ts", contents: "const x = 1;" },
+          file: { path: "./src/first.ts", content: "const x = 1;" },
         },
         {
           type: "text",
@@ -200,7 +200,7 @@ const x = 1;
         },
         {
           type: "end-file-block",
-          file: { path: "./src/second.ts", contents: "const y = 2;" },
+          file: { path: "./src/second.ts", content: "const y = 2;" },
         },
       ]);
     });
@@ -211,7 +211,7 @@ const x = 1;
 
       expect(results).toContainEqual({
         type: "end-file-block",
-        file: { path: "./src/test.ts", contents: "const x = 1;" },
+        file: { path: "./src/test.ts", content: "const x = 1;" },
       });
     });
 
@@ -222,7 +222,7 @@ const x = 1;
 
       expect(results).toContainEqual({
         type: "end-file-block",
-        file: { path: "./src/test.ts", contents: "const x = 1;" },
+        file: { path: "./src/test.ts", content: "const x = 1;" },
       });
     });
 
@@ -244,7 +244,7 @@ const x = 1;
 
       expect(results).toContainEqual({
         type: "end-file-block",
-        file: { path: "./src/test.ts", contents: "const x = 1;" },
+        file: { path: "./src/test.ts", content: "const x = 1;" },
       });
     });
 
@@ -259,7 +259,7 @@ const x = 1;
 
       expect(results).toContainEqual({
         type: "end-file-block",
-        file: { path: "./src/test.ts", contents: "const x = 1;" },
+        file: { path: "./src/test.ts", content: "const x = 1;" },
       });
     });
 
@@ -274,11 +274,11 @@ const x = 1;
 
       expect(results).toContainEqual({
         type: "end-file-block",
-        file: { path: "./src/a.ts", contents: "const x = 1;" },
+        file: { path: "./src/a.ts", content: "const x = 1;" },
       });
       expect(results).toContainEqual({
         type: "end-file-block",
-        file: { path: "./src/b.ts", contents: "const y = 2;" },
+        file: { path: "./src/b.ts", content: "const y = 2;" },
       });
     });
 
@@ -290,11 +290,11 @@ const x = 1;
 
       expect(results).toContainEqual({
         type: "end-file-block",
-        file: { path: "./src/a.ts", contents: "const x = 1;" },
+        file: { path: "./src/a.ts", content: "const x = 1;" },
       });
       expect(results).toContainEqual({
         type: "end-file-block",
-        file: { path: "./src/b.ts", contents: "const y = 2;" },
+        file: { path: "./src/b.ts", content: "const y = 2;" },
       });
     });
   });
@@ -326,7 +326,7 @@ More markdown`;
         { type: "start-file-block", path: "./src/test.ts" },
         {
           type: "end-file-block",
-          file: { path: "./src/test.ts", contents: "const x = 1;" },
+          file: { path: "./src/test.ts", content: "const x = 1;" },
         },
         { type: "text", content: "More markdown" },
       ]);
@@ -359,7 +359,7 @@ More markdown`;
         { type: "text", content: " = 1;</code>\n" },
         {
           type: "end-file-block",
-          file: { path: "./src/test.ts", contents: "const x = 1;" },
+          file: { path: "./src/test.ts", content: "const x = 1;" },
         },
       ]);
     });
@@ -382,7 +382,7 @@ const second = false;
         { type: "start-file-block", path: "./src/first.ts" },
         {
           type: "end-file-block",
-          file: { path: "./src/first.ts", contents: "const first = true;" },
+          file: { path: "./src/first.ts", content: "const first = true;" },
         },
         {
           type: "text",
@@ -393,14 +393,14 @@ const second = false;
         { type: "start-file-block", path: "./src/second.ts" },
         {
           type: "end-file-block",
-          file: { path: "./src/second.ts", contents: "const second = false;" },
+          file: { path: "./src/second.ts", content: "const second = false;" },
         },
       ];
 
       expect(results).toEqual(expected);
     });
 
-    test("handles empty file contents", () => {
+    test("handles empty file content", () => {
       const input = `File path: ./src/empty.ts
   <code>
   
@@ -413,7 +413,7 @@ const second = false;
         { type: "start-file-block", path: "./src/empty.ts" },
         {
           type: "end-file-block",
-          file: { path: "./src/empty.ts", contents: "" },
+          file: { path: "./src/empty.ts", content: "" },
         },
       ];
 
@@ -461,7 +461,7 @@ const second = false;
         },
         {
           type: "end-file-block",
-          file: { path: "./src/first.ts", contents: "const x = 1;" },
+          file: { path: "./src/first.ts", content: "const x = 1;" },
         },
         {
           type: "text",
@@ -473,7 +473,7 @@ const second = false;
         },
         {
           type: "end-file-block",
-          file: { path: "./src/second.ts", contents: "const y = 2;" },
+          file: { path: "./src/second.ts", content: "const y = 2;" },
         },
       ];
 
@@ -487,7 +487,7 @@ const second = false;
 
       expect(results).toContainEqual({
         type: "end-file-block",
-        file: { path: "./src/test.ts", contents: "const x = 1;" },
+        file: { path: "./src/test.ts", content: "const x = 1;" },
       });
     });
 
@@ -505,7 +505,7 @@ const second = false;
       parser(input);
       expect(results).toContainEqual({
         type: "end-file-block",
-        file: { path: "./src/test.ts", contents: "const x = 1;" },
+        file: { path: "./src/test.ts", content: "const x = 1;" },
       });
     });
 
@@ -536,7 +536,7 @@ const second = false;
 
       expect(results).toContainEqual({
         type: "end-file-block",
-        file: { path: "./src/test.ts", contents: "const x = 1;" },
+        file: { path: "./src/test.ts", content: "const x = 1;" },
       });
     });
 
@@ -559,7 +559,7 @@ const second = false;
 
       expect(results).toContainEqual({
         type: "end-file-block",
-        file: { path: "./src/test.ts", contents: "const x = 1;" },
+        file: { path: "./src/test.ts", content: "const x = 1;" },
       });
     });
 
@@ -574,7 +574,7 @@ const second = false;
 
       expect(results).toContainEqual({
         type: "end-file-block",
-        file: { path: "./src/test.ts", contents: "const x = 1;" },
+        file: { path: "./src/test.ts", content: "const x = 1;" },
       });
     });
 
@@ -589,11 +589,11 @@ const second = false;
 
       expect(results).toContainEqual({
         type: "end-file-block",
-        file: { path: "./src/a.ts", contents: "const x = 1;" },
+        file: { path: "./src/a.ts", content: "const x = 1;" },
       });
       expect(results).toContainEqual({
         type: "end-file-block",
-        file: { path: "./src/b.ts", contents: "const y = 2;" },
+        file: { path: "./src/b.ts", content: "const y = 2;" },
       });
     });
   });

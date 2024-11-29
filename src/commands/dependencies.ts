@@ -105,7 +105,7 @@ export async function dependencies(
 
     if (completionResult.ok) {
       const dependencies = JSON.parse(
-        extractFromMarkdownCodeBlock(completionResult.message, true).contents
+        extractFromMarkdownCodeBlock(completionResult.message, true).content
       ) as Dependency[];
 
       // Fix language specific quirks here.

@@ -2,18 +2,18 @@
 import { promises as fs } from "fs";
 
 /**
- * Writes the specified contents to a file.
+ * Writes the specified content to a file.
  * @param path - The path to the file.
- * @param contents - The contents to write.
+ * @param content - The content to write.
  */
 export async function writeToFile(
   path: string,
-  contents: string,
+  content: string,
   append: boolean
 ): Promise<void> {
   if (!append) {
-    await fs.writeFile(path, contents, "utf-8");
+    await fs.writeFile(path, content, "utf-8");
   } else {
-    await fs.appendFile(path, contents);
+    await fs.appendFile(path, content);
   }
 }

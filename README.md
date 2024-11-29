@@ -332,14 +332,14 @@ export type TemplateArgs = {
 
 export type SourceFile = {
   path: string;
-  contents: string;
+  content: string;
 };
 
 export type VersionedFileInfo =
   | {
       path: string;
-      type: "contents";
-      contents: string;
+      type: "content";
+      content: string;
       version: string;
     }
   | {

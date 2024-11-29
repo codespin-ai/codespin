@@ -111,7 +111,7 @@ export function createStreamingFileParser(
           // Emit the end of the file block with the correct path
           const sourceFile: SourceFile = {
             path: currentFilePath,
-            contents: fileContent.trim(), // Also trim any extra whitespace
+            content: fileContent.trim(), // Also trim any extra whitespace
           };
           callback({ type: "end-file-block", file: sourceFile });
 

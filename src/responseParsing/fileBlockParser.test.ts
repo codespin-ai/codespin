@@ -16,7 +16,7 @@ export function readJson() {}
       expect(result).toEqual([
         {
           path: "./src/files/readJson.ts",
-          contents: "export function readJson() {}",
+          content: "export function readJson() {}",
         },
       ]);
     });
@@ -32,7 +32,7 @@ export function readJson() {}
       expect(result).toEqual([
         {
           path: "./src/files/readJson.ts",
-          contents: "export function readJson() {}",
+          content: "export function readJson() {}",
         },
       ]);
     });
@@ -48,7 +48,7 @@ export function readJson() {}
       expect(result).toEqual([
         {
           path: "./src/files/readJson.ts",
-          contents: "export function readJson() {}",
+          content: "export function readJson() {}",
         },
       ]);
     });
@@ -68,11 +68,11 @@ export function writeJson() {}
       expect(result).toEqual([
         {
           path: "./src/files/readJson.ts",
-          contents: "export function readJson() {}",
+          content: "export function readJson() {}",
         },
         {
           path: "./src/files/writeJson.ts",
-          contents: "export function writeJson() {}",
+          content: "export function writeJson() {}",
         },
       ]);
     });
@@ -101,11 +101,11 @@ export function writeJson() {}
       expect(result).toEqual([
         {
           path: "./src/files/readJson.ts",
-          contents: "export function readJson() {}",
+          content: "export function readJson() {}",
         },
         {
           path: "./src/files/writeJson.ts",
-          contents: "export function writeJson() {}",
+          content: "export function writeJson() {}",
         },
       ]);
     });
@@ -130,11 +130,11 @@ More content here to be ignored.
       expect(result).toEqual([
         {
           path: "./src/files/readJson.ts",
-          contents: "export function readJson() {}",
+          content: "export function readJson() {}",
         },
         {
           path: "./src/files/writeJson.ts",
-          contents: "export function writeJson() {}",
+          content: "export function writeJson() {}",
         },
       ]);
     });
@@ -157,7 +157,7 @@ File 2 should not be parsed since the closing triple backticks are missing.
       expect(result).toEqual([
         {
           path: "./src/files/readJson.ts",
-          contents: "file 1 contents",
+          content: "file 1 contents",
         },
         // No entry for ./src/files/another.ts because it's missing closing backticks
       ]);
@@ -178,7 +178,7 @@ export function readJson() {}
       expect(result).toEqual([
         {
           path: "./src/files/readJson.ts",
-          contents: "export function readJson() {}",
+          content: "export function readJson() {}",
         },
       ]);
     });
@@ -194,7 +194,7 @@ export function readJson() {}
       expect(result).toEqual([
         {
           path: "./src/files/readJson.ts",
-          contents: "export function readJson() {}",
+          content: "export function readJson() {}",
         },
       ]);
     });
@@ -214,11 +214,11 @@ export function writeJson() {}
       expect(result).toEqual([
         {
           path: "./src/files/readJson.ts",
-          contents: "export function readJson() {}",
+          content: "export function readJson() {}",
         },
         {
           path: "./src/files/writeJson.ts",
-          contents: "export function writeJson() {}",
+          content: "export function writeJson() {}",
         },
       ]);
     });
@@ -247,11 +247,11 @@ export function writeJson() {}
       expect(result).toEqual([
         {
           path: "./src/files/readJson.ts",
-          contents: "export function readJson() {}",
+          content: "export function readJson() {}",
         },
         {
           path: "./src/files/writeJson.ts",
-          contents: "export function writeJson() {}",
+          content: "export function writeJson() {}",
         },
       ]);
     });
@@ -276,11 +276,11 @@ More content here to be ignored.
       expect(result).toEqual([
         {
           path: "./src/files/readJson.ts",
-          contents: "export function readJson() {}",
+          content: "export function readJson() {}",
         },
         {
           path: "./src/files/writeJson.ts",
-          contents: "export function writeJson() {}",
+          content: "export function writeJson() {}",
         },
       ]);
     });
@@ -303,7 +303,7 @@ File 2 should not be parsed since the closing tag is missing.
       expect(result).toEqual([
         {
           path: "./src/files/readJson.ts",
-          contents: "file 1 contents",
+          content: "file 1 contents",
         },
         // No entry for ./src/files/another.ts because it's missing closing tag
       ]);
@@ -325,7 +325,7 @@ export function writeJson() {}
       expect(result).toEqual([
         {
           path: "./src/files/writeJson.ts",
-          contents: "export function writeJson() {}",
+          content: "export function writeJson() {}",
         },
       ]);
     });
@@ -347,7 +347,7 @@ actual content
       expect(result).toEqual([
         {
           path: "./src/files/content.ts",
-          contents: "actual content",
+          content: "actual content",
         },
       ]);
     });
@@ -369,7 +369,7 @@ export function test() {}
       expect(result).toEqual([
         {
           path: "./src/files/test.ts",
-          contents: "export function test() {}",
+          content: "export function test() {}",
         },
       ]);
     });

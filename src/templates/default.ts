@@ -100,7 +100,7 @@ function printFileTemplate(args: TemplateArgs, config: CodeSpinConfig) {
   source code for ipsum.ext goes here...
   ${delimiters.end}
 
-  You must respond with the complete contents of each file. DO NOT omit any line.
+  You must respond with the complete content of each file. DO NOT omit any line.
   `;
 
   return printLine(trimWhitespace(tmpl), true);
@@ -119,8 +119,8 @@ function printIncludeFiles(
     const text =
       printLine(
         useLineNumbers
-          ? "Contents of files (with line numbers added) are included below."
-          : "Contents of files are included below.",
+          ? "Content of files (with line numbers added) are included below."
+          : "Content of files are included below.",
         true
       ) +
       includes
@@ -148,12 +148,12 @@ function printIncludeFiles(
 
             return text;
           } else {
-            if (file.contents && file.contents.trim().length > 0) {
+            if (file.content && file.content.trim().length > 0) {
               const text =
                 printLine(`File path:${relativePath(file.path, workingDir)}`) +
                 printLine(delimiters.start) +
                 printLine(
-                  useLineNumbers ? addLineNumbers(file.contents) : file.contents
+                  useLineNumbers ? addLineNumbers(file.content) : file.content
                 ) +
                 printLine(delimiters.end, true);
 
@@ -184,11 +184,11 @@ function printGeneratedFiles(
       ) +
       generatedFiles
         .map((file) => {
-          if (file.contents && file.contents.trim().length > 0) {
+          if (file.content && file.content.trim().length > 0) {
             const text =
               printLine(`File path:${relativePath(file.path, workingDir)}`) +
               printLine(delimiters.start) +
-              printLine(file.contents) +
+              printLine(file.content) +
               printLine(delimiters.end, true);
 
             return text;

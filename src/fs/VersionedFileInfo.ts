@@ -1,8 +1,8 @@
 export type VersionedFileInfo =
   | {
       path: string;
-      type: "contents";
-      contents: string;
+      type: "content";
+      content: string;
       version: string;
     }
   | {

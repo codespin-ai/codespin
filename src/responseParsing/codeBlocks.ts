@@ -2,7 +2,7 @@ import { exception } from "../exception.js";
 
 type CodeBlockInfo = {
   language?: string;
-  contents: string;
+  content: string;
 };
 
 export function extractFromMarkdownCodeBlock(
@@ -14,12 +14,12 @@ export function extractFromMarkdownCodeBlock(
   return match && match.length === 3
     ? {
         language: match[1] ? match[1].trim() : undefined, // Capture the optional language identifier
-        contents: match[2].trim(), // Capture the code block contents
+        content: match[2].trim(), // Capture the code block contents
       }
     : isOptional
     ? {
         language: undefined,
-        contents: input,
+        content: input,
       }
     : exception("MISSING_CODE_BLOCK", "No valid markdown code block found.");
 }

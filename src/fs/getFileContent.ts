@@ -40,18 +40,18 @@ export async function getVersionedFileInfo(
           })()
         : {
             path: filePath,
-            contents: await getFileFromCommit(
+            content: await getFileFromCommit(
               filePath,
               versionOrDiff,
               workingDir
             ),
-            type: "contents",
+            type: "content",
             version: versionOrDiff,
           }
       : {
           path: filePath,
-          contents: await readFile(filePath, "utf-8"),
-          type: "contents",
+          content: await readFile(filePath, "utf-8"),
+          type: "content",
           version: "current",
         };
   } else {

@@ -1,4 +1,4 @@
 export type BasicFileInfo = {
   path: string;
-  contents: string;
+  content: string;
 };

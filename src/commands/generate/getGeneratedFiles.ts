@@ -17,7 +17,7 @@ export async function getGeneratedFiles(
         original: originalExists
           ? (await readFile(originalPath)).toString()
           : undefined,
-        generated: file.contents,
+        generated: file.content,
       };
     })
   );

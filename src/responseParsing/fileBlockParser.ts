@@ -8,9 +8,9 @@ export async function fileBlockParser(
   config: CodeSpinConfig
 ): Promise<SourceFile[]> {
   if (xmlCodeBlockElement) {
-    return parseXmlContents(response, xmlCodeBlockElement);
+    return parseXmlContent(response, xmlCodeBlockElement);
   }
-  return parseFileContents(response);
+  return parseFileContent(response);
 }
 
 const filePathRegex =
@@ -19,7 +19,7 @@ const filePathRegex =
 // This regex captures anything that looks like "File path:./path" format
 const filePathExtractor = /File path:\s*(\.\/[\w./-]+)/;
 
-function parseFileContents(input: string): SourceFile[] {
+function parseFileContent(input: string): SourceFile[] {
   const results: SourceFile[] = [];
   let remainingInput = input;
 
@@ -27,10 +27,10 @@ function parseFileContents(input: string): SourceFile[] {
     const match = filePathRegex.exec(remainingInput);
     if (match) {
       const path = match[1]?.trim();
-      const contents = match[2]?.trim();
+      const content = match[2]?.trim();
 
-      if (path && contents) {
-        results.push({ path: path, contents: contents });
+      if (path && content) {
+        results.push({ path: path, content: content });
       }
 
       // Move the start position past the current match to search for the next block
@@ -45,7 +45,7 @@ function parseFileContents(input: string): SourceFile[] {
   return results;
 }
 
-function parseXmlContents(input: string, xmlElement: string): SourceFile[] {
+function parseXmlContent(input: string, xmlElement: string): SourceFile[] {
   const results: SourceFile[] = [];
 
   // Create a regex that matches the XML tags and captures their content
@@ -56,8 +56,8 @@ function parseXmlContents(input: string, xmlElement: string): SourceFile[] {
 
   let match;
   while ((match = xmlRegex.exec(input)) !== null) {
-    const contents = match[1]?.trim();
-    if (!contents) continue;
+    const content = match[1]?.trim();
+    if (!content) continue;
 
     // Split input into lines and look backwards from the match for the file path
     const upToMatch = input.substring(0, match.index);
@@ -77,7 +77,7 @@ function parseXmlContents(input: string, xmlElement: string): SourceFile[] {
     const pathMatch = filePathExtractor.exec(pathLine);
     if (pathMatch) {
       const path = pathMatch[1].trim();
-      results.push({ path, contents });
+      results.push({ path, content: content });
     }
   }
 

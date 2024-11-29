@@ -160,7 +160,7 @@ export async function main() {
             const header = `FILE: ${file.path}`;
             writeToConsole(header);
             writeToConsole("-".repeat(header.length));
-            writeToConsole(file.contents);
+            writeToConsole(file.content);
             writeToConsole();
           }
         } else if (result.type === "saved") {
@@ -238,7 +238,7 @@ export async function main() {
             const header = `FILE: ${file.path}`;
             writeToConsole(header);
             writeToConsole("-".repeat(header.length));
-            writeToConsole(file.contents);
+            writeToConsole(file.content);
             writeToConsole();
           }
         } else if (result.type === "saved") {

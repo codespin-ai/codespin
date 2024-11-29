@@ -4,13 +4,13 @@ import { removeFrontMatter } from "./removeFrontMatter.js";
 import { stdinDirective } from "./stdinDirective.js";
 
 export async function processPrompt(
-  contents: string,
+  content: string,
   filePath: string | undefined,
   workingDir: string
 ): Promise<string> {
   return await stdinDirective(
     await execDirective(
-      await includeDirective(removeFrontMatter(contents), filePath, workingDir),
+      await includeDirective(removeFrontMatter(content), filePath, workingDir),
       filePath,
       workingDir
     ),

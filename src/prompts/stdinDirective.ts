@@ -2,7 +2,7 @@ import { writeError } from "../console.js";
 import { getInvokeMode } from "../process/getInvokeMode.js";
 
 export async function stdinDirective(
-  contents: string,
+  content: string,
   workingDir: string
 ): Promise<string> {
   if (getInvokeMode() === "cli") {
@@ -23,9 +23,9 @@ export async function stdinDirective(
     }
 
     // Replace 'codespin:stdin' with the content piped into the process or empty string.
-    const replacedContents = contents.replace(/codespin:stdin/g, stdinContent);
-    return replacedContents;
+    const replacedContent = content.replace(/codespin:stdin/g, stdinContent);
+    return replacedContent;
   } else {
-    return contents;
+    return content;
   }
 }
