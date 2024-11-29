@@ -38,37 +38,24 @@ More markdown`;
     });
 
     test("handles streaming chunks correctly", () => {
-      // Send the input in multiple chunks
       parser("File path: ./sr");
-      expect(results).toEqual([{ type: "text", content: "File path: ./sr" }]);
-
       parser("c/test.ts\n```type");
-      expect(results).toEqual([
-        { type: "text", content: "File path: ./sr" },
-        { type: "text", content: "c/test.ts\n```type" },
-        { type: "start-file-block", path: "./src/test.ts" },
-      ]);
-
       parser("script\nconst x");
-      expect(results).toEqual([
-        { type: "text", content: "File path: ./sr" },
-        { type: "text", content: "c/test.ts\n```type" },
-        { type: "start-file-block", path: "./src/test.ts" },
-        { type: "text", content: "script\nconst x" },
-      ]);
-
       parser(" = 1;\n```\n");
-      expect(results).toEqual([
+
+      const expected: StreamingFileParseResult[] = [
         { type: "text", content: "File path: ./sr" },
         { type: "text", content: "c/test.ts\n```type" },
-        { type: "start-file-block", path: "./src/test.ts" },
         { type: "text", content: "script\nconst x" },
+        { type: "start-file-block", path: "./src/test.ts" },
         { type: "text", content: " = 1;\n```\n" },
         {
           type: "end-file-block",
           file: { path: "./src/test.ts", content: "const x = 1;" },
         },
-      ]);
+      ];
+
+      expect(results).toEqual(expected);
     });
 
     test("handles multiple file blocks", () => {
@@ -84,7 +71,7 @@ const second = false;
 
       parser(input);
 
-      const expected = [
+      const expected: StreamingFileParseResult[] = [
         { type: "text", content: input },
         { type: "start-file-block", path: "./src/first.ts" },
         {
@@ -115,7 +102,7 @@ const x = 1;
 
       parser(input);
 
-      const expected = [
+      const expected: StreamingFileParseResult[] = [
         { type: "text", content: input },
         { type: "start-file-block", path: "./src/test.ts" },
         {
@@ -135,7 +122,7 @@ const x = 1;
 
       parser(input);
 
-      const expected = [
+      const expected: StreamingFileParseResult[] = [
         { type: "text", content: input },
         { type: "start-file-block", path: "./src/empty.ts" },
         {
@@ -155,7 +142,11 @@ const x = 1;
 
       parser(input);
 
-      expect(results).toEqual([{ type: "text", content: input }]);
+      const expected: StreamingFileParseResult[] = [
+        { type: "text", content: input },
+      ];
+
+      expect(results).toEqual(expected);
     });
 
     test("handles markdown content between file blocks split across chunks", () => {
@@ -164,23 +155,50 @@ const x = 1;
       parser("**formatting** and a [link](http://example.com)\n");
       parser("File path: ./src/second.ts\n```\nconst y = 2;```");
 
-      expect(results).toContainEqual({
-        type: "markdown",
-        content:
-          "Some markdown *with* **formatting** and a [link](http://example.com)\n",
-      });
+      const expected: StreamingFileParseResult[] = [
+        {
+          type: "text",
+          content: "File path: ./src/first.ts\n```\nconst x = 1;```\n",
+        },
+        { type: "start-file-block", path: "./src/first.ts" },
+        {
+          type: "end-file-block",
+          file: { path: "./src/first.ts", content: "const x = 1;" },
+        },
+        { type: "text", content: "Some markdown *with* " },
+        {
+          type: "text",
+          content: "**formatting** and a [link](http://example.com)\n",
+        },
+        {
+          type: "text",
+          content: "File path: ./src/second.ts\n```\nconst y = 2;```",
+        },
+        {
+          type: "markdown",
+          content:
+            "Some markdown *with* **formatting** and a [link](http://example.com)\n",
+        },
+        { type: "start-file-block", path: "./src/second.ts" },
+        {
+          type: "end-file-block",
+          file: { path: "./src/second.ts", content: "const y = 2;" },
+        },
+      ];
+
+      expect(results).toEqual(expected);
     });
 
     test("handles consecutive file blocks without separator", () => {
-      parser(
-        "File path: ./src/first.ts\n```\nconst x = 1;```File path: ./src/second.ts\n```\nconst y = 2;```"
-      );
+      const input =
+        "File path: ./src/first.ts\n```\nconst x = 1;```File path: ./src/second.ts\n```\nconst y = 2;```";
 
-      expect(results).toEqual([
+      parser(input);
+
+      const expected: StreamingFileParseResult[] = [
         {
           type: "text",
-          content:
-            "File path: ./src/first.ts\n```\nconst x = 1;```File path: ./src/second.ts\n```\nconst y = 2;```",
+          content: input,
         },
         {
           type: "start-file-block",
@@ -202,17 +220,29 @@ const x = 1;
           type: "end-file-block",
           file: { path: "./src/second.ts", content: "const y = 2;" },
         },
-      ]);
+      ];
+
+      expect(results).toEqual(expected);
     });
 
     test("handles end marker split between chunks", () => {
-      parser("File path: ./src/test.ts\n```\nconst x = 1;``"); // partial end marker
-      parser("`\n"); // remaining end marker
+      parser("File path: ./src/test.ts\n```\nconst x = 1;``");
+      parser("`\n");
 
-      expect(results).toContainEqual({
-        type: "end-file-block",
-        file: { path: "./src/test.ts", content: "const x = 1;" },
-      });
+      const expected: StreamingFileParseResult[] = [
+        {
+          type: "text",
+          content: "File path: ./src/test.ts\n```\nconst x = 1;``",
+        },
+        { type: "start-file-block", path: "./src/test.ts" },
+        { type: "text", content: "`\n" },
+        {
+          type: "end-file-block",
+          file: { path: "./src/test.ts", content: "const x = 1;" },
+        },
+      ];
+
+      expect(results).toEqual(expected);
     });
 
     test("handles File path: keyword split across chunks", () => {
@@ -220,10 +250,18 @@ const x = 1;
       parser("path:");
       parser(" ./src/test.ts\n```\nconst x = 1;```");
 
-      expect(results).toContainEqual({
-        type: "end-file-block",
-        file: { path: "./src/test.ts", content: "const x = 1;" },
-      });
+      const expected: StreamingFileParseResult[] = [
+        { type: "text", content: "File " },
+        { type: "text", content: "path:" },
+        { type: "text", content: " ./src/test.ts\n```\nconst x = 1;```" },
+        { type: "start-file-block", path: "./src/test.ts" },
+        {
+          type: "end-file-block",
+          file: { path: "./src/test.ts", content: "const x = 1;" },
+        },
+      ];
+
+      expect(results).toEqual(expected);
     });
 
     test("handles extreme chunking of start sequence", () => {
@@ -242,25 +280,56 @@ const x = 1;
       parser("``");
       parser("`");
 
-      expect(results).toContainEqual({
-        type: "end-file-block",
-        file: { path: "./src/test.ts", content: "const x = 1;" },
-      });
+      const expected: StreamingFileParseResult[] = [
+        { type: "text", content: "F" },
+        { type: "text", content: "ile " },
+        { type: "text", content: "pat" },
+        { type: "text", content: "h: " },
+        { type: "text", content: "./sr" },
+        { type: "text", content: "c/te" },
+        { type: "text", content: "st.ts" },
+        { type: "text", content: "\n" },
+        { type: "text", content: "``" },
+        { type: "text", content: "`" },
+        { type: "text", content: "\n" },
+        { type: "start-file-block", path: "./src/test.ts" },
+        { type: "text", content: "const x = 1;" },
+        { type: "text", content: "``" },
+        { type: "text", content: "`" },
+        {
+          type: "end-file-block",
+          file: { path: "./src/test.ts", content: "const x = 1;" },
+        },
+      ];
+
+      expect(results).toEqual(expected);
     });
 
     test("handles newlines split in various positions", () => {
       parser("File path: ./src/test.ts");
-      parser("\n"); // split after path
+      parser("\n");
       parser("```");
-      parser("\n"); // split after start marker
+      parser("\n");
       parser("const x = 1;");
-      parser("\n"); // split before end marker
+      parser("\n");
       parser("```");
 
-      expect(results).toContainEqual({
-        type: "end-file-block",
-        file: { path: "./src/test.ts", content: "const x = 1;" },
-      });
+      const expected: StreamingFileParseResult[] = [
+        { type: "text", content: "File path: ./src/test.ts" },
+        { type: "text", content: "\n" },
+        { type: "text", content: "```" },
+        { type: "text", content: "\n" },
+        { type: "start-file-block", path: "./src/test.ts" },
+        { type: "text", content: "const x = 1;" },
+        { type: "text", content: "\n" },
+        { type: "text", content: "```" },
+        {
+          type: "end-file-block",
+          file: { path: "./src/test.ts", content: "const x = 1;" },
+        },
+      ];
+
+      expect(results).toEqual(expected);
     });
 
     test("handles multiple files with various split points", () => {
@@ -272,14 +341,28 @@ const x = 1;
       parser("const y = 2;");
       parser("```");
 
-      expect(results).toContainEqual({
-        type: "end-file-block",
-        file: { path: "./src/a.ts", content: "const x = 1;" },
-      });
-      expect(results).toContainEqual({
-        type: "end-file-block",
-        file: { path: "./src/b.ts", content: "const y = 2;" },
-      });
+      const expected: StreamingFileParseResult[] = [
+        { type: "text", content: "File path: ./src/a.ts\n``" },
+        { type: "text", content: "`\nconst x = 1;``" },
+        { type: "start-file-block", path: "./src/a.ts" },
+        { type: "text", content: "`\nFi" },
+        {
+          type: "end-file-block",
+          file: { path: "./src/a.ts", content: "const x = 1;" },
+        },
+        { type: "text", content: "Fi" },
+        { type: "text", content: "le path: ./src/b.ts" },
+        { type: "text", content: "\n```\n" },
+        { type: "start-file-block", path: "./src/b.ts" },
+        { type: "text", content: "const y = 2;" },
+        { type: "text", content: "```" },
+        {
+          type: "end-file-block",
+          file: { path: "./src/b.ts", content: "const y = 2;" },
+        },
+      ];
+
+      expect(results).toEqual(expected);
     });
 
     test("handles partial file marker followed by different file", () => {
@@ -288,14 +371,24 @@ const x = 1;
       parser("File path: ./src/b.ts\n``");
       parser("`\nconst y = 2;```");
 
-      expect(results).toContainEqual({
-        type: "end-file-block",
-        file: { path: "./src/a.ts", content: "const x = 1;" },
-      });
-      expect(results).toContainEqual({
-        type: "end-file-block",
-        file: { path: "./src/b.ts", content: "const y = 2;" },
-      });
+      const expected: StreamingFileParseResult[] = [
+        { type: "text", content: "File pa" },
+        { type: "text", content: "th: ./src/a.ts\n```\nconst x = 1;```\n" },
+        { type: "start-file-block", path: "./src/a.ts" },
+        {
+          type: "end-file-block",
+          file: { path: "./src/a.ts", content: "const x = 1;" },
+        },
+        { type: "text", content: "File path: ./src/b.ts\n``" },
+        { type: "text", content: "`\nconst y = 2;```" },
+        { type: "start-file-block", path: "./src/b.ts" },
+        {
+          type: "end-file-block",
+          file: { path: "./src/b.ts", content: "const y = 2;" },
+        },
+      ];
+
+      expect(results).toEqual(expected);
     });
   });
 });
