@@ -52,7 +52,7 @@ function convertToSDKFormat(
       source: {
         type: "base64",
         media_type: "image/png",
-        data: part.imageUrl.url,
+        data: part.base64Data,
       },
     };
   });

@@ -1,3 +1,4 @@
+import { readFile } from "fs/promises";
 import path from "path";
 import { CodeSpinContext } from "../../CodeSpinContext.js";
 import { CompletionOptions } from "../../api/CompletionOptions.js";
@@ -22,6 +23,11 @@ import { getCustomTemplate } from "../../templating/getCustomTemplate.js";
 import { getGeneratedFiles } from "./getGeneratedFiles.js";
 import { getOutPath } from "./getOutPath.js";
 import { StreamingFileParseResult } from "../../responseParsing/streamingFileParser.js";
+import {
+  CompletionContentPart,
+  CompletionInputMessage,
+} from "../../api/types.js";
+import { loadImage } from "../../prompts/loadImage.js";
 
 export type GenerateArgs = {
   promptFile?: string;
@@ -47,6 +53,7 @@ export type GenerateArgs = {
   spec?: string;
   multi?: number;
   xmlCodeBlockElement?: string;
+  images?: string[]; // New parameter for image paths
   responseCallback?: (text: string) => Promise<void>;
   responseStreamCallback?: (text: string) => void;
   fileResultStreamCallback?: (data: StreamingFileParseResult) => void;
@@ -230,28 +237,38 @@ export async function generate(
     while (continuationCount <= multi) {
       continuationCount++;
 
-      const messageToLLM = {
-        role: "user" as const,
-        content:
-          continuationCount === 0
-            ? evaluatedPrompt
-            : (
-                await templateFunc(
-                  {
-                    ...templateArgs,
-                    prompt: evaluatedPrompt,
-                    includes,
-                    generatedFiles: toSourceFileList(generatedFiles),
-                  },
-                  config
-                )
-              ).prompt,
+      let content: string | CompletionContentPart[];
+
+      // Handle images if provided
+      if (args.images && args.images.length > 0) {
+        const imageParts = await Promise.all(
+          args.images.map(async (imagePath) => {
+            const base64Data = await loadImage(imagePath, context.workingDir);
+            return {
+              type: "image" as const,
+              base64Data,
+            };
+          })
+        );
+
+        content = [{ type: "text", text: evaluatedPrompt }, ...imageParts];
+      } else {
+        content = evaluatedPrompt;
+      }
+
+      const messageToLLM: CompletionInputMessage = {
+        role: "user",
+        content: content,
       };
 
       writeDebug("--- PROMPT ---");
-      writeDebug(messageToLLM.content);
+      writeDebug(
+        typeof content === "string" ? content : JSON.stringify(content, null, 2)
+      );
 
-      validateMaxInputLength(messageToLLM.content, maxInput);
+      if (typeof content === "string") {
+        validateMaxInputLength(content, maxInput);
+      }
 
       const completionResult = await completion(
         [messageToLLM],

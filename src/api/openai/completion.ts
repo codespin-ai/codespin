@@ -31,7 +31,7 @@ function convertContentToOpenAIFormat(
       return {
         type: "image_url",
         image_url: {
-          url: part.imageUrl.url,
+          url: `data:image/png;base64,${part.base64Data}`,
           detail: "auto",
         },
       };

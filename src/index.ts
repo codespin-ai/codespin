@@ -151,6 +151,12 @@ export async function main() {
             type: "boolean",
             describe:
               "Whether the LLM response needs to be processed. Defaults to true.",
+          })
+          .option("images", {
+            type: "array",
+            alias: "image",
+            describe: "List of image files to include in the prompt",
+            string: true,
           }),
       async (argv) => {
         const result = await generate(argv, { workingDir: process.cwd() });
@@ -288,6 +294,12 @@ export async function main() {
             type: "string",
             alias: "c",
             describe: "Path to a config directory (.codespin).",
+          })
+          .option("images", {
+            type: "array",
+            alias: "image",
+            describe: "List of image files to include in the prompt",
+            string: true,
           }),
       async (argv) => {
         const result = await go(

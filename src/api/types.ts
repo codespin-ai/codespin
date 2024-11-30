@@ -4,17 +4,14 @@ export type CompletionContentPartText = {
 };
 
 export type CompletionContentPartImage = {
-  type: "image_url"; // Changed from 'image' to match OpenAI's type
-  imageUrl: {
-    url: string; // base64 data
-  };
+  type: "image";
+  base64Data: string;
 };
 
 export type CompletionContentPart =
   | CompletionContentPartText
   | CompletionContentPartImage;
 
-// Separate types for user and assistant messages to match OpenAI's structure
 export type CompletionUserMessage = {
   role: "user";
   content: string | CompletionContentPart[];
