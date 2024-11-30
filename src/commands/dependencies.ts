@@ -8,7 +8,6 @@ import { setDebugFlag } from "../debugMode.js";
 import { pathExists } from "../fs/pathExists.js";
 import { getLanguageService } from "../languageServices/getLanguageService.js";
 import { extractFromMarkdownCodeBlock } from "../responseParsing/codeBlocks.js";
-import { validateMaxInputLength } from "../safety/validateMaxInputLength.js";
 import { readCodeSpinConfig } from "../settings/readCodeSpinConfig.js";
 import { Dependency } from "../sourceCode/Dependency.js";
 import { DependenciesTemplateArgs } from "../templates/DependenciesTemplateArgs.js";
@@ -17,6 +16,7 @@ import dependenciesTemplate from "../templates/dependencies.js";
 import { getCustomTemplate } from "../templating/getCustomTemplate.js";
 import { getModel } from "../settings/getModel.js";
 import { exception } from "../exception.js";
+import { validateMaxInputStringLength } from "../safety/validateMaxInputLength.js";
 
 export type DependenciesArgs = {
   file: string;
@@ -94,7 +94,7 @@ export async function dependencies(
 
     const completion = getCompletionAPI(model.provider);
 
-    validateMaxInputLength(prompt, maxInput);
+    validateMaxInputStringLength(prompt, maxInput);
 
     const completionResult = await completion(
       [{ role: "user", content: prompt }],

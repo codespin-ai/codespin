@@ -1,3 +1,4 @@
+import path from "path";
 import { CodeSpinContext } from "../CodeSpinContext.js";
 import { CompletionOptions } from "../api/CompletionOptions.js";
 import { getCompletionAPI } from "../api/getCompletionAPI.js";
@@ -5,9 +6,13 @@ import { CompletionContentPart, CompletionInputMessage } from "../api/types.js";
 import { writeDebug } from "../console.js";
 import { setDebugFlag } from "../debugMode.js";
 import { exception } from "../exception.js";
-import { loadImage } from "../prompts/loadImage.js";
+import { convertPromptToMessage } from "../prompts/convertPromptToMessage.js";
+import { loadMessagesFromFile } from "../prompts/loadMessagesFromFile.js";
 import { stdinDirective } from "../prompts/stdinDirective.js";
-import { validateMaxInputLength } from "../safety/validateMaxInputLength.js";
+import {
+  validateMaxInputMessagesLength,
+  validateMaxInputStringLength,
+} from "../safety/validateMaxInputLength.js";
 import { getModel } from "../settings/getModel.js";
 import { readCodeSpinConfig } from "../settings/readCodeSpinConfig.js";
 import { PlainTemplateArgs } from "../templates/PlainTemplateArgs.js";
@@ -23,7 +28,8 @@ export type GoArgs = {
   maxTokens?: number;
   debug?: boolean;
   config: string | undefined;
-  images?: string[]; // New parameter for image paths
+  images?: string[];
+  messages?: string; // New: Path to messages JSON file
   responseCallback?: (text: string) => Promise<void>;
   responseStreamCallback?: (text: string) => void;
   promptCallback?: (prompt: string) => Promise<void>;
@@ -40,7 +46,6 @@ export async function go(
 ): Promise<GoResult> {
   const config = await readCodeSpinConfig(args.config, context.workingDir);
 
-  // This is in bytes
   const maxInput = args.maxInput ?? config.maxInput;
 
   const model = getModel([args.model, config.model], config);
@@ -49,26 +54,51 @@ export async function go(
     setDebugFlag();
   }
 
-  const templateFunc =
-    (await getCustomTemplate<PlainTemplateArgs, PlainTemplateResult>(
-      "plain",
-      args.config,
-      context.workingDir
-    )) ?? plainTemplate;
+  // Load messages or convert prompt to message
+  let messages: CompletionInputMessage[] = [];
 
-  const { prompt: evaluatedPrompt } = await templateFunc(
-    {
-      prompt: await stdinDirective(
-        args.prompt + "\n codespin:stdin",
+  if (args.messages) {
+    // Load messages from JSON file
+    const messagesPath = path.resolve(context.workingDir, args.messages);
+    messages = await loadMessagesFromFile(messagesPath, context.workingDir);
+  } else if (args.prompt) {
+    // Convert traditional prompt to message
+    const templateFunc =
+      (await getCustomTemplate<PlainTemplateArgs, PlainTemplateResult>(
+        "plain",
+        args.config,
         context.workingDir
-      ),
-    },
-    config
-  );
+      )) ?? plainTemplate;
 
-  if (args.promptCallback) {
-    await args.promptCallback(evaluatedPrompt);
+    const { prompt: evaluatedPrompt } = await templateFunc(
+      {
+        prompt: await stdinDirective(
+          args.prompt + "\n codespin:stdin",
+          context.workingDir
+        ),
+      },
+      config
+    );
+
+    if (args.promptCallback) {
+      await args.promptCallback(evaluatedPrompt);
+    }
+
+    // Convert prompt to message
+    const message = await convertPromptToMessage(
+      evaluatedPrompt,
+      args.images,
+      context.workingDir
+    );
+    messages = [message];
+  } else {
+    return exception(
+      "MISSING_INPUT",
+      "Either --messages or --prompt must be specified"
+    );
   }
+
+  validateMaxInputMessagesLength(messages, maxInput);
 
   let cancelCompletion: (() => void) | undefined;
 
@@ -93,41 +123,11 @@ export async function go(
     },
   };
 
-  let content: string | CompletionContentPart[];
-
-  // Handle images if provided
-  if (args.images && args.images.length > 0) {
-    const imageParts = await Promise.all(
-      args.images.map(async (imagePath) => {
-        const base64Data = await loadImage(imagePath, context.workingDir);
-        return {
-          type: "image" as const,
-          base64Data,
-        };
-      })
-    );
-
-    content = [{ type: "text", text: evaluatedPrompt }, ...imageParts];
-  } else {
-    content = evaluatedPrompt;
-  }
-
-  const messageToLLM: CompletionInputMessage = {
-    role: "user",
-    content: content,
-  };
-
-  writeDebug("--- PROMPT ---");
-  writeDebug(
-    typeof content === "string" ? content : JSON.stringify(content, null, 2)
-  );
-
-  if (typeof content === "string") {
-    validateMaxInputLength(content, maxInput);
-  }
+  writeDebug("--- MESSAGES ---");
+  writeDebug(JSON.stringify(messages, null, 2));
 
   const completionResult = await completion(
-    [messageToLLM],
+    messages,
     args.config,
     completionOptions,
     context.workingDir

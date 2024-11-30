@@ -157,6 +157,11 @@ export async function main() {
             alias: "image",
             describe: "List of image files to include in the prompt",
             string: true,
+          })
+          .option("messages", {
+            type: "string",
+            alias: "msg",
+            describe: "Path to a JSON file containing message history",
           }),
       async (argv) => {
         const result = await generate(argv, { workingDir: process.cwd() });
@@ -263,7 +268,7 @@ export async function main() {
         yargs
           .positional("prompt", {
             describe: "The prompt.",
-            demandOption: true,
+            demandOption: false,
             array: true,
             type: "string",
           })
@@ -300,10 +305,15 @@ export async function main() {
             alias: "image",
             describe: "List of image files to include in the prompt",
             string: true,
+          })
+          .option("messages", {
+            type: "string",
+            alias: "msg",
+            describe: "Path to a JSON file containing message history",
           }),
       async (argv) => {
         const result = await go(
-          { ...argv, prompt: argv.prompt.join(" ") },
+          { ...argv, prompt: argv.prompt?.join(" ") || "" },
           {
             workingDir: process.cwd(),
           }

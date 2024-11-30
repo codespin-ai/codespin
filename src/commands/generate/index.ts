@@ -1,17 +1,24 @@
-import { readFile } from "fs/promises";
 import path from "path";
 import { CodeSpinContext } from "../../CodeSpinContext.js";
 import { CompletionOptions } from "../../api/CompletionOptions.js";
 import { getCompletionAPI } from "../../api/getCompletionAPI.js";
+import {
+  CompletionInputMessage
+} from "../../api/types.js";
 import { writeDebug } from "../../console.js";
 import { setDebugFlag } from "../../debugMode.js";
 import { exception } from "../../exception.js";
 import { writeFilesToDisk } from "../../fs/writeFilesToDisk.js";
 import { writeToFile } from "../../fs/writeToFile.js";
 import { BuildPromptArgs, buildPrompt } from "../../prompts/buildPrompt.js";
+import { convertPromptToMessage } from "../../prompts/convertPromptToMessage.js";
+import { loadMessagesFromFile } from "../../prompts/loadMessagesFromFile.js";
 import { readPromptSettings } from "../../prompts/readPromptSettings.js";
 import { fileBlockParser } from "../../responseParsing/fileBlockParser.js";
-import { validateMaxInputLength } from "../../safety/validateMaxInputLength.js";
+import { StreamingFileParseResult } from "../../responseParsing/streamingFileParser.js";
+import {
+  validateMaxInputMessagesLength
+} from "../../safety/validateMaxInputLength.js";
 import { getModel } from "../../settings/getModel.js";
 import { readCodeSpinConfig } from "../../settings/readCodeSpinConfig.js";
 import { GeneratedSourceFile } from "../../sourceCode/GeneratedSourceFile.js";
@@ -22,12 +29,6 @@ import defaultTemplate from "../../templates/default.js";
 import { getCustomTemplate } from "../../templating/getCustomTemplate.js";
 import { getGeneratedFiles } from "./getGeneratedFiles.js";
 import { getOutPath } from "./getOutPath.js";
-import { StreamingFileParseResult } from "../../responseParsing/streamingFileParser.js";
-import {
-  CompletionContentPart,
-  CompletionInputMessage,
-} from "../../api/types.js";
-import { loadImage } from "../../prompts/loadImage.js";
 
 export type GenerateArgs = {
   promptFile?: string;
@@ -53,7 +54,8 @@ export type GenerateArgs = {
   spec?: string;
   multi?: number;
   xmlCodeBlockElement?: string;
-  images?: string[]; // New parameter for image paths
+  images?: string[];
+  messages?: string; // New: Path to messages JSON file
   responseCallback?: (text: string) => Promise<void>;
   responseStreamCallback?: (text: string) => void;
   fileResultStreamCallback?: (data: StreamingFileParseResult) => void;
@@ -103,10 +105,8 @@ export async function generate(
     setDebugFlag();
   }
 
-  // This is in bytes
   const maxInput = args.maxInput ?? config.maxInput;
 
-  // Convert everything to absolute paths
   const promptFilePath = args.promptFile
     ? await path.resolve(context.workingDir, args.promptFile)
     : undefined;
@@ -132,268 +132,250 @@ export async function generate(
     context.workingDir
   );
 
-  const templateFunc = args.template
-    ? (await getCustomTemplate<TemplateArgs, TemplateResult>(
-        args.template,
-        args.config,
-        context.workingDir
-      )) ?? defaultTemplate
-    : defaultTemplate;
+  // Load messages or convert prompt to message
+  let messages: CompletionInputMessage[] = [];
 
-  const templateArgs = {
-    outPath,
-    promptSettings,
-    generatedFiles: [],
-    customArgs: args.customArgs,
-    workingDir: context.workingDir,
-    debug: args.debug,
-    xmlCodeBlockElement,
-  };
+  if (args.messages) {
+    // Load messages from JSON file
+    const messagesPath = path.resolve(context.workingDir, args.messages);
+    messages = await loadMessagesFromFile(messagesPath, context.workingDir);
+  } else if (args.prompt || args.promptFile) {
+    // Convert traditional prompt to message
+    const templateFunc = args.template
+      ? (await getCustomTemplate<TemplateArgs, TemplateResult>(
+          args.template,
+          args.config,
+          context.workingDir
+        )) ?? defaultTemplate
+      : defaultTemplate;
 
-  const buildPromptArgs: BuildPromptArgs = {
-    exclude: args.exclude ?? [],
-    include: args.include ?? [],
-    prompt: args.prompt,
-    promptFile: args.promptFile,
-    spec: args.spec,
-    customConfigDir: args.config,
-  };
-
-  const {
-    templateResult: { prompt: evaluatedPrompt, responseParser },
-    includes,
-  } = await buildPrompt(
-    buildPromptArgs,
-    templateFunc,
-    templateArgs,
-    config,
-    context
-  );
-
-  if (args.promptCallback) {
-    await args.promptCallback(evaluatedPrompt);
-  }
-
-  // No files to be generated. Just print/save the prompt.
-  if (args.printPrompt || typeof args.writePrompt !== "undefined") {
-    if (typeof args.writePrompt !== "undefined") {
-      // If --write-prompt is specified but no file is mentioned
-      if (!args.writePrompt) {
-        exception(
-          "MISSING_FILE_PATH",
-          `Specify a file path for the --write-prompt parameter.`
-        );
-      }
-      await writeToFile(args.writePrompt, evaluatedPrompt, false);
-    }
-
-    return {
-      type: "prompt",
-      prompt: evaluatedPrompt,
-      filePath: args.writePrompt ? args.writePrompt : undefined,
-    };
-  }
-
-  // Hit the LLM.
-  else {
-    const uncheckedMulti =
-      args.multi && responseParser === "file-block" ? args.multi : 0;
-
-    // Max value for multi is 5. To prevent shooting yourself in the foot.
-    const multi = uncheckedMulti <= 5 ? uncheckedMulti : 5;
-
-    let cancelCompletion: (() => void) | undefined;
-
-    function generateCommandCancel() {
-      if (cancelCompletion) {
-        cancelCompletion();
-      }
-    }
-
-    if (args.cancelCallback) {
-      args.cancelCallback(generateCommandCancel);
-    }
-
-    const completion = getCompletionAPI(model.provider);
-
-    const completionOptions: CompletionOptions = {
-      model,
-      maxTokens,
-      responseStreamCallback: args.responseStreamCallback,
-      fileResultStreamCallback: args.fileResultStreamCallback,
-      cancelCallback: (cancel) => {
-        cancelCompletion = cancel;
-      },
+    const templateArgs = {
+      outPath,
+      promptSettings,
+      generatedFiles: [],
+      customArgs: args.customArgs,
+      workingDir: context.workingDir,
+      debug: args.debug,
+      xmlCodeBlockElement,
     };
 
-    let continuationCount = 0;
+    const buildPromptArgs: BuildPromptArgs = {
+      exclude: args.exclude ?? [],
+      include: args.include ?? [],
+      prompt: args.prompt,
+      promptFile: args.promptFile,
+      spec: args.spec,
+      customConfigDir: args.config,
+    };
 
-    const generatedFiles: {
-      [path: string]: string;
-    } = {};
+    const {
+      templateResult: { prompt: evaluatedPrompt },
+    } = await buildPrompt(
+      buildPromptArgs,
+      templateFunc,
+      templateArgs,
+      config,
+      context
+    );
 
-    const allResponses: string[] = [];
+    if (args.promptCallback) {
+      await args.promptCallback(evaluatedPrompt);
+    }
 
-    while (continuationCount <= multi) {
-      continuationCount++;
-
-      let content: string | CompletionContentPart[];
-
-      // Handle images if provided
-      if (args.images && args.images.length > 0) {
-        const imageParts = await Promise.all(
-          args.images.map(async (imagePath) => {
-            const base64Data = await loadImage(imagePath, context.workingDir);
-            return {
-              type: "image" as const,
-              base64Data,
-            };
-          })
-        );
-
-        content = [{ type: "text", text: evaluatedPrompt }, ...imageParts];
-      } else {
-        content = evaluatedPrompt;
-      }
-
-      const messageToLLM: CompletionInputMessage = {
-        role: "user",
-        content: content,
-      };
-
-      writeDebug("--- PROMPT ---");
-      writeDebug(
-        typeof content === "string" ? content : JSON.stringify(content, null, 2)
-      );
-
-      if (typeof content === "string") {
-        validateMaxInputLength(content, maxInput);
-      }
-
-      const completionResult = await completion(
-        [messageToLLM],
-        args.config,
-        completionOptions,
-        context.workingDir
-      );
-
-      if (completionResult.ok) {
-        if (
-          completionResult.finishReason === "STOP" ||
-          completionResult.finishReason === "MAX_TOKENS"
-        ) {
-          allResponses.push(completionResult.message);
-
-          const newlyGeneratedFiles = await fileBlockParser(
-            completionResult.message,
-            context.workingDir,
-            xmlCodeBlockElement,
-            config
+    // Handle prompt printing/saving
+    if (args.printPrompt || typeof args.writePrompt !== "undefined") {
+      if (typeof args.writePrompt !== "undefined") {
+        if (!args.writePrompt) {
+          exception(
+            "MISSING_FILE_PATH",
+            `Specify a file path for the --write-prompt parameter.`
           );
+        }
+        await writeToFile(args.writePrompt, evaluatedPrompt, false);
+      }
 
-          if (newlyGeneratedFiles.length === 0) {
+      return {
+        type: "prompt",
+        prompt: evaluatedPrompt,
+        filePath: args.writePrompt ? args.writePrompt : undefined,
+      };
+    }
+
+    // Convert prompt to message
+    const message = await convertPromptToMessage(
+      evaluatedPrompt,
+      args.images,
+      context.workingDir
+    );
+    messages = [message];
+  } else {
+    return exception(
+      "MISSING_INPUT",
+      "Either --messages or --prompt/--prompt-file must be specified"
+    );
+  }
+
+  // Validate total input length
+  validateMaxInputMessagesLength(messages, maxInput);
+
+  let cancelCompletion: (() => void) | undefined;
+
+  function generateCommandCancel() {
+    if (cancelCompletion) {
+      cancelCompletion();
+    }
+  }
+
+  if (args.cancelCallback) {
+    args.cancelCallback(generateCommandCancel);
+  }
+
+  const completion = getCompletionAPI(model.provider);
+
+  const completionOptions: CompletionOptions = {
+    model,
+    maxTokens,
+    responseStreamCallback: args.responseStreamCallback,
+    fileResultStreamCallback: args.fileResultStreamCallback,
+    cancelCallback: (cancel) => {
+      cancelCompletion = cancel;
+    },
+  };
+
+  let continuationCount = 0;
+
+  const generatedFiles: {
+    [path: string]: string;
+  } = {};
+
+  const allResponses: string[] = [];
+
+  while (continuationCount <= (args.multi ?? 0)) {
+    continuationCount++;
+
+    writeDebug("--- MESSAGES ---");
+    writeDebug(JSON.stringify(messages, null, 2));
+
+    const completionResult = await completion(
+      messages,
+      args.config,
+      completionOptions,
+      context.workingDir
+    );
+
+    if (completionResult.ok) {
+      if (
+        completionResult.finishReason === "STOP" ||
+        completionResult.finishReason === "MAX_TOKENS"
+      ) {
+        allResponses.push(completionResult.message);
+
+        const newlyGeneratedFiles = await fileBlockParser(
+          completionResult.message,
+          context.workingDir,
+          xmlCodeBlockElement,
+          config
+        );
+
+        if (newlyGeneratedFiles.length === 0) {
+          if (args.responseCallback) {
+            await args.responseCallback(
+              allResponses.join("\n---CONTINUING---\n") +
+                "\nERROR: FILE_LENGTH_EXCEEDS_MAX_TOKENS"
+            );
+          }
+
+          return exception(
+            "FILE_LENGTH_EXCEEDS_MAX_TOKENS",
+            `The length of a single file exceeded max tokens and cannot be retried. Try increasing max tokens if possible or make your code more modular.`
+          );
+        }
+
+        updateFiles(generatedFiles, newlyGeneratedFiles);
+
+        if (completionResult.finishReason === "STOP") {
+          if (args.responseCallback) {
+            await args.responseCallback(
+              allResponses.join("\n---CONTINUING---\n")
+            );
+          }
+
+          const files = toSourceFileList(generatedFiles);
+
+          if (args.parseCallback) {
+            const generatedFilesDetail = await getGeneratedFiles(
+              files,
+              context.workingDir
+            );
+            await args.parseCallback(generatedFilesDetail);
+          }
+
+          if (args.parse ?? true) {
+            if (args.write) {
+              await writeFilesToDisk(
+                args.outDir || context.workingDir,
+                files,
+                args.exec,
+                context.workingDir
+              );
+              return {
+                type: "saved",
+                files,
+              };
+            } else {
+              return {
+                type: "files",
+                files,
+              };
+            }
+          } else {
+            return {
+              type: "unparsed",
+              responses: allResponses,
+            };
+          }
+        } else if (completionResult.finishReason === "MAX_TOKENS") {
+          if (args.multi === 0) {
             if (args.responseCallback) {
               await args.responseCallback(
                 allResponses.join("\n---CONTINUING---\n") +
-                  "\nERROR: FILE_LENGTH_EXCEEDS_MAX_TOKENS"
+                  "\nERROR: MAX_TOKENS"
               );
             }
 
             return exception(
-              "FILE_LENGTH_EXCEEDS_MAX_TOKENS",
-              `The length of a single file exceeded max tokens and cannot be retried. Try increasing max tokens if possible or make your code mode modular.`
+              "MAX_TOKENS",
+              `Maximum number of tokens exceeded and the multi-step param (--multi) is set to zero.`
             );
           }
-
-          updateFiles(generatedFiles, newlyGeneratedFiles);
-
-          if (completionResult.finishReason === "STOP") {
-            if (args.responseCallback) {
-              await args.responseCallback(
-                allResponses.join("\n---CONTINUING---\n")
-              );
-            }
-
-            const files = toSourceFileList(generatedFiles);
-
-            if (args.parseCallback) {
-              const generatedFilesDetail = await getGeneratedFiles(
-                files,
-                context.workingDir
-              );
-              await args.parseCallback(generatedFilesDetail);
-            }
-
-            if (args.parse ?? true) {
-              if (args.write) {
-                await writeFilesToDisk(
-                  args.outDir || context.workingDir,
-                  files,
-                  args.exec,
-                  context.workingDir
-                );
-                return {
-                  type: "saved" as const,
-                  files,
-                };
-              } else {
-                return {
-                  type: "files" as const,
-                  files,
-                };
-              }
-            } else {
-              return {
-                type: "unparsed" as const,
-                responses: allResponses,
-              };
-            }
-          } else if (completionResult.finishReason === "MAX_TOKENS") {
-            if (multi === 0) {
-              if (args.responseCallback) {
-                await args.responseCallback(
-                  allResponses.join("\n---CONTINUING---\n") +
-                    "\nERROR: MAX_TOKENS"
-                );
-              }
-
-              return exception(
-                "MAX_TOKENS",
-                `Maximum number of tokens exceeded and the multi-step param (--multi) is set to zero.`
-              );
-            }
-            if (responseParser !== "file-block") {
-              return exception(
-                "CANNOT_MERGE_DIFF_RESPONSE",
-                `Diff responses cannot be merged. Remove the diff flag.`
-              );
-            }
+          if (args.parser !== "file-block") {
+            return exception(
+              "CANNOT_MERGE_DIFF_RESPONSE",
+              `Diff responses cannot be merged. Remove the diff flag.`
+            );
           }
-        } else {
-          return exception(
-            "UNKNOWN_FINISH_REASON",
-            completionResult.finishReason
-          );
         }
       } else {
         return exception(
-          completionResult.error.code,
-          completionResult.error.message
+          "UNKNOWN_FINISH_REASON",
+          completionResult.finishReason
         );
       }
-    }
-
-    if (args.responseCallback) {
-      await args.responseCallback(
-        allResponses.join("\n---CONTINUING---\n") + "\nERROR: MAX_MULTI_QUERY"
+    } else {
+      return exception(
+        completionResult.error.code,
+        completionResult.error.message
       );
     }
+  }
 
-    return exception(
-      "MAX_MULTI_QUERY",
-      `Maximum number of LLM calls exceeded.`
+  if (args.responseCallback) {
+    await args.responseCallback(
+      allResponses.join("\n---CONTINUING---\n") + "\nERROR: MAX_MULTI_QUERY"
     );
   }
+
+  return exception("MAX_MULTI_QUERY", `Maximum number of LLM calls exceeded.`);
 }
 
 function updateFiles(
