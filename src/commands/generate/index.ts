@@ -2,9 +2,7 @@ import path from "path";
 import { CodeSpinContext } from "../../CodeSpinContext.js";
 import { CompletionOptions } from "../../api/CompletionOptions.js";
 import { getCompletionAPI } from "../../api/getCompletionAPI.js";
-import {
-  CompletionInputMessage
-} from "../../api/types.js";
+import { CompletionInputMessage } from "../../api/types.js";
 import { writeDebug } from "../../console.js";
 import { setDebugFlag } from "../../debugMode.js";
 import { exception } from "../../exception.js";
@@ -12,13 +10,14 @@ import { writeFilesToDisk } from "../../fs/writeFilesToDisk.js";
 import { writeToFile } from "../../fs/writeToFile.js";
 import { BuildPromptArgs, buildPrompt } from "../../prompts/buildPrompt.js";
 import { convertPromptToMessage } from "../../prompts/convertPromptToMessage.js";
-import { loadMessagesFromFile } from "../../prompts/loadMessagesFromFile.js";
+import {
+  loadMessagesFromFile,
+  convertMessageFileFormat,
+} from "../../prompts/loadMessagesFromFile.js";
 import { readPromptSettings } from "../../prompts/readPromptSettings.js";
 import { fileBlockParser } from "../../responseParsing/fileBlockParser.js";
 import { StreamingFileParseResult } from "../../responseParsing/streamingFileParser.js";
-import {
-  validateMaxInputMessagesLength
-} from "../../safety/validateMaxInputLength.js";
+import { validateMaxInputMessagesLength } from "../../safety/validateMaxInputLength.js";
 import { getModel } from "../../settings/getModel.js";
 import { readCodeSpinConfig } from "../../settings/readCodeSpinConfig.js";
 import { GeneratedSourceFile } from "../../sourceCode/GeneratedSourceFile.js";
@@ -29,6 +28,7 @@ import defaultTemplate from "../../templates/default.js";
 import { getCustomTemplate } from "../../templating/getCustomTemplate.js";
 import { getGeneratedFiles } from "./getGeneratedFiles.js";
 import { getOutPath } from "./getOutPath.js";
+import { MessageFile } from "../../prompts/types.js";
 
 export type GenerateArgs = {
   promptFile?: string;
@@ -55,7 +55,8 @@ export type GenerateArgs = {
   multi?: number;
   xmlCodeBlockElement?: string;
   images?: string[];
-  messages?: string; // New: Path to messages JSON file
+  messages?: string; // Path to messages JSON file
+  messagesJson?: MessageFile; // Raw messages in MessageFile format
   responseCallback?: (text: string) => Promise<void>;
   responseStreamCallback?: (text: string) => void;
   fileResultStreamCallback?: (data: StreamingFileParseResult) => void;
@@ -135,7 +136,13 @@ export async function generate(
   // Load messages or convert prompt to message
   let messages: CompletionInputMessage[] = [];
 
-  if (args.messages) {
+  if (args.messagesJson) {
+    // Convert provided messages JSON directly
+    messages = await convertMessageFileFormat(
+      args.messagesJson,
+      context.workingDir
+    );
+  } else if (args.messages) {
     // Load messages from JSON file
     const messagesPath = path.resolve(context.workingDir, args.messages);
     messages = await loadMessagesFromFile(messagesPath, context.workingDir);
@@ -211,7 +218,7 @@ export async function generate(
   } else {
     return exception(
       "MISSING_INPUT",
-      "Either --messages or --prompt/--prompt-file must be specified"
+      "Either --messages, --messagesJson, or --prompt/--prompt-file must be specified"
     );
   }
 

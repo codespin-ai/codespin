@@ -7,7 +7,10 @@ import { writeDebug } from "../console.js";
 import { setDebugFlag } from "../debugMode.js";
 import { exception } from "../exception.js";
 import { convertPromptToMessage } from "../prompts/convertPromptToMessage.js";
-import { loadMessagesFromFile } from "../prompts/loadMessagesFromFile.js";
+import {
+  loadMessagesFromFile,
+  convertMessageFileFormat,
+} from "../prompts/loadMessagesFromFile.js";
 import { stdinDirective } from "../prompts/stdinDirective.js";
 import {
   validateMaxInputMessagesLength,
@@ -19,6 +22,7 @@ import { PlainTemplateArgs } from "../templates/PlainTemplateArgs.js";
 import { PlainTemplateResult } from "../templates/PlainTemplateResult.js";
 import plainTemplate from "../templates/plain.js";
 import { getCustomTemplate } from "../templating/getCustomTemplate.js";
+import { MessageFile } from "../prompts/types.js";
 
 export type GoArgs = {
   template: string | undefined;
@@ -29,7 +33,8 @@ export type GoArgs = {
   debug?: boolean;
   config: string | undefined;
   images?: string[];
-  messages?: string; // New: Path to messages JSON file
+  messages?: string; // Path to messages JSON file
+  messagesJson?: MessageFile; // Raw messages in MessageFile format
   responseCallback?: (text: string) => Promise<void>;
   responseStreamCallback?: (text: string) => void;
   promptCallback?: (prompt: string) => Promise<void>;
@@ -57,7 +62,13 @@ export async function go(
   // Load messages or convert prompt to message
   let messages: CompletionInputMessage[] = [];
 
-  if (args.messages) {
+  if (args.messagesJson) {
+    // Convert provided messages JSON directly
+    messages = await convertMessageFileFormat(
+      args.messagesJson,
+      context.workingDir
+    );
+  } else if (args.messages) {
     // Load messages from JSON file
     const messagesPath = path.resolve(context.workingDir, args.messages);
     messages = await loadMessagesFromFile(messagesPath, context.workingDir);
@@ -94,7 +105,7 @@ export async function go(
   } else {
     return exception(
       "MISSING_INPUT",
-      "Either --messages or --prompt must be specified"
+      "Either --messages, --messagesJson, or --prompt must be specified"
     );
   }
 
