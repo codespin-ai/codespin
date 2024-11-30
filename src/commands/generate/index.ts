@@ -28,7 +28,7 @@ import defaultTemplate from "../../templates/default.js";
 import { getCustomTemplate } from "../../templating/getCustomTemplate.js";
 import { getGeneratedFiles } from "./getGeneratedFiles.js";
 import { getOutPath } from "./getOutPath.js";
-import { MessageFile } from "../../prompts/types.js";
+import { MessagesArg } from "../../prompts/types.js";
 
 export type GenerateArgs = {
   promptFile?: string;
@@ -56,7 +56,7 @@ export type GenerateArgs = {
   xmlCodeBlockElement?: string;
   images?: string[];
   messages?: string; // Path to messages JSON file
-  messagesJson?: MessageFile; // Raw messages in MessageFile format
+  messagesJson?: MessagesArg; // Raw messages in MessageFile format
   responseCallback?: (text: string) => Promise<void>;
   responseStreamCallback?: (text: string) => void;
   fileResultStreamCallback?: (data: StreamingFileParseResult) => void;

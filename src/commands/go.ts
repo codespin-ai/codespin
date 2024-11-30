@@ -22,7 +22,7 @@ import { PlainTemplateArgs } from "../templates/PlainTemplateArgs.js";
 import { PlainTemplateResult } from "../templates/PlainTemplateResult.js";
 import plainTemplate from "../templates/plain.js";
 import { getCustomTemplate } from "../templating/getCustomTemplate.js";
-import { MessageFile } from "../prompts/types.js";
+import { MessagesArg } from "../prompts/types.js";
 
 export type GoArgs = {
   template: string | undefined;
@@ -34,7 +34,7 @@ export type GoArgs = {
   config: string | undefined;
   images?: string[];
   messages?: string; // Path to messages JSON file
-  messagesJson?: MessageFile; // Raw messages in MessageFile format
+  messagesJson?: MessagesArg; // Raw messages in MessageFile format
   responseCallback?: (text: string) => Promise<void>;
   responseStreamCallback?: (text: string) => void;
   promptCallback?: (prompt: string) => Promise<void>;

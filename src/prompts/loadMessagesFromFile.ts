@@ -7,9 +7,9 @@ import {
 } from "../api/types.js";
 import { exception } from "../exception.js";
 import { loadImage } from "../prompts/loadImage.js";
-import { MessageFile } from "./types.js";
+import { MessagesArg } from "./types.js";
 
-export function isMessageFile(obj: any): obj is MessageFile {
+export function isMessageFile(obj: any): obj is MessagesArg {
   if (!obj || typeof obj !== "object") return false;
   if (!Array.isArray(obj.messages)) return false;
   return obj.messages.every((msg: any) => {
@@ -29,7 +29,7 @@ export function isMessageFile(obj: any): obj is MessageFile {
 }
 
 export async function convertMessageFileFormat(
-  data: MessageFile,
+  data: MessagesArg,
   workingDir: string
 ): Promise<CompletionInputMessage[]> {
   // Convert MessageFile format to CompletionInputMessage[]

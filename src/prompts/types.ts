@@ -1,12 +1,12 @@
-export type MessageFileContentPart =
+export type MessageContentArg =
   | { type: "text"; text: string }
   | { type: "image"; path: string };
 
-export type MessageFileMessage = {
+export type MessageArg = {
   role: "user" | "assistant";
-  content: string | MessageFileContentPart[];
+  content: string | MessageContentArg[];
 };
 
-export type MessageFile = {
-  messages: MessageFileMessage[];
+export type MessagesArg = {
+  messages: MessageArg[];
 };
