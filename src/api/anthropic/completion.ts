@@ -1,10 +1,9 @@
-// Import necessary modules and types
 import Anthropic from "@anthropic-ai/sdk";
 import { writeDebug } from "../../console.js";
 import { readNonEmptyConfig } from "../../settings/readConfig.js";
 import { CompletionOptions } from "../CompletionOptions.js";
 import { CompletionResult } from "../CompletionResult.js";
-import { CompletionInputMessage } from "../types.js";
+import { CompletionInputMessage, CompletionContentPart } from "../types.js";
 import { createStreamingFileParser } from "../../responseParsing/streamingFileParser.js";
 
 type AnthropicConfig = {
@@ -12,9 +11,8 @@ type AnthropicConfig = {
 };
 
 let ANTHROPIC_API_KEY: string | undefined;
-let configLoaded = false; // Track if the config has already been loaded
+let configLoaded = false;
 
-// Function to load the configuration from a file or environment variables
 async function loadConfigIfRequired(
   customConfigDir: string | undefined,
   workingDir: string
@@ -25,14 +23,41 @@ async function loadConfigIfRequired(
       customConfigDir,
       workingDir
     );
-    // Environment variables have higher priority
     ANTHROPIC_API_KEY =
       process.env.ANTHROPIC_API_KEY ?? anthropicConfig.config?.apiKey;
   }
   configLoaded = true;
 }
 
-// Main completion function using the Anthropic SDK
+function convertToSDKFormat(
+  content: string | CompletionContentPart[]
+):
+  | string
+  | Array<
+      Anthropic.Messages.TextBlockParam | Anthropic.Messages.ImageBlockParam
+    > {
+  if (typeof content === "string") {
+    return content;
+  }
+
+  return content.map((part) => {
+    if (part.type === "text") {
+      return {
+        type: "text",
+        text: part.text,
+      };
+    }
+    return {
+      type: "image",
+      source: {
+        type: "base64",
+        media_type: "image/png",
+        data: part.imageUrl.url,
+      },
+    };
+  });
+}
+
 export async function completion(
   messages: CompletionInputMessage[],
   customConfigDir: string | undefined,
@@ -52,6 +77,7 @@ export async function completion(
   }
 
   writeDebug(`ANTHROPIC: model=${options.model}`);
+
   if (options.maxTokens) {
     writeDebug(`ANTHROPIC: maxTokens=${options.maxTokens}`);
   }
@@ -60,12 +86,17 @@ export async function completion(
     apiKey: ANTHROPIC_API_KEY,
   });
 
+  const sdkMessages = messages.map((msg) => ({
+    role: msg.role,
+    content: convertToSDKFormat(msg.content),
+  }));
+
   let responseText = "";
 
-  const stream = anthropic.messages.stream({
+  const stream = await anthropic.messages.stream({
     model: options.model.name,
     max_tokens: options.maxTokens ?? options.model.maxOutputTokens,
-    messages: messages,
+    messages: sdkMessages,
   });
 
   if (options.cancelCallback) {
