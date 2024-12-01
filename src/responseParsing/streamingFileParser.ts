@@ -4,7 +4,7 @@ export type StreamingFileParseResult =
   | { type: "text"; content: string }
   | { type: "end-file-block"; file: SourceFile }
   | { type: "start-file-block"; path: string }
-  | { type: "markdown"; content: string };
+  | { type: "text-block"; content: string };
 
 // Regex to match the start of a file block with backticks
 const startFileRegexBackticks =
@@ -27,10 +27,15 @@ const createEndFileRegexXml = (xmlElement: string) =>
 // Regex to match language identifier line
 const languageLineRegex = /^\w+\n/;
 
+export type StreamingFileParser = {
+  processChunk: (chunk: string) => void;
+  finish: () => void;
+};
+
 export function createStreamingFileParser(
   callback: (result: StreamingFileParseResult) => void,
   xmlCodeBlockElement?: string
-): (chunk: string) => void {
+): StreamingFileParser {
   let buffer: string = ""; // Buffer to accumulate incoming text
   let insideFileBlock: boolean = false; // Flag to track if we're inside a file block
   let currentFilePath: string = ""; // Variable to store the current file path
@@ -44,7 +49,7 @@ export function createStreamingFileParser(
     ? createEndFileRegexXml(xmlCodeBlockElement)
     : endFileRegexBackticks;
 
-  return function processChunk(chunk: string): void {
+  function processChunk(chunk: string): void {
     // Emit the incoming chunk as a "text" event immediately and unconditionally
     callback({ type: "text", content: chunk });
 
@@ -53,7 +58,7 @@ export function createStreamingFileParser(
 
     // Continuously process the buffer for all possible matches
     processBuffer();
-  };
+  }
 
   function processBuffer(): void {
     while (true) {
@@ -66,11 +71,11 @@ export function createStreamingFileParser(
           const matchStartIndex = startMatch.index;
           const matchEndIndex = startFileRegex.lastIndex;
 
-          // Emit any markdown before the start of the file block
+          // Emit any text before the start of the file block
           if (matchStartIndex > 0) {
-            const markdownContent = buffer.slice(0, matchStartIndex);
-            if (markdownContent.trim()) {
-              callback({ type: "markdown", content: markdownContent });
+            const textBlockContent = buffer.slice(0, matchStartIndex);
+            if (textBlockContent.trim()) {
+              callback({ type: "text-block", content: textBlockContent });
             }
           }
 
@@ -153,4 +158,15 @@ export function createStreamingFileParser(
       }
     }
   }
+
+  function finish() {
+    if (buffer.trim() !== "") {
+      callback({ type: "text-block", content: buffer });
+    }
+  }
+
+  return {
+    processChunk,
+    finish,
+  };
 }

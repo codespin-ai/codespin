@@ -123,9 +123,9 @@ export async function completion(
   let finishReason: OpenAI.Chat.Completions.ChatCompletionChunk.Choice["finish_reason"] =
     null;
 
-  const streamingFileResponseCallback = options.fileResultStreamCallback
+  const { processChunk, finish } = options.fileResultStreamCallback
     ? createStreamingFileParser(options.fileResultStreamCallback)
-    : undefined;
+    : { processChunk: undefined, finish: undefined };
 
   for await (const chunk of stream) {
     const content = chunk.choices[0]?.delta?.content || "";
@@ -133,11 +133,15 @@ export async function completion(
     if (options.responseStreamCallback) {
       options.responseStreamCallback(content);
     }
-    if (streamingFileResponseCallback) {
-      streamingFileResponseCallback(content);
+    if (processChunk) {
+      processChunk(content);
     }
     // Check for finish_reason
     finishReason = chunk.choices[0]?.finish_reason;
+  }
+
+  if (finish) {
+    finish();
   }
 
   writeDebug("---OPENAI RESPONSE---");

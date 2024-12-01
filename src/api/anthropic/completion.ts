@@ -105,21 +105,25 @@ export async function completion(
     });
   }
 
-  const streamingFileResponseCallback = options.fileResultStreamCallback
+  const { processChunk, finish } = options.fileResultStreamCallback
     ? createStreamingFileParser(options.fileResultStreamCallback)
-    : undefined;
+    : { processChunk: undefined, finish: undefined };
 
   stream.on("text", (text) => {
     responseText += text;
     if (options.responseStreamCallback) {
       options.responseStreamCallback(text);
     }
-    if (streamingFileResponseCallback) {
-      streamingFileResponseCallback(text);
+    if (processChunk) {
+      processChunk(text);
     }
   });
 
   const fullMessage = await stream.finalMessage();
+
+  if (finish) {
+    finish();
+  }
 
   writeDebug("---ANTHROPIC RESPONSE---");
   writeDebug(responseText);
