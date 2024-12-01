@@ -28,6 +28,7 @@ More markdown`;
 
       const expected: StreamingFileParseResult[] = [
         { type: "text", content: input },
+        { type: "markdown", content: "Some markdown text\n" },
         { type: "start-file-block", path: "./src/test.ts" },
         { type: "text", content: "const x = 1;" },
         {
@@ -91,6 +92,7 @@ const second = false;
           content:
             "Some markdown in between\nFile path: ./src/second.ts\n<code>\nconst second = false;\n</code>",
         },
+        { type: "markdown", content: "Some markdown in between\n" },
         { type: "start-file-block", path: "./src/second.ts" },
         { type: "text", content: "const second = false;" },
         {
@@ -164,6 +166,11 @@ const second = false;
           type: "text",
           content: "File path: ./src/second.ts\n<code>\nconst y = 2;</code>",
         },
+        {
+          type: "markdown",
+          content:
+            "Some markdown *with* **formatting** and a [link](http://example.com)\n",
+        },
         { type: "start-file-block", path: "./src/second.ts" },
         { type: "text", content: "const y = 2;" },
         {
@@ -186,7 +193,8 @@ const second = false;
         { type: "start-file-block", path: "./src/first.ts" },
         {
           type: "text",
-          content: "const x = 1;",
+          content:
+            "const x = 1;",
         },
         {
           type: "end-file-block",

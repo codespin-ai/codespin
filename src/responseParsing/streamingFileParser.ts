@@ -3,7 +3,8 @@ import { SourceFile } from "../sourceCode/SourceFile.js";
 export type StreamingFileParseResult =
   | { type: "text"; content: string }
   | { type: "end-file-block"; file: SourceFile }
-  | { type: "start-file-block"; path: string };
+  | { type: "start-file-block"; path: string }
+  | { type: "markdown"; content: string };
 
 // Regex to match the start of a file block with backticks
 const startFileRegexBackticks =
@@ -64,6 +65,14 @@ export function createStreamingFileParser(
         if (startMatch) {
           const matchStartIndex = startMatch.index;
           const matchEndIndex = startFileRegex.lastIndex;
+
+          // Emit any markdown before the start of the file block
+          if (matchStartIndex > 0) {
+            const markdownContent = buffer.slice(0, matchStartIndex);
+            if (markdownContent.trim()) {
+              callback({ type: "markdown", content: markdownContent });
+            }
+          }
 
           // Extract the file path
           currentFilePath = startMatch[1];
