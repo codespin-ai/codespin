@@ -435,4 +435,59 @@ const x = 1;
       expect(results).toEqual(expected);
     });
   });
+
+  describe("finish functionality with XML", () => {
+    let results: StreamingFileParseResult[];
+    let processChunk: (chunk: string) => void;
+    let finish: () => void;
+    const xmlElement = "code";
+
+    beforeEach(() => {
+      results = [];
+      const streamingParser = createStreamingFileParser((result) => {
+        results.push(result);
+      }, xmlElement);
+      processChunk = streamingParser.processChunk;
+      finish = streamingParser.finish;
+    });
+
+    test("emits remaining content as text-block when finish is called", () => {
+      processChunk("Some unfinished markdown content");
+      finish();
+
+      expect(results).toEqual([
+        { type: "text", content: "Some unfinished markdown content" },
+        { type: "text-block", content: "Some unfinished markdown content" },
+      ]);
+    });
+
+    test("does nothing when finish is called with empty buffer", () => {
+      finish();
+      expect(results).toEqual([]);
+    });
+
+    test("does nothing when finish is called with whitespace-only buffer", () => {
+      processChunk("  \n  \t  ");
+      finish();
+
+      expect(results).toEqual([{ type: "text", content: "  \n  \t  " }]);
+    });
+
+    test("handles multiple chunks followed by finish", () => {
+      processChunk("Some initial ");
+      processChunk("content followed ");
+      processChunk("by more text");
+      finish();
+
+      expect(results).toEqual([
+        { type: "text", content: "Some initial " },
+        { type: "text", content: "content followed " },
+        { type: "text", content: "by more text" },
+        {
+          type: "text-block",
+          content: "Some initial content followed by more text",
+        },
+      ]);
+    });
+  });
 });
