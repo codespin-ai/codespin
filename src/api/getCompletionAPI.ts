@@ -1,9 +1,9 @@
-import { exception } from "../exception.js";
 import { completion as openaiCompletion } from "./openai/completion.js";
 import { completion as anthropicCompletion } from "./anthropic/completion.js";
 import { CompletionOptions } from "./CompletionOptions.js";
 import { CompletionResult } from "./CompletionResult.js";
 import { CompletionInputMessage } from "./types.js";
+import { InvalidProviderError } from "../errors.js";
 
 export type CompletionFunc = (
   messages: CompletionInputMessage[],
@@ -18,9 +18,6 @@ export function getCompletionAPI(name: string): CompletionFunc {
   } else if (name === "anthropic") {
     return anthropicCompletion;
   } else {
-    exception(
-      "INVALID_AI_PROVIDER",
-      "Only OpenAI and Anthropic are supported as of now."
-    );
+    throw new InvalidProviderError();
   }
 }

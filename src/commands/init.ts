@@ -14,8 +14,9 @@ import { createDirIfMissing } from "../fs/createDirIfMissing.js";
 import { writeToFile } from "../fs/writeToFile.js";
 import { getGitRoot } from "../git/getGitRoot.js";
 import { CodeSpinConfig } from "../settings/CodeSpinConfig.js";
-import { exception } from "../exception.js";
+
 import { writeError } from "../console.js";
+import { DirectoryExistsError } from "../errors.js";
 
 export type InitArgs = {
   force?: boolean;
@@ -76,10 +77,7 @@ export async function init(
 
     // Check if .codespin already exists
     if (!args.force && (await pathExists(configDir))) {
-      exception(
-        "DIR_ALREADY_EXISTS",
-        `${configDir} already exists. Use the --force option to overwrite.`
-      );
+      throw new DirectoryExistsError(configDir);
     }
 
     // Create the config dir at root
@@ -125,10 +123,7 @@ export async function init(
 
     // Check if .codespin already exists
     if (!args.force && (await pathExists(configDir))) {
-      exception(
-        "DIR_ALREADY_EXISTS",
-        `${configDir} already exists. Use the --force option to overwrite.`
-      );
+      throw new DirectoryExistsError(configDir);
     }
 
     // Create the config dir at root

@@ -1,10 +1,16 @@
-import Anthropic from "@anthropic-ai/sdk";
+import Anthropic, {
+  AuthenticationError as AnthropicAuthenticationError,
+} from "@anthropic-ai/sdk";
 import { writeDebug } from "../../console.js";
 import { readNonEmptyConfig } from "../../settings/readConfig.js";
 import { CompletionOptions } from "../CompletionOptions.js";
 import { CompletionResult } from "../CompletionResult.js";
 import { CompletionInputMessage, CompletionContentPart } from "../types.js";
 import { createStreamingFileParser } from "../../responseParsing/streamingFileParser.js";
+import {
+  InvalidCredentialsError,
+  MissingAnthropicEnvVarError,
+} from "../../errors.js";
 
 type AnthropicConfig = {
   apiKey: string;
@@ -67,13 +73,7 @@ export async function completion(
   await loadConfigIfRequired(customConfigDir, workingDir);
 
   if (!ANTHROPIC_API_KEY) {
-    return {
-      ok: false,
-      error: {
-        code: "missing_api_key",
-        message: "ANTHROPIC_API_KEY is not set in the environment variables.",
-      },
-    };
+    throw new MissingAnthropicEnvVarError();
   }
 
   writeDebug(`ANTHROPIC: model=${options.model}`);
@@ -92,44 +92,52 @@ export async function completion(
   }));
 
   let responseText = "";
+  let fullMessage: Anthropic.Messages.Message;
 
-  const stream = await anthropic.messages.stream({
-    model: options.model.name,
-    max_tokens: options.maxTokens ?? options.model.maxOutputTokens,
-    messages: sdkMessages,
-  });
-
-  if (options.cancelCallback) {
-    options.cancelCallback(() => {
-      stream.abort();
+  try {
+    const stream = await anthropic.messages.stream({
+      model: options.model.name,
+      max_tokens: options.maxTokens ?? options.model.maxOutputTokens,
+      messages: sdkMessages,
     });
-  }
 
-  const { processChunk, finish } = options.fileResultStreamCallback
-    ? createStreamingFileParser(options.fileResultStreamCallback)
-    : { processChunk: undefined, finish: undefined };
-
-  stream.on("text", (text) => {
-    responseText += text;
-    if (options.responseStreamCallback) {
-      options.responseStreamCallback(text);
+    if (options.cancelCallback) {
+      options.cancelCallback(() => {
+        stream.abort();
+      });
     }
-    if (processChunk) {
-      processChunk(text);
+
+    const { processChunk, finish } = options.fileResultStreamCallback
+      ? createStreamingFileParser(options.fileResultStreamCallback)
+      : { processChunk: undefined, finish: undefined };
+
+    stream.on("text", (text) => {
+      responseText += text;
+      if (options.responseStreamCallback) {
+        options.responseStreamCallback(text);
+      }
+      if (processChunk) {
+        processChunk(text);
+      }
+    });
+
+    fullMessage = await stream.finalMessage();
+
+    if (finish) {
+      finish();
     }
-  });
-
-  const fullMessage = await stream.finalMessage();
-
-  if (finish) {
-    finish();
+  } catch (ex: any) {
+    if (ex instanceof AnthropicAuthenticationError) {
+      throw new InvalidCredentialsError("ANTHROPIC");
+    } else {
+      throw ex;
+    }
   }
 
   writeDebug("---ANTHROPIC RESPONSE---");
   writeDebug(responseText);
 
   return {
-    ok: true,
     message: responseText,
     finishReason:
       fullMessage.stop_reason === "max_tokens" ? "MAX_TOKENS" : "STOP",

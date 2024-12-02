@@ -1,8 +1,10 @@
 import path from "path";
-import { exception } from "../exception.js";
+
 import { pathExists } from "../fs/pathExists.js";
 import { CodeSpinConfig } from "../settings/CodeSpinConfig.js";
 import { getTemplatesDir } from "../settings/getTemplatesDir.js";
+import { MissingTemplateError } from "../errors.js";
+import { exception } from "../exception.js";
 
 export type TemplateFunc<TArgs, TResult> = (
   args: TArgs,
@@ -26,10 +28,7 @@ export async function getCustomTemplate<TArgs, TResult>(
         : projectTemplateDir &&
           (await pathExists(path.join(projectTemplateDir, template!)))
         ? path.join(projectTemplateDir, template!)
-        : exception(
-            "MISSING_TEMPLATE",
-            `The template ${template} was not found.`
-          );
+        : exception(new MissingTemplateError(template));
 
     const templateModule = await import(templatePath);
     return templateModule.default;

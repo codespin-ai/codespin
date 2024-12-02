@@ -1,3 +1,4 @@
+import { MissingCodeBlockError } from "../errors.js";
 import { exception } from "../exception.js";
 
 type CodeBlockInfo = {
@@ -21,5 +22,5 @@ export function extractFromMarkdownCodeBlock(
         language: undefined,
         content: input,
       }
-    : exception("MISSING_CODE_BLOCK", "No valid markdown code block found.");
+    : exception(new MissingCodeBlockError());
 }

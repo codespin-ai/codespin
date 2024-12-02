@@ -3,9 +3,11 @@ import { pathExists } from "./pathExists.js";
 import { getFileFromCommit } from "../git/getFileFromCommit.js";
 import { isGitRepo } from "../git/isGitRepo.js";
 import { VersionedFileInfo } from "./VersionedFileInfo.js";
-import { exception } from "../exception.js";
+
 import { getDiff } from "../git/getDiff.js";
 import { VersionedPath } from "./VersionedPath.js";
+import { FileNotFoundError, UndefinedDiffVersionError } from "../errors.js";
+import { exception } from "../exception.js";
 
 export async function getVersionedFileInfo(
   { version: versionOrDiff, path: filePath }: VersionedPath,
@@ -24,10 +26,7 @@ export async function getVersionedFileInfo(
                 : version2 === undefined
                 ? await getDiff(filePath, version1, undefined, workingDir)
                 : version1 === undefined
-                ? exception(
-                    "UNDEFINED_DIFF_VERSION",
-                    `The version cannot be undefined in a diff.`
-                  )
+                ? exception(new UndefinedDiffVersionError())
                 : await getDiff(filePath, version1, version2, workingDir);
 
             return {
@@ -55,6 +54,6 @@ export async function getVersionedFileInfo(
           version: "current",
         };
   } else {
-    exception("FILE_NOT_FOUND", `File ${filePath} was not found.`);
+    throw new FileNotFoundError(filePath);
   }
 }

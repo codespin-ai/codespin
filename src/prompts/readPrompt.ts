@@ -1,5 +1,6 @@
 import { readFile } from "fs/promises";
-import { exception } from "../exception.js";
+
+import { ParameterError } from "../errors.js";
 import { processPrompt } from "./processPrompt.js";
 
 export async function readPrompt(
@@ -21,9 +22,6 @@ export async function readPrompt(
     const prompt = await processPrompt(textPrompt, undefined, workingDir);
     return prompt;
   } else {
-    exception(
-      "MISSING_PROMPT",
-      "The prompt file must be specified, or otherwise specify a prompt inline with '-p'. See 'codespin generate help'."
-    );
+    throw new ParameterError("The promptFile argument was not supplied.");
   }
 }

@@ -5,16 +5,23 @@ import { getCompletionAPI } from "../../api/getCompletionAPI.js";
 import { CompletionInputMessage } from "../../api/types.js";
 import { writeDebug } from "../../console.js";
 import { setDebugFlag } from "../../debugMode.js";
-import { exception } from "../../exception.js";
+import {
+  CannotMergeDiffResponseError,
+  MaxMultiQueryError,
+  MaxTokensError,
+  CLIParameterError,
+  UnknownFinishReasonError,
+} from "../../errors.js";
 import { writeFilesToDisk } from "../../fs/writeFilesToDisk.js";
 import { writeToFile } from "../../fs/writeToFile.js";
 import { BuildPromptArgs, buildPrompt } from "../../prompts/buildPrompt.js";
 import { convertPromptToMessage } from "../../prompts/convertPromptToMessage.js";
 import {
-  loadMessagesFromFile,
   convertMessageFileFormat,
+  loadMessagesFromFile,
 } from "../../prompts/loadMessagesFromFile.js";
 import { readPromptSettings } from "../../prompts/readPromptSettings.js";
+import { MessagesArg } from "../../prompts/types.js";
 import { fileBlockParser } from "../../responseParsing/fileBlockParser.js";
 import { StreamingFileParseResult } from "../../responseParsing/streamingFileParser.js";
 import { validateMaxInputMessagesLength } from "../../safety/validateMaxInputLength.js";
@@ -28,7 +35,6 @@ import defaultTemplate from "../../templates/default.js";
 import { getCustomTemplate } from "../../templating/getCustomTemplate.js";
 import { getGeneratedFiles } from "./getGeneratedFiles.js";
 import { getOutPath } from "./getOutPath.js";
-import { MessagesArg } from "../../prompts/types.js";
 
 export type GenerateArgs = {
   promptFile?: string;
@@ -192,12 +198,6 @@ export async function generate(
     // Handle prompt printing/saving
     if (args.printPrompt || typeof args.writePrompt !== "undefined") {
       if (typeof args.writePrompt !== "undefined") {
-        if (!args.writePrompt) {
-          exception(
-            "MISSING_FILE_PATH",
-            `Specify a file path for the --write-prompt parameter.`
-          );
-        }
         await writeToFile(args.writePrompt, evaluatedPrompt, false);
       }
 
@@ -216,9 +216,8 @@ export async function generate(
     );
     messages = [message];
   } else {
-    return exception(
-      "MISSING_INPUT",
-      "Either --messages, --messagesJson, or --prompt/--prompt-file must be specified"
+    throw new CLIParameterError(
+      "Must specify one of: --messages, --messagesJson, or --prompt/--prompt-file"
     );
   }
 
@@ -270,109 +269,89 @@ export async function generate(
       context.workingDir
     );
 
-    if (completionResult.ok) {
-      if (
-        completionResult.finishReason === "STOP" ||
-        completionResult.finishReason === "MAX_TOKENS"
-      ) {
-        allResponses.push(completionResult.message);
+    if (
+      completionResult.finishReason === "STOP" ||
+      completionResult.finishReason === "MAX_TOKENS"
+    ) {
+      allResponses.push(completionResult.message);
 
-        const newlyGeneratedFiles = await fileBlockParser(
-          completionResult.message,
-          context.workingDir,
-          xmlCodeBlockElement,
-          config
-        );
+      const newlyGeneratedFiles = await fileBlockParser(
+        completionResult.message,
+        context.workingDir,
+        xmlCodeBlockElement,
+        config
+      );
 
-        if (newlyGeneratedFiles.length === 0) {
-          if (args.responseCallback) {
-            await args.responseCallback(
-              allResponses.join("\n---CONTINUING---\n") +
-                "\nERROR: FILE_LENGTH_EXCEEDS_MAX_TOKENS"
-            );
-          }
-
-          return exception(
-            "FILE_LENGTH_EXCEEDS_MAX_TOKENS",
-            `The length of a single file exceeded max tokens and cannot be retried. Try increasing max tokens if possible or make your code more modular.`
+      if (newlyGeneratedFiles.length === 0) {
+        if (args.responseCallback) {
+          await args.responseCallback(
+            allResponses.join("\n---CONTINUING---\n") +
+              "\nERROR: FILE_LENGTH_EXCEEDS_MAX_TOKENS"
           );
         }
 
-        updateFiles(generatedFiles, newlyGeneratedFiles);
+        throw new MaxTokensError();
+      }
 
-        if (completionResult.finishReason === "STOP") {
-          if (args.responseCallback) {
-            await args.responseCallback(
-              allResponses.join("\n---CONTINUING---\n")
-            );
-          }
+      updateFiles(generatedFiles, newlyGeneratedFiles);
 
-          const files = toSourceFileList(generatedFiles);
+      if (completionResult.finishReason === "STOP") {
+        if (args.responseCallback) {
+          await args.responseCallback(
+            allResponses.join("\n---CONTINUING---\n")
+          );
+        }
 
-          if (args.parseCallback) {
-            const generatedFilesDetail = await getGeneratedFiles(
+        const files = toSourceFileList(generatedFiles);
+
+        if (args.parseCallback) {
+          const generatedFilesDetail = await getGeneratedFiles(
+            files,
+            context.workingDir
+          );
+          await args.parseCallback(generatedFilesDetail);
+        }
+
+        if (args.parse ?? true) {
+          if (args.write) {
+            await writeFilesToDisk(
+              args.outDir || context.workingDir,
               files,
+              args.exec,
               context.workingDir
             );
-            await args.parseCallback(generatedFilesDetail);
-          }
-
-          if (args.parse ?? true) {
-            if (args.write) {
-              await writeFilesToDisk(
-                args.outDir || context.workingDir,
-                files,
-                args.exec,
-                context.workingDir
-              );
-              return {
-                type: "saved",
-                files,
-              };
-            } else {
-              return {
-                type: "files",
-                files,
-              };
-            }
+            return {
+              type: "saved",
+              files,
+            };
           } else {
             return {
-              type: "unparsed",
-              responses: allResponses,
+              type: "files",
+              files,
             };
           }
-        } else if (completionResult.finishReason === "MAX_TOKENS") {
-          if (args.multi === 0) {
-            if (args.responseCallback) {
-              await args.responseCallback(
-                allResponses.join("\n---CONTINUING---\n") +
-                  "\nERROR: MAX_TOKENS"
-              );
-            }
-
-            return exception(
-              "MAX_TOKENS",
-              `Maximum number of tokens exceeded and the multi-step param (--multi) is set to zero.`
-            );
-          }
-          if (args.parser !== "file-block") {
-            return exception(
-              "CANNOT_MERGE_DIFF_RESPONSE",
-              `Diff responses cannot be merged. Remove the diff flag.`
-            );
-          }
+        } else {
+          return {
+            type: "unparsed",
+            responses: allResponses,
+          };
         }
-      } else {
-        return exception(
-          "UNKNOWN_FINISH_REASON",
-          completionResult.finishReason
-        );
+      } else if (completionResult.finishReason === "MAX_TOKENS") {
+        if (args.multi === 0) {
+          if (args.responseCallback) {
+            await args.responseCallback(
+              allResponses.join("\n---CONTINUING---\n") + "\nERROR: MAX_TOKENS"
+            );
+          }
+
+          throw new MaxTokensError();
+        }
+        if (args.parser !== "file-block") {
+          throw new CannotMergeDiffResponseError();
+        }
       }
     } else {
-      return exception(
-        completionResult.error.code,
-        completionResult.error.message
-      );
+      throw new UnknownFinishReasonError(completionResult.finishReason);
     }
   }
 
@@ -382,7 +361,7 @@ export async function generate(
     );
   }
 
-  return exception("MAX_MULTI_QUERY", `Maximum number of LLM calls exceeded.`);
+  throw new MaxMultiQueryError();
 }
 
 function updateFiles(

@@ -1,6 +1,9 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { exception } from "../exception.js";
+import {
+  MissingDestinationDirectoryError,
+  MissingSourceDirectoryError,
+} from "../errors.js";
 
 export async function copyFilesInDir(
   srcDir: string,
@@ -9,17 +12,11 @@ export async function copyFilesInDir(
 ): Promise<void> {
   // Check if the source and destination directories exist
   if (!(await fs.stat(srcDir).then((stats) => stats.isDirectory()))) {
-    exception(
-      "MISSING_SOURCE_DIRECTORY",
-      `Source directory "${srcDir}" doesn't exist or is not a directory.`
-    );
+    throw new MissingSourceDirectoryError(srcDir);
   }
 
   if (!(await fs.stat(destDir).then((stats) => stats.isDirectory()))) {
-    exception(
-      "MISSING_DESTINATION_DIRECTORY",
-      `Destination directory "${destDir}" doesn't exist or is not a directory.`
-    );
+    throw new MissingDestinationDirectoryError(destDir);
   }
 
   // Read the source directory content

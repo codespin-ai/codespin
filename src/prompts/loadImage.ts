@@ -1,6 +1,6 @@
 import { readFile } from "fs/promises";
 import path from "path";
-import { exception } from "../exception.js";
+import { FileNotFoundError } from "../errors.js";
 
 export async function loadImage(
   imagePath: string,
@@ -11,9 +11,6 @@ export async function loadImage(
     const imageBuffer = await readFile(absolutePath);
     return imageBuffer.toString("base64");
   } catch (error) {
-    return exception(
-      "IMAGE_LOAD_ERROR",
-      `Failed to load image at path: ${imagePath}`
-    );
+    throw new FileNotFoundError(imagePath);
   }
 }

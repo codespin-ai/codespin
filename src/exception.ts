@@ -1,5 +1,3 @@
-import { TypedError } from "./TypedError.js";
-
-export function exception(type: string, message: string): never {
-  throw new TypedError(type, message);
+export function exception<T extends Error>(error: T): never {
+  throw error;
 }

@@ -6,6 +6,7 @@ import { CODESPIN_DIRNAME } from "../fs/pathNames.js";
 import { homedir } from "os";
 import { getGitRoot } from "../git/getGitRoot.js";
 import { exception } from "../exception.js";
+import { MissingConfigError } from "../errors.js";
 
 async function getConfigFilePath(
   pathFragment: string,
@@ -77,11 +78,5 @@ export async function readNonEmptyConfig<T>(
   workingDir: string
 ): Promise<{ config: T; filePath: string }> {
   const config = await readConfig<T>(pathFragment, customConfigDir, workingDir);
-  return (
-    config ??
-    exception(
-      "MISSING_CONFIG",
-      `The config file ${pathFragment} does not exist.`
-    )
-  );
+  return config ?? exception(new MissingConfigError(pathFragment));
 }

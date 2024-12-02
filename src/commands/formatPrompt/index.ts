@@ -1,5 +1,6 @@
 import { CodeSpinContext } from "../../CodeSpinContext.js";
 import { setDebugFlag } from "../../debugMode.js";
+import { TemplateError } from "../../errors.js";
 import { exception } from "../../exception.js";
 import { BuildPromptArgs, buildPrompt } from "../../prompts/buildPrompt.js";
 import { readCodeSpinConfig } from "../../settings/readCodeSpinConfig.js";
@@ -57,8 +58,8 @@ export async function formatPrompt(
       )) ??
       (args.template === "files"
         ? filesTemplate
-        : exception("UNKNOWN_TEMPLATE", `Unknown template ${args.template}.`))
-    : exception("UNKNOWN_TEMPLATE", `Unknown template ${args.template}.`);
+        : exception(new TemplateError(`Unknown tempalte ${args.template}.`)))
+    : exception(new TemplateError(`Unknown tempalte ${args.template}.`));
 
   const result = await buildPrompt(
     buildPromptArgs,

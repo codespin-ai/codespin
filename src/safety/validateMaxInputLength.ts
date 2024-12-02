@@ -1,5 +1,5 @@
 import { CompletionContentPart, CompletionInputMessage } from "../api/types.js";
-import { exception } from "../exception.js";
+import { MaxInputLengthError } from "../errors.js";
 
 function getAllTextContent(messages: CompletionInputMessage[]): string {
   return messages
@@ -23,10 +23,7 @@ export function validateMaxInputStringLength(
   maxLength: number | undefined
 ) {
   if (maxLength && input.length > maxLength) {
-    return exception(
-      "MAX_INPUT_LENGTH_EXCEEDED",
-      `The length of input exceeds ${maxLength}. You can specify a longer input with the "--max-input" parameter or by setting maxInput in $HOME/.codespin/codespin.json.`
-    );
+    throw new MaxInputLengthError(maxLength);
   }
 }
 

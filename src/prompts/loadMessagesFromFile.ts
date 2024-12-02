@@ -5,9 +5,10 @@ import {
   CompletionUserMessage,
   CompletionAssistantMessage,
 } from "../api/types.js";
-import { exception } from "../exception.js";
+
 import { loadImage } from "../prompts/loadImage.js";
 import { MessagesArg } from "./types.js";
+import { InvalidMessagesFileError } from "../errors.js";
 
 export function isMessageFile(obj: any): obj is MessagesArg {
   if (!obj || typeof obj !== "object") return false;
@@ -37,8 +38,7 @@ export async function convertMessageFileFormat(
     data.messages.map(async (msg): Promise<CompletionInputMessage> => {
       if (msg.role === "assistant") {
         if (typeof msg.content !== "string") {
-          return exception(
-            "INVALID_MESSAGES_FILE",
+          throw new InvalidMessagesFileError(
             "Assistant messages must have string content"
           );
         }
@@ -94,16 +94,12 @@ export async function loadMessagesFromFile(
     const data = JSON.parse(content);
 
     if (!isMessageFile(data)) {
-      return exception(
-        "INVALID_MESSAGES_FILE",
-        `Invalid message file format in ${filePath}. Please check the documentation for the correct format.`
-      );
+      throw new InvalidMessagesFileError(filePath);
     }
 
     return convertMessageFileFormat(data, workingDir);
   } catch (error) {
-    return exception(
-      "INVALID_MESSAGES_FILE",
+    throw new InvalidMessagesFileError(
       `Failed to load or parse messages from ${filePath}: ${error}`
     );
   }

@@ -15,7 +15,7 @@ import { DependenciesTemplateResult } from "../templates/DependenciesTemplateRes
 import dependenciesTemplate from "../templates/dependencies.js";
 import { getCustomTemplate } from "../templating/getCustomTemplate.js";
 import { getModel } from "../settings/getModel.js";
-import { exception } from "../exception.js";
+
 import { validateMaxInputStringLength } from "../safety/validateMaxInputLength.js";
 
 export type DependenciesArgs = {
@@ -103,36 +103,31 @@ export async function dependencies(
       context.workingDir
     );
 
-    if (completionResult.ok) {
-      const dependencies = JSON.parse(
-        extractFromMarkdownCodeBlock(completionResult.message, true).content
-      ) as Dependency[];
+    const dependencies = JSON.parse(
+      extractFromMarkdownCodeBlock(completionResult.message, true).content
+    ) as Dependency[];
 
-      // Fix language specific quirks here.
-      const extensionsToCheck = ["tsx", "ts", "jsx", "js"];
-      if (extensionsToCheck.some((ext) => args.file.endsWith(`.${ext}`))) {
-        for (const dep of dependencies) {
-          if (dep.isProjectFile) {
-            for (const extension of extensionsToCheck) {
-              const potentialFilePath = path.join(
-                context.workingDir,
-                dep.filePath.replace(/\.(ts|js)x?$/, `.${extension}`)
+    // Fix language specific quirks here.
+    const extensionsToCheck = ["tsx", "ts", "jsx", "js"];
+    if (extensionsToCheck.some((ext) => args.file.endsWith(`.${ext}`))) {
+      for (const dep of dependencies) {
+        if (dep.isProjectFile) {
+          for (const extension of extensionsToCheck) {
+            const potentialFilePath = path.join(
+              context.workingDir,
+              dep.filePath.replace(/\.(ts|js)x?$/, `.${extension}`)
+            );
+            if (await pathExists(potentialFilePath)) {
+              dep.filePath = dep.filePath.replace(
+                /\.(ts|js)x?$/,
+                `.${extension}`
               );
-              if (await pathExists(potentialFilePath)) {
-                dep.filePath = dep.filePath.replace(
-                  /\.(ts|js)x?$/,
-                  `.${extension}`
-                );
-                break;
-              }
+              break;
             }
           }
         }
       }
-
-      return { dependencies };
-    } else {
-      exception(completionResult.error.code, completionResult.error.message);
     }
+    return { dependencies };
   }
 }

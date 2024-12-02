@@ -1,11 +1,18 @@
-import OpenAI from "openai";
+import OpenAI, {
+  AuthenticationError as OpenAIAuthenticationError,
+} from "openai";
 import { writeDebug } from "../../console.js";
 import { readNonEmptyConfig } from "../../settings/readConfig.js";
 import { CompletionOptions } from "../CompletionOptions.js";
 import { CompletionResult } from "../CompletionResult.js";
 import { CompletionInputMessage, CompletionContentPart } from "../types.js";
-import { exception } from "../../exception.js";
 import { createStreamingFileParser } from "../../responseParsing/streamingFileParser.js";
+import {
+  AuthenticationError,
+  ClientInitializationError,
+  InvalidCredentialsError,
+  MissingOpenAIEnvVarError,
+} from "../../errors.js";
 
 type OpenAIConfig = {
   apiKey: string;
@@ -70,10 +77,7 @@ async function loadConfigIfRequired(
     // Environment variables have higher priority
     const apiKey = process.env.OPENAI_API_KEY ?? openaiConfig.config?.apiKey;
     if (!apiKey) {
-      exception(
-        "MISSING_OPENAI_API_KEY",
-        "OPENAI_API_KEY environment variable is not set."
-      );
+      throw new MissingOpenAIEnvVarError();
     }
     openaiClient = new OpenAI({ apiKey });
     configLoaded = true;
@@ -89,13 +93,7 @@ export async function completion(
   await loadConfigIfRequired(customConfigDir, workingDir);
 
   if (!openaiClient) {
-    return {
-      ok: false,
-      error: {
-        code: "client_initialization_error",
-        message: "Failed to initialize OpenAI client.",
-      },
-    };
+    throw new ClientInitializationError("OPENAI");
   }
 
   writeDebug(`OPENAI: model=${options.model}`);
@@ -106,49 +104,56 @@ export async function completion(
 
   const transformedMessages = convertMessagesToOpenAIFormat(messages);
 
-  const stream = await openaiClient.chat.completions.create({
-    model: options.model.name,
-    messages: transformedMessages,
-    max_tokens: maxTokens,
-    stream: true,
-  });
-
-  if (options.cancelCallback) {
-    options.cancelCallback(() => {
-      stream.controller.abort();
-    });
-  }
-
   let responseText = "";
   let finishReason: OpenAI.Chat.Completions.ChatCompletionChunk.Choice["finish_reason"] =
     null;
 
-  const { processChunk, finish } = options.fileResultStreamCallback
-    ? createStreamingFileParser(options.fileResultStreamCallback)
-    : { processChunk: undefined, finish: undefined };
+  try {
+    const stream = await openaiClient.chat.completions.create({
+      model: options.model.name,
+      messages: transformedMessages,
+      max_tokens: maxTokens,
+      stream: true,
+    });
 
-  for await (const chunk of stream) {
-    const content = chunk.choices[0]?.delta?.content || "";
-    responseText += content;
-    if (options.responseStreamCallback) {
-      options.responseStreamCallback(content);
+    if (options.cancelCallback) {
+      options.cancelCallback(() => {
+        stream.controller.abort();
+      });
     }
-    if (processChunk) {
-      processChunk(content);
-    }
-    // Check for finish_reason
-    finishReason = chunk.choices[0]?.finish_reason;
-  }
 
-  if (finish) {
-    finish();
+    const { processChunk, finish } = options.fileResultStreamCallback
+      ? createStreamingFileParser(options.fileResultStreamCallback)
+      : { processChunk: undefined, finish: undefined };
+
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content || "";
+      responseText += content;
+      if (options.responseStreamCallback) {
+        options.responseStreamCallback(content);
+      }
+      if (processChunk) {
+        processChunk(content);
+      }
+      // Check for finish_reason
+      finishReason = chunk.choices[0]?.finish_reason;
+    }
+
+    if (finish) {
+      finish();
+    }
+  } catch (ex: any) {
+    if (ex instanceof OpenAIAuthenticationError) {
+      throw new InvalidCredentialsError("OPENAI");
+    } else {
+      throw ex;
+    }
   }
 
   writeDebug("---OPENAI RESPONSE---");
   writeDebug(responseText);
 
   return {
-    ok: true,
     message: responseText,
     finishReason: finishReason === "length" ? "MAX_TOKENS" : "STOP",
   };

@@ -2,27 +2,25 @@ import path from "path";
 import { CodeSpinContext } from "../CodeSpinContext.js";
 import { CompletionOptions } from "../api/CompletionOptions.js";
 import { getCompletionAPI } from "../api/getCompletionAPI.js";
-import { CompletionContentPart, CompletionInputMessage } from "../api/types.js";
+import { CompletionInputMessage } from "../api/types.js";
 import { writeDebug } from "../console.js";
 import { setDebugFlag } from "../debugMode.js";
-import { exception } from "../exception.js";
+
 import { convertPromptToMessage } from "../prompts/convertPromptToMessage.js";
 import {
-  loadMessagesFromFile,
   convertMessageFileFormat,
+  loadMessagesFromFile,
 } from "../prompts/loadMessagesFromFile.js";
 import { stdinDirective } from "../prompts/stdinDirective.js";
-import {
-  validateMaxInputMessagesLength,
-  validateMaxInputStringLength,
-} from "../safety/validateMaxInputLength.js";
+import { MessagesArg } from "../prompts/types.js";
+import { validateMaxInputMessagesLength } from "../safety/validateMaxInputLength.js";
 import { getModel } from "../settings/getModel.js";
 import { readCodeSpinConfig } from "../settings/readCodeSpinConfig.js";
 import { PlainTemplateArgs } from "../templates/PlainTemplateArgs.js";
 import { PlainTemplateResult } from "../templates/PlainTemplateResult.js";
 import plainTemplate from "../templates/plain.js";
 import { getCustomTemplate } from "../templating/getCustomTemplate.js";
-import { MessagesArg } from "../prompts/types.js";
+import { CLIParameterError } from "../errors.js";
 
 export type GoArgs = {
   template: string | undefined;
@@ -103,9 +101,8 @@ export async function go(
     );
     messages = [message];
   } else {
-    return exception(
-      "MISSING_INPUT",
-      "Either --messages, --messagesJson, or --prompt must be specified"
+    throw new CLIParameterError(
+      "Must specify one of: --messages, --messagesJson, or --prompt"
     );
   }
 
@@ -144,11 +141,9 @@ export async function go(
     context.workingDir
   );
 
-  if (completionResult.ok && args.responseCallback) {
+  if (args.responseCallback) {
     await args.responseCallback(completionResult.message);
   }
 
-  return completionResult.ok
-    ? { response: completionResult.message }
-    : exception(completionResult.error.code, completionResult.error.message);
+  return { response: completionResult.message };
 }
