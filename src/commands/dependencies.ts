@@ -92,11 +92,11 @@ export async function dependencies(
     writeDebug("--- PROMPT ---");
     writeDebug(prompt);
 
-    const completion = getCompletionAPI(model.provider);
+    const completionAPI = getCompletionAPI(model.provider);
 
     validateMaxInputStringLength(prompt, maxInput);
 
-    const completionResult = await completion(
+    const completionResult = await completionAPI.completion(
       [{ role: "user", content: prompt }],
       args.config,
       completionOptions,

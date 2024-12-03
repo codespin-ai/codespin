@@ -120,7 +120,7 @@ export async function go(
     args.cancelCallback(generateCommandCancel);
   }
 
-  const completion = getCompletionAPI(model.provider);
+  const completionAPI = getCompletionAPI(model.provider);
 
   const completionOptions: CompletionOptions = {
     model,
@@ -134,7 +134,7 @@ export async function go(
   writeDebug("--- MESSAGES ---");
   writeDebug(JSON.stringify(messages, null, 2));
 
-  const completionResult = await completion(
+  const completionResult = await completionAPI.completion(
     messages,
     args.config,
     completionOptions,

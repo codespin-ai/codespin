@@ -2,17 +2,16 @@ import OpenAI, {
   AuthenticationError as OpenAIAuthenticationError,
 } from "openai";
 import { writeDebug } from "../../console.js";
-import { readNonEmptyConfig } from "../../settings/readConfig.js";
-import { CompletionOptions } from "../CompletionOptions.js";
-import { CompletionResult } from "../CompletionResult.js";
-import { CompletionInputMessage, CompletionContentPart } from "../types.js";
-import { createStreamingFileParser } from "../../responseParsing/streamingFileParser.js";
 import {
-  AuthenticationError,
   ClientInitializationError,
   InvalidCredentialsError,
   MissingOpenAIEnvVarError,
 } from "../../errors.js";
+import { createStreamingFileParser } from "../../responseParsing/streamingFileParser.js";
+import { readNonEmptyConfig } from "../../settings/readConfig.js";
+import { CompletionOptions } from "../CompletionOptions.js";
+import { CompletionResult } from "../CompletionResult.js";
+import { CompletionContentPart, CompletionInputMessage } from "../types.js";
 
 type OpenAIConfig = {
   apiKey: string;
@@ -64,11 +63,12 @@ function convertMessagesToOpenAIFormat(
   });
 }
 
-async function loadConfigIfRequired(
+async function loadConfigAndCache(
   customConfigDir: string | undefined,
-  workingDir: string
+  workingDir: string,
+  forceReload: boolean = false
 ) {
-  if (!configLoaded) {
+  if (forceReload || !configLoaded) {
     const openaiConfig = await readNonEmptyConfig<OpenAIConfig>(
       "openai.json",
       customConfigDir,
@@ -84,13 +84,20 @@ async function loadConfigIfRequired(
   }
 }
 
+export async function reloadConfig(
+  customConfigDir: string | undefined,
+  workingDir: string
+) {
+  return await loadConfigAndCache(customConfigDir, workingDir);
+}
+
 export async function completion(
   messages: CompletionInputMessage[],
   customConfigDir: string | undefined,
   options: CompletionOptions,
   workingDir: string
 ): Promise<CompletionResult> {
-  await loadConfigIfRequired(customConfigDir, workingDir);
+  await loadConfigAndCache(customConfigDir, workingDir, options.reloadConfig);
 
   if (!openaiClient) {
     throw new ClientInitializationError("OPENAI");

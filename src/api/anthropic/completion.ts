@@ -19,22 +19,6 @@ type AnthropicConfig = {
 let ANTHROPIC_API_KEY: string | undefined;
 let configLoaded = false;
 
-async function loadConfigIfRequired(
-  customConfigDir: string | undefined,
-  workingDir: string
-) {
-  if (!configLoaded) {
-    const anthropicConfig = await readNonEmptyConfig<AnthropicConfig>(
-      "anthropic.json",
-      customConfigDir,
-      workingDir
-    );
-    ANTHROPIC_API_KEY =
-      process.env.ANTHROPIC_API_KEY ?? anthropicConfig.config?.apiKey;
-  }
-  configLoaded = true;
-}
-
 function convertToSDKFormat(
   content: string | CompletionContentPart[]
 ):
@@ -64,13 +48,37 @@ function convertToSDKFormat(
   });
 }
 
+async function loadConfigAndCache(
+  customConfigDir: string | undefined,
+  workingDir: string,
+  forceReload: boolean = false
+) {
+  if (forceReload || !configLoaded) {
+    const anthropicConfig = await readNonEmptyConfig<AnthropicConfig>(
+      "anthropic.json",
+      customConfigDir,
+      workingDir
+    );
+    ANTHROPIC_API_KEY =
+      process.env.ANTHROPIC_API_KEY ?? anthropicConfig.config?.apiKey;
+  }
+  configLoaded = true;
+}
+
+export async function reloadConfig(
+  customConfigDir: string | undefined,
+  workingDir: string
+) {
+  return await loadConfigAndCache(customConfigDir, workingDir);
+}
+
 export async function completion(
   messages: CompletionInputMessage[],
   customConfigDir: string | undefined,
   options: CompletionOptions,
   workingDir: string
 ): Promise<CompletionResult> {
-  await loadConfigIfRequired(customConfigDir, workingDir);
+  await loadConfigAndCache(customConfigDir, workingDir, options.reloadConfig);
 
   if (!ANTHROPIC_API_KEY) {
     throw new MissingAnthropicEnvVarError();

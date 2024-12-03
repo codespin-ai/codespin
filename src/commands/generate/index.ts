@@ -236,7 +236,7 @@ export async function generate(
     args.cancelCallback(generateCommandCancel);
   }
 
-  const completion = getCompletionAPI(model.provider);
+  const completionAPI = getCompletionAPI(model.provider);
 
   const completionOptions: CompletionOptions = {
     model,
@@ -262,7 +262,7 @@ export async function generate(
     writeDebug("--- MESSAGES ---");
     writeDebug(JSON.stringify(messages, null, 2));
 
-    const completionResult = await completion(
+    const completionResult = await completionAPI.completion(
       messages,
       args.config,
       completionOptions,

@@ -1,5 +1,5 @@
-import { completion as openaiCompletion } from "./openai/completion.js";
-import { completion as anthropicCompletion } from "./anthropic/completion.js";
+import * as openAI from "./openai/completion.js";
+import * as anthropic from "./anthropic/completion.js";
 import { CompletionOptions } from "./CompletionOptions.js";
 import { CompletionResult } from "./CompletionResult.js";
 import { CompletionInputMessage } from "./types.js";
@@ -12,11 +12,19 @@ export type CompletionFunc = (
   workingDir: string
 ) => Promise<CompletionResult>;
 
-export function getCompletionAPI(name: string): CompletionFunc {
+export type CompletionAPI = {
+  completion: CompletionFunc;
+  reloadConfig: (
+    customConfigDir: string | undefined,
+    workingDir: string
+  ) => Promise<void>;
+};
+
+export function getCompletionAPI(name: string): CompletionAPI {
   if (name === "openai") {
-    return openaiCompletion;
+    return openAI;
   } else if (name === "anthropic") {
-    return anthropicCompletion;
+    return anthropic;
   } else {
     throw new InvalidProviderError();
   }
