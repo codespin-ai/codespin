@@ -1,4 +1,5 @@
 import { SourceFile } from "../sourceCode/SourceFile.js";
+import { execRegexSafely } from "../text/execRegexSafely.js";
 
 export type StreamingFileParseResult =
   | { type: "text"; content: string }
@@ -64,8 +65,7 @@ export function createStreamingFileParser(
     while (true) {
       if (!insideFileBlock) {
         // Look for the start of a file block
-        startFileRegex.lastIndex = 0; // Reset regex state
-        const startMatch = startFileRegex.exec(buffer);
+        const startMatch = execRegexSafely(startFileRegex, buffer);
 
         if (startMatch) {
           const matchStartIndex = startMatch.index;
@@ -88,8 +88,7 @@ export function createStreamingFileParser(
 
           // Emit the remaining as "text", but only up to the end marker if found
           if (buffer.length) {
-            endFileRegex.lastIndex = 0;
-            const endMatch = endFileRegex.exec(buffer);
+            const endMatch = execRegexSafely(endFileRegex, buffer);
 
             if (endMatch) {
               callback({
@@ -111,8 +110,7 @@ export function createStreamingFileParser(
         }
       } else {
         // Inside a file block, look for the end
-        endFileRegex.lastIndex = 0; // Reset regex state
-        const endMatch = endFileRegex.exec(buffer);
+        const endMatch = execRegexSafely(endFileRegex, buffer);
 
         if (endMatch) {
           const matchStartIndex = endMatch.index;
@@ -142,9 +140,21 @@ export function createStreamingFileParser(
           // Reset the current file path
           currentFilePath = "";
 
-          // Emit the remaining buffer as text (if any)
-          if (buffer.length > 0) {
-            callback({ type: "text", content: buffer });
+          // Emit the remaining as "text", but only up to the start marker if found
+          if (buffer.length) {
+            const startMatch = execRegexSafely(startFileRegex, buffer);
+
+            if (startMatch) {
+              const text = buffer.slice(0, startMatch.index);
+              if (text) {
+                callback({
+                  type: "text",
+                  content: buffer.slice(0, startMatch.index),
+                });
+              }
+            } else {
+              callback({ type: "text", content: buffer });
+            }
           }
 
           insideFileBlock = false;

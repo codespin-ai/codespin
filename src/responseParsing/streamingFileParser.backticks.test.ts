@@ -88,7 +88,7 @@ const second = false;
         {
           type: "text",
           content:
-            "Some markdown in between\nFile path: ./src/second.ts\n```typescript\nconst second = false;\n```",
+            "Some markdown in between\n",
         },
         { type: "text-block", content: "Some markdown in between\n" },
         { type: "start-file-block", path: "./src/second.ts" },
@@ -220,10 +220,6 @@ const x = 1;
         {
           type: "end-file-block",
           file: { path: "./src/first.ts", content: "const x = 1;" },
-        },
-        {
-          type: "text",
-          content: "File path: ./src/second.ts\n```\nconst y = 2;```",
         },
         { type: "start-file-block", path: "./src/second.ts" },
         { type: "text", content: "const y = 2;" },
