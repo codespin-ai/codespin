@@ -61,8 +61,10 @@ export type GenerateArgs = {
   multi?: number;
   xmlCodeBlockElement?: string;
   images?: string[];
-  messages?: string; // Path to messages JSON file
-  messagesJson?: MessagesArg; // Raw messages in MessageFile format
+  messages?: string;
+  messagesJson?: MessagesArg;
+  reloadConfig?: boolean;
+  reloadProviderConfig?: boolean;
   responseCallback?: (text: string) => Promise<void>;
   responseStreamCallback?: (text: string) => void;
   fileResultStreamCallback?: (data: StreamingFileParseResult) => void;
@@ -106,7 +108,7 @@ export async function generate(
     setDebugFlag();
   }
 
-  const config = await readCodeSpinConfig(args.config, context.workingDir);
+  const config = await readCodeSpinConfig(args.config, context.workingDir, args.reloadConfig);
 
   if (config.debug) {
     setDebugFlag();
@@ -241,6 +243,7 @@ export async function generate(
   const completionOptions: CompletionOptions = {
     model,
     maxTokens,
+    reloadConfig: args.reloadProviderConfig,
     responseStreamCallback: args.responseStreamCallback,
     fileResultStreamCallback: args.fileResultStreamCallback,
     cancelCallback: (cancel) => {

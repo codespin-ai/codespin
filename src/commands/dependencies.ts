@@ -25,6 +25,8 @@ export type DependenciesArgs = {
   maxInput?: number;
   maxTokens?: number;
   debug?: boolean;
+  reloadConfig?: boolean;
+  reloadProviderConfig?: boolean;
 };
 
 export type DependenciesResult = {
@@ -53,7 +55,7 @@ export async function dependencies(
 
   // No language service.
   else {
-    const config = await readCodeSpinConfig(args.config, context.workingDir);
+    const config = await readCodeSpinConfig(args.config, context.workingDir, args.reloadConfig);
 
     // This is in bytes
     const maxInput = args.maxInput ?? config.maxInput;
@@ -87,6 +89,7 @@ export async function dependencies(
     const completionOptions: CompletionOptions = {
       model,
       maxTokens: args.maxTokens,
+      reloadConfig: args.reloadProviderConfig,
     };
 
     writeDebug("--- PROMPT ---");

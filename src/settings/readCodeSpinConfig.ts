@@ -1,5 +1,4 @@
 import {
-  InvalidModelError,
   MissingConfigError,
   MissingModelConfigError,
   MissingModelError,
@@ -8,10 +7,17 @@ import {
 import { CodeSpinConfig } from "./CodeSpinConfig.js";
 import { readConfig } from "./readConfig.js";
 
+let cachedConfig: CodeSpinConfig | null = null;
+
 export async function readCodeSpinConfig(
   customConfigDir: string | undefined,
-  workingDir: string
+  workingDir: string,
+  reloadConfig: boolean = false
 ): Promise<CodeSpinConfig> {
+  if (cachedConfig && !reloadConfig) {
+    return cachedConfig;
+  }
+
   const configInfo = await readConfig<CodeSpinConfig>(
     "codespin.json",
     customConfigDir,
@@ -41,5 +47,6 @@ export async function readCodeSpinConfig(
     throw new MissingModelError(config.model);
   }
 
-  return configInfo.config;
+  cachedConfig = configInfo.config;
+  return cachedConfig;
 }

@@ -31,8 +31,10 @@ export type GoArgs = {
   debug?: boolean;
   config: string | undefined;
   images?: string[];
-  messages?: string; // Path to messages JSON file
-  messagesJson?: MessagesArg; // Raw messages in MessageFile format
+  messages?: string;
+  messagesJson?: MessagesArg;
+  reloadConfig?: boolean;
+  reloadProviderConfig?: boolean;
   responseCallback?: (text: string) => Promise<void>;
   responseStreamCallback?: (text: string) => void;
   promptCallback?: (prompt: string) => Promise<void>;
@@ -47,7 +49,11 @@ export async function go(
   args: GoArgs,
   context: CodeSpinContext
 ): Promise<GoResult> {
-  const config = await readCodeSpinConfig(args.config, context.workingDir);
+  const config = await readCodeSpinConfig(
+    args.config,
+    context.workingDir,
+    args.reloadConfig
+  );
 
   const maxInput = args.maxInput ?? config.maxInput;
 
@@ -125,6 +131,7 @@ export async function go(
   const completionOptions: CompletionOptions = {
     model,
     maxTokens: args.maxTokens,
+    reloadConfig: args.reloadProviderConfig,
     responseStreamCallback: args.responseStreamCallback,
     cancelCallback: (cancel) => {
       cancelCompletion = cancel;

@@ -17,6 +17,7 @@ export type FormatPromptArgs = {
   include?: string[];
   exclude?: string[];
   spec?: string;
+  reloadConfig?: boolean;
 };
 
 export type FormatPromptResult = {
@@ -31,7 +32,7 @@ export async function formatPrompt(
     setDebugFlag();
   }
 
-  const config = await readCodeSpinConfig(args.config, context.workingDir);
+  const config = await readCodeSpinConfig(args.config, context.workingDir, args.reloadConfig);
 
   if (config.debug) {
     setDebugFlag();

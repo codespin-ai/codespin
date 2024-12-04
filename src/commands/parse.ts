@@ -15,6 +15,7 @@ export type ParseArgs = {
   debug?: boolean;
   responseParser?: string;
   xmlCodeBlockElement?: string;
+  reloadConfig?: boolean;
 };
 
 export type ParseResult = SavedFilesResult | FilesResult;
@@ -27,7 +28,7 @@ export async function parse(
     setDebugFlag();
   }
 
-  const config = await readCodeSpinConfig(args.config, context.workingDir);
+  const config = await readCodeSpinConfig(args.config, context.workingDir, args.reloadConfig);
 
   if (config.debug) {
     setDebugFlag();
