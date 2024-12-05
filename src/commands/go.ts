@@ -21,6 +21,7 @@ import { PlainTemplateResult } from "../templates/PlainTemplateResult.js";
 import plainTemplate from "../templates/plain.js";
 import { getCustomTemplate } from "../templating/getCustomTemplate.js";
 import { CLIParameterError } from "../errors.js";
+import { SourceFile } from "../sourceCode/SourceFile.js";
 
 export type GoArgs = {
   template: string | undefined;

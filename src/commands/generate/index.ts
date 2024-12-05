@@ -35,6 +35,7 @@ import defaultTemplate from "../../templates/default.js";
 import { getCustomTemplate } from "../../templating/getCustomTemplate.js";
 import { getGeneratedFiles } from "./getGeneratedFiles.js";
 import { getOutPath } from "./getOutPath.js";
+import { VersionedFileInfo } from "../../fs/VersionedFileInfo.js";
 
 export type GenerateArgs = {
   promptFile?: string;
@@ -68,7 +69,10 @@ export type GenerateArgs = {
   responseCallback?: (text: string) => Promise<void>;
   responseStreamCallback?: (text: string) => void;
   fileResultStreamCallback?: (data: StreamingFileParseResult) => void;
-  promptCallback?: (prompt: string) => Promise<void>;
+  promptCallback?: (
+    prompt: string,
+    files: VersionedFileInfo[]
+  ) => Promise<void>;
   parseCallback?: (files: GeneratedSourceFile[]) => Promise<void>;
   cancelCallback?: (cancel: () => void) => void;
 };
@@ -108,7 +112,11 @@ export async function generate(
     setDebugFlag();
   }
 
-  const config = await readCodeSpinConfig(args.config, context.workingDir, args.reloadConfig);
+  const config = await readCodeSpinConfig(
+    args.config,
+    context.workingDir,
+    args.reloadConfig
+  );
 
   if (config.debug) {
     setDebugFlag();
@@ -185,6 +193,7 @@ export async function generate(
 
     const {
       templateResult: { prompt: evaluatedPrompt },
+      includes: filesInPrompt,
     } = await buildPrompt(
       buildPromptArgs,
       templateFunc,
@@ -194,7 +203,7 @@ export async function generate(
     );
 
     if (args.promptCallback) {
-      await args.promptCallback(evaluatedPrompt);
+      await args.promptCallback(evaluatedPrompt, filesInPrompt);
     }
 
     // Handle prompt printing/saving
