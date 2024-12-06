@@ -23,7 +23,7 @@ export function readJson() {}
 
     it("parses a single code block without space after File path:", async () => {
       const input = `
-File path:src/files/readJson.ts
+File path: src/files/readJson.ts
 \`\`\`
 export function readJson() {}
 \`\`\`
@@ -39,7 +39,7 @@ export function readJson() {}
 
     it("parses a single code block with language specified after File path:", async () => {
       const input = `
-File path:src/files/readJson.ts
+File path: src/files/readJson.ts
 \`\`\`typescript
 export function readJson() {}
 \`\`\`
@@ -59,7 +59,7 @@ File path: src/files/readJson.ts
 \`\`\`
 export function readJson() {}
 \`\`\`
-File path:src/files/writeJson.ts
+File path: src/files/writeJson.ts
 \`\`\`
 export function writeJson() {}
 \`\`\`
@@ -92,7 +92,7 @@ export function readJson() {}
 
 Some content here which should be ignored.
 
-File path:src/files/writeJson.ts
+File path: src/files/writeJson.ts
 \`\`\`
 export function writeJson() {}
 \`\`\`
@@ -119,7 +119,7 @@ export function readJson() {}
 
 Some content here which should be ignored.
 
-File path:src/files/writeJson.ts
+File path: src/files/writeJson.ts
 \`\`\`
 export function writeJson() {}
 \`\`\`
@@ -141,12 +141,12 @@ More content here to be ignored.
 
     it("ignores incomplete code blocks missing closing backticks", async () => {
       const input = `
-File path:src/files/readJson.ts
+File path: src/files/readJson.ts
 \`\`\`
 file 1 contents
 \`\`\`
 
-File path:src/files/another.ts
+File path: src/files/another.ts
 \`\`\`
 file 2 partial
 

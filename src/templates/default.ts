@@ -83,19 +83,19 @@ function printFileTemplate(args: TemplateArgs, config: CodeSpinConfig) {
   const tmpl = `
   Respond with just the code (but exclude invocation examples etc) in the following format:
 
-  File path:./some/path/file.ext
+  File path: some/path/file.ext
   ${delimiters.start}
   source code for file.ext goes here...
   ${delimiters.end}
 
   If there are multiple files to be generated (as in "./some/path/lorem.ext" and "./another/path/ipsum.ext" in the example below), you should repeat blocks like this:
 
-  File path:./some/path/lorem.ext
+  File path: some/path/lorem.ext
   ${delimiters.start}
   source code for lorem.ext goes here...
   ${delimiters.end}
 
-  File path:./some/path/ipsum.ext
+  File path: some/path/ipsum.ext
   ${delimiters.start}
   source code for ipsum.ext goes here...
   ${delimiters.end}

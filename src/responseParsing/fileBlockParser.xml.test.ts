@@ -25,7 +25,7 @@ export function readJson() {}
 
     it("parses a single code block without space after File path:", async () => {
       const input = `
-File path:src/files/readJson.ts
+File path: src/files/readJson.ts
 <code>
 export function readJson() {}
 </code>
@@ -45,7 +45,7 @@ File path: src/files/readJson.ts
 <code>
 export function readJson() {}
 </code>
-File path:src/files/writeJson.ts
+File path: src/files/writeJson.ts
 <code>
 export function writeJson() {}
 </code>
@@ -78,7 +78,7 @@ export function readJson() {}
 
 Some content here which should be ignored.
 
-File path:src/files/writeJson.ts
+File path: src/files/writeJson.ts
 <code>
 export function writeJson() {}
 </code>
@@ -105,7 +105,7 @@ export function readJson() {}
 
 Some content here which should be ignored.
 
-File path:src/files/writeJson.ts
+File path: src/files/writeJson.ts
 <code>
 export function writeJson() {}
 </code>
@@ -127,12 +127,12 @@ More content here to be ignored.
 
     it("ignores incomplete code blocks missing closing tags", async () => {
       const input = `
-File path:src/files/readJson.ts
+File path: src/files/readJson.ts
 <code>
 file 1 contents
 </code>
 
-File path:src/files/another.ts
+File path: src/files/another.ts
 <code>
 file 2 partial
 
@@ -156,7 +156,7 @@ Some random content
 export function readJson() {}
 </code>
 
-File path:src/files/writeJson.ts
+File path: src/files/writeJson.ts
 <code>
 export function writeJson() {}
 </code>
@@ -172,13 +172,13 @@ export function writeJson() {}
 
     it("handles self-closing and empty XML tags", async () => {
       const input = `
-File path:src/files/empty1.ts
+File path: src/files/empty1.ts
 <code />
 
-File path:src/files/empty2.ts
+File path: src/files/empty2.ts
 <code></code>
 
-File path:src/files/content.ts
+File path: src/files/content.ts
 <code>
 actual content
 </code>
@@ -195,7 +195,7 @@ actual content
     it("works with different XML element names", async () => {
       const customElement = "source";
       const input = `
-File path:src/files/test.ts
+File path: src/files/test.ts
 <source>
 export function test() {}
 </source>
