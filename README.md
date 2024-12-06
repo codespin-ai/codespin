@@ -156,7 +156,7 @@ Generate a Python CLI script named index.py that accepts arguments, calls calcul
 
 It's quite a common requirement to mention a standard set of rules in all prompt files; such as mentioning coding conventions for a project. The include directive (`codespin:include:<path>`) let's you write common rules in a file, and include them in prompts as needed.
 
-For example, if you had a `./conventions.txt` file:
+For example, if you had a `conventions.txt` file:
 
 ```
 - Use snake_case for variables
@@ -177,7 +177,7 @@ Spec files are another way to handle coding conventions and other instructions.
 
 A "spec" is a template file containing a placeholder "{prompt}". The placeholder will be replaced by the prompt supplied (via the prompt file, or the --prompt argument).
 
-For example, if you have the following spec called `./myrules.txt`:
+For example, if you have the following spec called `myrules.txt`:
 
 ```
 {prompt}

@@ -20,7 +20,7 @@ describe("streamingFileParser", () => {
   describe("streamingFileParser with XML", () => {
     test("parses a single complete file block", () => {
       const input = `Some markdown text
-File path: ./src/test.ts
+File path: src/test.ts
 <code>
 const x = 1;
 </code>
@@ -31,11 +31,11 @@ More markdown`;
       const expected: StreamingFileParseResult[] = [
         { type: "text", content: input },
         { type: "text-block", content: "Some markdown text\n" },
-        { type: "start-file-block", path: "./src/test.ts" },
+        { type: "start-file-block", path: "src/test.ts" },
         { type: "text", content: "const x = 1;" },
         {
           type: "end-file-block",
-          file: { path: "./src/test.ts", content: "const x = 1;" },
+          file: { path: "src/test.ts", content: "const x = 1;" },
         },
         { type: "text", content: "More markdown" },
       ];
@@ -44,21 +44,21 @@ More markdown`;
     });
 
     test("handles streaming chunks correctly", () => {
-      processChunk("File path: ./sr");
+      processChunk("File path: sr");
       processChunk("c/test.ts\n<co");
       processChunk("de>\nconst x");
       processChunk(" = 1;</code>\n");
 
       const expected: StreamingFileParseResult[] = [
-        { type: "text", content: "File path: ./sr" },
+        { type: "text", content: "File path: sr" },
         { type: "text", content: "c/test.ts\n<co" },
         { type: "text", content: "de>\nconst x" },
-        { type: "start-file-block", path: "./src/test.ts" },
+        { type: "start-file-block", path: "src/test.ts" },
         { type: "text", content: "const x" },
         { type: "text", content: " = 1;</code>\n" },
         {
           type: "end-file-block",
-          file: { path: "./src/test.ts", content: "const x = 1;" },
+          file: { path: "src/test.ts", content: "const x = 1;" },
         },
       ];
 
@@ -213,19 +213,19 @@ const second = false;
     });
 
     test("handles XML tags split across chunks", () => {
-      processChunk("File path: ./src/test.ts\n<cod");
+      processChunk("File path: src/test.ts\n<cod");
       processChunk("e>const x = 1;</co");
       processChunk("de>");
 
       const expected: StreamingFileParseResult[] = [
-        { type: "text", content: "File path: ./src/test.ts\n<cod" },
+        { type: "text", content: "File path: src/test.ts\n<cod" },
         { type: "text", content: "e>const x = 1;</co" },
-        { type: "start-file-block", path: "./src/test.ts" },
+        { type: "start-file-block", path: "src/test.ts" },
         { type: "text", content: "const x = 1;</co" },
         { type: "text", content: "de>" },
         {
           type: "end-file-block",
-          file: { path: "./src/test.ts", content: "const x = 1;" },
+          file: { path: "src/test.ts", content: "const x = 1;" },
         },
       ];
 
@@ -238,7 +238,7 @@ const second = false;
         results.push(result);
       }, "source");
 
-      const input = `File path: ./src/test.ts
+      const input = `File path: src/test.ts
 <source>
 const x = 1;
 </source>`;
@@ -247,11 +247,11 @@ const x = 1;
 
       const expected: StreamingFileParseResult[] = [
         { type: "text", content: input },
-        { type: "start-file-block", path: "./src/test.ts" },
+        { type: "start-file-block", path: "src/test.ts" },
         { type: "text", content: "const x = 1;" },
         {
           type: "end-file-block",
-          file: { path: "./src/test.ts", content: "const x = 1;" },
+          file: { path: "src/test.ts", content: "const x = 1;" },
         },
       ];
 
@@ -259,7 +259,7 @@ const x = 1;
     });
 
     test("ignores non-matching XML tags", () => {
-      const input = `File path: ./src/test.ts
+      const input = `File path: src/test.ts
   <other>
   const x = 1;
   </other>`;
@@ -276,20 +276,20 @@ const x = 1;
     test("handles File path: keyword split across chunks", () => {
       processChunk("File ");
       processChunk("path:");
-      processChunk(" ./src/test.ts\n<code>\nconst x = 1;</code>");
+      processChunk(" src/test.ts\n<code>\nconst x = 1;</code>");
 
       const expected: StreamingFileParseResult[] = [
         { type: "text", content: "File " },
         { type: "text", content: "path:" },
         {
           type: "text",
-          content: " ./src/test.ts\n<code>\nconst x = 1;</code>",
+          content: " src/test.ts\n<code>\nconst x = 1;</code>",
         },
-        { type: "start-file-block", path: "./src/test.ts" },
+        { type: "start-file-block", path: "src/test.ts" },
         { type: "text", content: "const x = 1;" },
         {
           type: "end-file-block",
-          file: { path: "./src/test.ts", content: "const x = 1;" },
+          file: { path: "src/test.ts", content: "const x = 1;" },
         },
       ];
 
@@ -301,7 +301,7 @@ const x = 1;
       processChunk("ile ");
       processChunk("pat");
       processChunk("h: ");
-      processChunk("./sr");
+      processChunk("sr");
       processChunk("c/te");
       processChunk("st.ts");
       processChunk("\n");
@@ -318,21 +318,21 @@ const x = 1;
         { type: "text", content: "ile " },
         { type: "text", content: "pat" },
         { type: "text", content: "h: " },
-        { type: "text", content: "./sr" },
+        { type: "text", content: "sr" },
         { type: "text", content: "c/te" },
         { type: "text", content: "st.ts" },
         { type: "text", content: "\n" },
         { type: "text", content: "<c" },
         { type: "text", content: "od" },
         { type: "text", content: "e>" },
-        { type: "start-file-block", path: "./src/test.ts" },
+        { type: "start-file-block", path: "src/test.ts" },
         { type: "text", content: "\n" },
         { type: "text", content: "const x = 1;" },
         { type: "text", content: "</c" },
         { type: "text", content: "ode>" },
         {
           type: "end-file-block",
-          file: { path: "./src/test.ts", content: "const x = 1;" },
+          file: { path: "src/test.ts", content: "const x = 1;" },
         },
       ];
 
@@ -340,7 +340,7 @@ const x = 1;
     });
 
     test("handles newlines split in various positions", () => {
-      processChunk("File path: ./src/test.ts");
+      processChunk("File path: src/test.ts");
       processChunk("\n");
       processChunk("<code>");
       processChunk("\n");
@@ -349,17 +349,17 @@ const x = 1;
       processChunk("</code>");
 
       const expected: StreamingFileParseResult[] = [
-        { type: "text", content: "File path: ./src/test.ts" },
+        { type: "text", content: "File path: src/test.ts" },
         { type: "text", content: "\n" },
         { type: "text", content: "<code>" },
-        { type: "start-file-block", path: "./src/test.ts" },
+        { type: "start-file-block", path: "src/test.ts" },
         { type: "text", content: "\n" },
         { type: "text", content: "const x = 1;" },
         { type: "text", content: "\n" },
         { type: "text", content: "</code>" },
         {
           type: "end-file-block",
-          file: { path: "./src/test.ts", content: "const x = 1;" },
+          file: { path: "src/test.ts", content: "const x = 1;" },
         },
       ];
 

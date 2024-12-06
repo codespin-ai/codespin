@@ -25,7 +25,7 @@ function printLine(line: string | undefined, addBlankLine = false): string {
 }
 
 function relativePath(filePath: string, workingDir: string) {
-  return "./" + path.relative(workingDir, filePath);
+  return path.relative(workingDir, filePath);
 }
 
 function printIncludeFiles(

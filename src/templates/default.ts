@@ -62,7 +62,7 @@ function printPrompt(args: TemplateArgs, useLineNumbers: boolean) {
 }
 
 function relativePath(filePath: string, workingDir: string) {
-  return "./" + path.relative(workingDir, filePath);
+  return path.relative(workingDir, filePath);
 }
 
 function getCodeBlockDelimiters(xmlElement?: string) {
