@@ -87,8 +87,7 @@ const second = false;
         },
         {
           type: "text",
-          content:
-            "Some markdown in between\n",
+          content: "Some markdown in between\n",
         },
         { type: "text-block", content: "Some markdown in between\n" },
         { type: "start-file-block", path: "src/second.ts" },
@@ -458,6 +457,27 @@ const x = 1;
           content: "Some initial content followed by more text",
         },
       ]);
+    });
+
+    test("handles input ending with backticks", () => {
+      processChunk("File path: src/test.ts\n```\nconst x = 1;");
+      processChunk("```");
+
+      const expected: StreamingFileParseResult[] = [
+        {
+          type: "text",
+          content: "File path: src/test.ts\n```\nconst x = 1;",
+        },
+        { type: "start-file-block", path: "src/test.ts" },
+        { type: "text", content: "const x = 1;" },
+        { type: "text", content: "```" },
+        {
+          type: "end-file-block",
+          file: { path: "src/test.ts", content: "const x = 1;" },
+        },
+      ];
+
+      expect(results).toEqual(expected);
     });
   });
 });
