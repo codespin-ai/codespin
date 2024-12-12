@@ -27,6 +27,7 @@ export type InitArgs = {
 const DEFAULT_JSON_CONTENT: CodeSpinConfig = {
   version: "0.0.3",
   model: "claude-3-5-haiku",
+  liteModel: "claude-3-5-haiku",
   models: [
     {
       name: "gpt-4o",

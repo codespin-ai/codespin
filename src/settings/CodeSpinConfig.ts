@@ -8,6 +8,7 @@ export type ModelDescription = {
 export type CodeSpinConfig = {
   version: string;
   model: string;
+  liteModel?: string | undefined;
   models: ModelDescription[];
   template?: string;
   debug?: boolean;
