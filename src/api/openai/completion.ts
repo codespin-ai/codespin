@@ -103,7 +103,7 @@ export async function completion(
     throw new ClientInitializationError("OPENAI");
   }
 
-  writeDebug(`OPENAI: model=${options.model}`);
+  writeDebug(`OPENAI: model=${options.model.alias ?? options.model.name}`);
   const maxTokens = options.maxTokens ?? options.model.maxOutputTokens;
   if (maxTokens) {
     writeDebug(`OPENAI: maxTokens=${maxTokens}`);

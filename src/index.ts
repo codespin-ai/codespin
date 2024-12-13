@@ -8,6 +8,7 @@ import { parse } from "./commands/parse.js";
 import { getPackageVersion } from "./getPackageVersion.js";
 import { setInvokeMode } from "./process/getInvokeMode.js";
 import { go } from "./commands/go.js";
+import { commit } from "./commands/commit.js";
 
 setInvokeMode("cli");
 
@@ -365,6 +366,43 @@ export async function main() {
               item.isProjectFile ? "local" : "external"
             })`
           );
+        }
+      }
+    )
+    .command(
+      "commit",
+      "Generate a commit message from the current git diff",
+      (yargs) =>
+        yargs
+          .option("model", {
+            type: "string",
+            describe: "Name of the model to use.",
+          })
+          .option("maxTokens", {
+            type: "number",
+            describe: "Maximum number of tokens for generated message.",
+          })
+          .option("debug", {
+            type: "boolean",
+            describe:
+              "Enable debug mode. This prints debug messages for every step.",
+          })
+          .option("maxInput", {
+            alias: "maxi",
+            type: "number",
+            describe: "Max input length in bytes",
+          })
+          .option("config", {
+            type: "string",
+            alias: "c",
+            describe: "Path to a config directory (.codespin).",
+          }),
+      async (argv) => {
+        const result = await commit(argv, { workingDir: process.cwd() });
+        writeToConsole(result.subject);
+        if (result.body) {
+          writeToConsole();
+          writeToConsole(result.body);
         }
       }
     )

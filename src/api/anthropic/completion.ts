@@ -84,7 +84,7 @@ export async function completion(
     throw new MissingAnthropicEnvVarError();
   }
 
-  writeDebug(`ANTHROPIC: model=${options.model}`);
+  writeDebug(`ANTHROPIC: model=${options.model.alias ?? options.model.name}`);
 
   if (options.maxTokens) {
     writeDebug(`ANTHROPIC: maxTokens=${options.maxTokens}`);
