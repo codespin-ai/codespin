@@ -1,6 +1,14 @@
 import { CodeSpinConfig } from "../settings/CodeSpinConfig.js";
-import { DependenciesTemplateArgs } from "./DependenciesTemplateArgs.js";
-import { DependenciesTemplateResult } from "./DependenciesTemplateResult.js";
+
+export type DependenciesTemplateArgs = {
+  filePath: string;
+  sourceCode: string;
+  workingDir: string;
+};
+
+export type DependenciesTemplateResult = {
+  prompt: string;
+};
 
 function makePrompt(filePath: string, sourceCode: string) {
   return `

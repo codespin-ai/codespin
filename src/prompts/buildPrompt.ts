@@ -6,9 +6,9 @@ import { VersionedPath } from "../fs/VersionedPath.js";
 import { getVersionedPath } from "../fs/getVersionedPath.js";
 import { CodeSpinConfig } from "../settings/CodeSpinConfig.js";
 import { evalSpec } from "../specs/evalSpec.js";
-import { FormatterTemplateResult } from "../templates/FormatterTemplateResult.js";
 import { readPrompt } from "./readPrompt.js";
 import { readPromptSettings } from "./readPromptSettings.js";
+import { FormatterTemplateResult } from "../templates/files.js";
 
 export type BuildPromptArgs = {
   prompt: string | undefined;

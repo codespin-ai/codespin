@@ -2,9 +2,17 @@ import path from "path";
 import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
 import { CodeSpinConfig } from "../settings/CodeSpinConfig.js";
 import { addLineNumbers } from "../text/addLineNumbers.js";
-import { FormatterTemplateArgs } from "./FormatterTemplateArgs.js";
-import { FormatterTemplateResult } from "./FormatterTemplateResult.js";
 import { CodeSpinContext } from "../CodeSpinContext.js";
+
+export type FormatterTemplateArgs = {
+  prompt: string;
+  includes: VersionedFileInfo[];
+  workingDir: string;
+};
+
+export type FormatterTemplateResult = {
+  prompt: string;
+};
 
 export default async function filesTemplate(
   args: FormatterTemplateArgs,

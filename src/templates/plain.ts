@@ -1,6 +1,12 @@
 import { CodeSpinConfig } from "../settings/CodeSpinConfig.js";
-import { PlainTemplateArgs } from "./PlainTemplateArgs.js";
-import { PlainTemplateResult } from "./PlainTemplateResult.js";
+
+export type PlainTemplateArgs = {
+  prompt: string;
+};
+
+export type PlainTemplateResult = {
+  prompt: string;
+};
 
 export default async function plainTemplate(
   args: PlainTemplateArgs,

@@ -6,6 +6,7 @@ import { CompletionInputMessage } from "../api/types.js";
 import { writeDebug } from "../console.js";
 import { setDebugFlag } from "../debugMode.js";
 
+import { CLIParameterError } from "../errors.js";
 import { convertPromptToMessage } from "../prompts/convertPromptToMessage.js";
 import {
   convertMessageFileFormat,
@@ -16,12 +17,8 @@ import { MessagesArg } from "../prompts/types.js";
 import { validateMaxInputMessagesLength } from "../safety/validateMaxInputLength.js";
 import { getModel } from "../settings/getModel.js";
 import { readCodeSpinConfig } from "../settings/readCodeSpinConfig.js";
-import { PlainTemplateArgs } from "../templates/PlainTemplateArgs.js";
-import { PlainTemplateResult } from "../templates/PlainTemplateResult.js";
-import plainTemplate from "../templates/plain.js";
+import plainTemplate, { PlainTemplateArgs, PlainTemplateResult } from "../templates/plain.js";
 import { getCustomTemplate } from "../templating/getCustomTemplate.js";
-import { CLIParameterError } from "../errors.js";
-import { SourceFile } from "../sourceCode/SourceFile.js";
 
 export type GoArgs = {
   template: string | undefined;

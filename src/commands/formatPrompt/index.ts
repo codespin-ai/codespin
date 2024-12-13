@@ -4,8 +4,7 @@ import { TemplateError } from "../../errors.js";
 import { exception } from "../../exception.js";
 import { BuildPromptArgs, buildPrompt } from "../../prompts/buildPrompt.js";
 import { readCodeSpinConfig } from "../../settings/readCodeSpinConfig.js";
-import { FormatterTemplateArgs } from "../../templates/FormatterTemplateArgs.js";
-import filesTemplate from "../../templates/files.js";
+import filesTemplate, { FormatterTemplateArgs } from "../../templates/files.js";
 import { getCustomTemplate } from "../../templating/getCustomTemplate.js";
 
 export type FormatPromptArgs = {
