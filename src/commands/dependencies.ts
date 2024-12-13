@@ -10,9 +10,7 @@ import { getLanguageService } from "../languageServices/getLanguageService.js";
 import { extractFromMarkdownCodeBlock } from "../responseParsing/codeBlocks.js";
 import { readCodeSpinConfig } from "../settings/readCodeSpinConfig.js";
 import { Dependency } from "../sourceCode/Dependency.js";
-import { DependenciesTemplateArgs } from "../templates/DependenciesTemplateArgs.js";
-import { DependenciesTemplateResult } from "../templates/DependenciesTemplateResult.js";
-import dependenciesTemplate from "../templates/dependencies.js";
+import dependenciesTemplate, { DependenciesTemplateArgs, DependenciesTemplateResult } from "../templates/dependencies.js";
 import { getCustomTemplate } from "../templating/getCustomTemplate.js";
 import { getModel } from "../settings/getModel.js";
 
