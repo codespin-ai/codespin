@@ -2,9 +2,10 @@ import { promises as fs } from "fs";
 import { CodeSpinContext } from "../CodeSpinContext.js";
 import { setDebugFlag } from "../debugMode.js";
 import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
-import { fileBlockParser } from "../responseParsing/fileBlockParser.js";
 import { readCodeSpinConfig } from "../settings/readCodeSpinConfig.js";
 import { FilesResult, SavedFilesResult } from "./generate/index.js";
+import { fileBlockParser } from "libllm";
+import { getFilePathPrefix } from "../settings/parsing.js";
 
 export type ParseArgs = {
   file: string;
@@ -28,7 +29,11 @@ export async function parse(
     setDebugFlag();
   }
 
-  const config = await readCodeSpinConfig(args.config, context.workingDir, args.reloadConfig);
+  const config = await readCodeSpinConfig(
+    args.config,
+    context.workingDir,
+    args.reloadConfig
+  );
 
   if (config.debug) {
     setDebugFlag();
@@ -39,9 +44,8 @@ export async function parse(
 
   const files = await parseFunc(
     llmResponse,
-    context.workingDir,
-    args.xmlCodeBlockElement,
-    config
+    getFilePathPrefix(config),
+    args.xmlCodeBlockElement
   );
 
   if (args.write) {

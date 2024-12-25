@@ -14,6 +14,7 @@ export type CodeSpinConfig = {
   debug?: boolean;
   multi?: number;
   maxInput?: number;
+  filePathPrefix?: string;
   markers?: {
     PROMPT?: string;
   };

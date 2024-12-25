@@ -1,4 +1,4 @@
-import { CompletionContentPart, CompletionInputMessage } from "../api/types.js";
+import { CompletionContentPart, CompletionInputMessage } from "libllm";
 import { MaxInputLengthError } from "../errors.js";
 
 function getAllTextContent(messages: CompletionInputMessage[]): string {

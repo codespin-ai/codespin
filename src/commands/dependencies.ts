@@ -1,20 +1,22 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { CodeSpinContext } from "../CodeSpinContext.js";
-import { CompletionOptions } from "../api/CompletionOptions.js";
-import { getCompletionAPI } from "../api/getCompletionAPI.js";
-import { writeDebug } from "../console.js";
+import { getLoggers, writeDebug } from "../console.js";
 import { setDebugFlag } from "../debugMode.js";
 import { pathExists } from "../fs/pathExists.js";
 import { getLanguageService } from "../languageServices/getLanguageService.js";
-import { extractFromMarkdownCodeBlock } from "../responseParsing/codeBlocks.js";
 import { readCodeSpinConfig } from "../settings/readCodeSpinConfig.js";
 import { Dependency } from "../sourceCode/Dependency.js";
-import dependenciesTemplate, { DependenciesTemplateArgs, DependenciesTemplateResult } from "../templates/dependencies.js";
+import dependenciesTemplate, {
+  DependenciesTemplateArgs,
+  DependenciesTemplateResult,
+} from "../templates/dependencies.js";
 import { getCustomTemplate } from "../templating/getCustomTemplate.js";
 import { getModel } from "../settings/getModel.js";
 
 import { validateMaxInputStringLength } from "../safety/validateMaxInputLength.js";
+import { CompletionOptions, extractFromMarkdownCodeBlock, getAPI } from "libllm";
+import { getLLMConfigLoaders } from "../settings/getLLMConfigLoaders.js";
 
 export type DependenciesArgs = {
   file: string;
@@ -53,7 +55,11 @@ export async function dependencies(
 
   // No language service.
   else {
-    const config = await readCodeSpinConfig(args.config, context.workingDir, args.reloadConfig);
+    const config = await readCodeSpinConfig(
+      args.config,
+      context.workingDir,
+      args.reloadConfig
+    );
 
     // This is in bytes
     const maxInput = args.maxInput ?? config.maxInput;
@@ -93,15 +99,15 @@ export async function dependencies(
     writeDebug("--- PROMPT ---");
     writeDebug(prompt);
 
-    const completionAPI = getCompletionAPI(model.provider);
+    const configLoaders = getLLMConfigLoaders(args.config, context.workingDir);
+    const completionAPI = getAPI(model.provider, configLoaders, getLoggers());
 
     validateMaxInputStringLength(prompt, maxInput);
 
     const completionResult = await completionAPI.completion(
       [{ role: "user", content: prompt }],
-      args.config,
       completionOptions,
-      context.workingDir
+      args.reloadProviderConfig
     );
 
     const dependencies = JSON.parse(

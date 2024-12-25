@@ -1,16 +1,16 @@
 import { CodeSpinContext } from "../CodeSpinContext.js";
-import { getCompletionAPI } from "../api/getCompletionAPI.js";
+import * as libllm from "libllm";
 import { setDebugFlag } from "../debugMode.js";
 import { execString } from "../process/execString.js";
 import { validateMaxInputStringLength } from "../safety/validateMaxInputLength.js";
 import { getModel } from "../settings/getModel.js";
 import { readCodeSpinConfig } from "../settings/readCodeSpinConfig.js";
-import { extractFromMarkdownCodeBlock } from "../responseParsing/codeBlocks.js";
 import commitTemplate, {
   CommitTemplateArgs,
   CommitTemplateResult,
 } from "../templates/commit.js";
 import { getCustomTemplate } from "../templating/getCustomTemplate.js";
+import { getLLMConfigLoaders } from "../settings/getLLMConfigLoaders.js";
 
 export type CommitArgs = {
   model?: string;
@@ -63,14 +63,16 @@ export async function commit(
 
   validateMaxInputStringLength(prompt, maxInput);
 
-  const completionAPI = getCompletionAPI(model.provider);
+  const completionAPI = libllm.getAPI(
+    model.provider,
+    getLLMConfigLoaders(args.config, context.workingDir)
+  );
   const completion = await completionAPI.completion(
     [{ role: "user", content: prompt }],
-    args.config,
     { model, maxTokens: args.maxTokens },
-    context.workingDir
+    
   );
 
-  const jsonResponse = extractFromMarkdownCodeBlock(completion.message, true);
+  const jsonResponse = libllm.extractFromMarkdownCodeBlock(completion.message, true);
   return JSON.parse(jsonResponse.content) as CommitResult;
 }

@@ -1,14 +1,9 @@
 import { readFile } from "fs/promises";
-import {
-  CompletionContentPart,
-  CompletionInputMessage,
-  CompletionUserMessage,
-  CompletionAssistantMessage,
-} from "../api/types.js";
 
 import { loadImage } from "../prompts/loadImage.js";
 import { MessagesArg } from "./types.js";
 import { InvalidMessagesFileError } from "../errors.js";
+import { CompletionAssistantMessage, CompletionContentPart, CompletionInputMessage, CompletionUserMessage } from "libllm";
 
 export function isMessageFile(obj: any): obj is MessagesArg {
   if (!obj || typeof obj !== "object") return false;

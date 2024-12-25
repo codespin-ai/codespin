@@ -1,9 +1,6 @@
 import path from "path";
 import { CodeSpinContext } from "../../CodeSpinContext.js";
-import { CompletionOptions } from "../../api/CompletionOptions.js";
-import { getCompletionAPI } from "../../api/getCompletionAPI.js";
-import { CompletionInputMessage } from "../../api/types.js";
-import { writeDebug } from "../../console.js";
+import { getLoggers, writeDebug } from "../../console.js";
 import { setDebugFlag } from "../../debugMode.js";
 import {
   CannotMergeDiffResponseError,
@@ -22,18 +19,28 @@ import {
 } from "../../prompts/loadMessagesFromFile.js";
 import { readPromptSettings } from "../../prompts/readPromptSettings.js";
 import { MessagesArg } from "../../prompts/types.js";
-import { fileBlockParser } from "../../responseParsing/fileBlockParser.js";
-import { StreamingFileParseResult } from "../../responseParsing/streamingFileParser.js";
 import { validateMaxInputMessagesLength } from "../../safety/validateMaxInputLength.js";
 import { getModel } from "../../settings/getModel.js";
 import { readCodeSpinConfig } from "../../settings/readCodeSpinConfig.js";
 import { GeneratedSourceFile } from "../../sourceCode/GeneratedSourceFile.js";
 import { SourceFile } from "../../sourceCode/SourceFile.js";
-import defaultTemplate, { TemplateArgs, TemplateResult } from "../../templates/default.js";
+import defaultTemplate, {
+  TemplateArgs,
+  TemplateResult,
+} from "../../templates/default.js";
 import { getCustomTemplate } from "../../templating/getCustomTemplate.js";
 import { getGeneratedFiles } from "./getGeneratedFiles.js";
 import { getOutPath } from "./getOutPath.js";
 import { VersionedFileInfo } from "../../fs/VersionedFileInfo.js";
+import {
+  CompletionInputMessage,
+  CompletionOptions,
+  fileBlockParser,
+  getAPI,
+  StreamingFileParseResult,
+} from "libllm";
+import { getLLMConfigLoaders } from "../../settings/getLLMConfigLoaders.js";
+import { getFilePathPrefix } from "../../settings/parsing.js";
 
 export type GenerateArgs = {
   promptFile?: string;
@@ -245,7 +252,11 @@ export async function generate(
     args.cancelCallback(generateCommandCancel);
   }
 
-  const completionAPI = getCompletionAPI(model.provider);
+  const completionAPI = getAPI(
+    model.provider,
+    getLLMConfigLoaders(args.config, context.workingDir),
+    getLoggers()
+  );
 
   const completionOptions: CompletionOptions = {
     model,
@@ -274,9 +285,8 @@ export async function generate(
 
     const completionResult = await completionAPI.completion(
       messages,
-      args.config,
       completionOptions,
-      context.workingDir
+      args.reloadProviderConfig
     );
 
     if (
@@ -287,9 +297,8 @@ export async function generate(
 
       const newlyGeneratedFiles = await fileBlockParser(
         completionResult.message,
-        context.workingDir,
-        xmlCodeBlockElement,
-        config
+        getFilePathPrefix(config),
+        xmlCodeBlockElement
       );
 
       if (newlyGeneratedFiles.length === 0) {

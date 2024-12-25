@@ -1,4 +1,4 @@
-import { CompletionContentPart, CompletionUserMessage } from "../api/types.js";
+import { CompletionContentPart, CompletionUserMessage } from "libllm";
 import { loadImage } from "./loadImage.js";
 
 export async function convertPromptToMessage(

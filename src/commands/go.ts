@@ -1,9 +1,6 @@
 import path from "path";
 import { CodeSpinContext } from "../CodeSpinContext.js";
-import { CompletionOptions } from "../api/CompletionOptions.js";
-import { getCompletionAPI } from "../api/getCompletionAPI.js";
-import { CompletionInputMessage } from "../api/types.js";
-import { writeDebug } from "../console.js";
+import { getLoggers, writeDebug } from "../console.js";
 import { setDebugFlag } from "../debugMode.js";
 
 import { CLIParameterError } from "../errors.js";
@@ -17,8 +14,13 @@ import { MessagesArg } from "../prompts/types.js";
 import { validateMaxInputMessagesLength } from "../safety/validateMaxInputLength.js";
 import { getModel } from "../settings/getModel.js";
 import { readCodeSpinConfig } from "../settings/readCodeSpinConfig.js";
-import plainTemplate, { PlainTemplateArgs, PlainTemplateResult } from "../templates/plain.js";
+import plainTemplate, {
+  PlainTemplateArgs,
+  PlainTemplateResult,
+} from "../templates/plain.js";
 import { getCustomTemplate } from "../templating/getCustomTemplate.js";
+import { CompletionInputMessage, CompletionOptions, getAPI } from "libllm";
+import { getLLMConfigLoaders } from "../settings/getLLMConfigLoaders.js";
 
 export type GoArgs = {
   template: string | undefined;
@@ -124,7 +126,11 @@ export async function go(
     args.cancelCallback(generateCommandCancel);
   }
 
-  const completionAPI = getCompletionAPI(model.provider);
+  const completionAPI = getAPI(
+    model.provider,
+    getLLMConfigLoaders(args.config, context.workingDir),
+    getLoggers()
+  );
 
   const completionOptions: CompletionOptions = {
     model,
@@ -141,9 +147,8 @@ export async function go(
 
   const completionResult = await completionAPI.completion(
     messages,
-    args.config,
     completionOptions,
-    context.workingDir
+    args.reloadProviderConfig
   );
 
   if (args.responseCallback) {
