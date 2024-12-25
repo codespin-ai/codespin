@@ -1,9 +1,4 @@
-export type ModelDescription = {
-  name: string;
-  alias?: string;
-  provider: string;
-  maxOutputTokens: number;
-};
+import { ModelDescription } from "libllm";
 
 export type CodeSpinConfig = {
   version: string;
