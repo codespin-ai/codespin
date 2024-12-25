@@ -1,6 +1,7 @@
+import { ModelDescription } from "libllm";
 import { InvalidModelError, MissingModelError } from "../errors.js";
 import { exception } from "../exception.js";
-import { CodeSpinConfig, ModelDescription } from "./CodeSpinConfig.js";
+import { CodeSpinConfig } from "./CodeSpinConfig.js";
 
 export function getModel(
   models: (string | undefined)[],
