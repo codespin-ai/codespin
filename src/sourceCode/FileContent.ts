@@ -1,4 +1,4 @@
-export type SourceFile = {
+export type FileContent = {
   path: string;
   content: string;
 };

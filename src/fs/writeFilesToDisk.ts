@@ -1,15 +1,15 @@
 import { writeFile } from "fs/promises";
 import { ensureDirExists } from "./ensureDirExists.js";
-import { SourceFile } from "../sourceCode/SourceFile.js";
+import { FileContent } from "../sourceCode/FileContent.js";
 import path from "path";
 import { execString } from "../process/execString.js";
 
 export async function writeFilesToDisk(
   outDir: string,
-  sourceFiles: SourceFile[],
+  sourceFiles: FileContent[],
   exec: string | undefined,
   workingDir: string
-): Promise<SourceFile[]> {
+): Promise<FileContent[]> {
   const files = await Promise.all(
     sourceFiles.map(async (file) => {
       const generatedFilePath = path.resolve(outDir, file.path);

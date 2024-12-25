@@ -3,12 +3,12 @@ import { addLineNumbers } from "../text/addLineNumbers.js";
 import { CodeSpinConfig } from "../settings/CodeSpinConfig.js";
 import { trimWhitespace } from "../templating/trimWhitespace.js";
 import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
-import { SourceFile } from "../sourceCode/SourceFile.js";
+import { FileContent } from "../sourceCode/FileContent.js";
 
 export type TemplateArgs = {
   prompt: string;
   includes: VersionedFileInfo[];
-  generatedFiles: SourceFile[];
+  generatedFiles: FileContent[];
   outPath: string | undefined;
   promptSettings: unknown;
   customArgs: string[] | undefined;
@@ -184,7 +184,7 @@ function printIncludeFiles(
 }
 
 function printGeneratedFiles(
-  generatedFiles: SourceFile[],
+  generatedFiles: FileContent[],
   workingDir: string,
   xmlCodeBlockElement?: string
 ) {

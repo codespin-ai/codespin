@@ -322,7 +322,7 @@ export type TemplateArgs = {
   prompt: string;
   promptWithLineNumbers: string;
   includes: VersionedFileInfo[];
-  generatedFiles: SourceFile[];
+  generatedFiles: FileContent[];
   outPath: string | undefined;
   promptSettings: unknown;
   customArgs: string[] | undefined;
@@ -330,7 +330,7 @@ export type TemplateArgs = {
   debug: boolean | undefined;
 };
 
-export type SourceFile = {
+export type FileContent = {
   path: string;
   content: string;
 };

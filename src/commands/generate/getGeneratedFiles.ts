@@ -2,10 +2,10 @@ import { readFile } from "fs/promises";
 import path from "path";
 import { pathExists } from "../../fs/pathExists.js";
 import { GeneratedSourceFile } from "../../sourceCode/GeneratedSourceFile.js";
-import { SourceFile } from "../../sourceCode/SourceFile.js";
+import { FileContent } from "../../sourceCode/FileContent.js";
 
 export async function getGeneratedFiles(
-  files: SourceFile[],
+  files: FileContent[],
   workingDir: string
 ): Promise<GeneratedSourceFile[]> {
   return await Promise.all(

@@ -23,7 +23,7 @@ import { validateMaxInputMessagesLength } from "../../safety/validateMaxInputLen
 import { getModel } from "../../settings/getModel.js";
 import { readCodeSpinConfig } from "../../settings/readCodeSpinConfig.js";
 import { GeneratedSourceFile } from "../../sourceCode/GeneratedSourceFile.js";
-import { SourceFile } from "../../sourceCode/SourceFile.js";
+import { FileContent } from "../../sourceCode/FileContent.js";
 import defaultTemplate, {
   TemplateArgs,
   TemplateResult,
@@ -90,12 +90,12 @@ export type PromptResult = {
 
 export type SavedFilesResult = {
   type: "saved";
-  files: SourceFile[];
+  files: FileContent[];
 };
 
 export type FilesResult = {
   type: "files";
-  files: SourceFile[];
+  files: FileContent[];
 };
 
 export type UnparsedResult = {
@@ -385,14 +385,14 @@ export async function generate(
 
 function updateFiles(
   files: { [path: string]: string },
-  newFiles: SourceFile[]
+  newFiles: FileContent[]
 ) {
   for (const file of newFiles) {
     files[file.path] = file.content;
   }
 }
 
-function toSourceFileList(files: { [path: string]: string }): SourceFile[] {
+function toSourceFileList(files: { [path: string]: string }): FileContent[] {
   return Object.keys(files).map((x) => ({
     path: x,
     content: files[x],
