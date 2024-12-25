@@ -5,13 +5,11 @@ export type CodeSpinConfig = {
   model: string;
   liteModel?: string | undefined;
   models: ModelDescription[];
-  template?: string;
   debug?: boolean;
-  multi?: number;
   maxInput?: number;
+
+  // Markers
   filePathPrefix?: string;
-  markers?: {
-    PROMPT?: string;
-  };
+  promptMarker?: string;
   xmlCodeBlockElement?: string;
 };

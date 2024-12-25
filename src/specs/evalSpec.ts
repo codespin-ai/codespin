@@ -2,7 +2,6 @@ import fs from "fs/promises";
 import path from "path";
 import { removeFrontMatter } from "../prompts/removeFrontMatter.js";
 import { CodeSpinConfig } from "../settings/CodeSpinConfig.js";
-import { getPromptRegex } from "../settings/parsing.js";
 
 export async function evalSpec(
   prompt: string,
@@ -16,7 +15,7 @@ export async function evalSpec(
     ? removeFrontMatter(specContent)
     : specContent;
   const effectivePrompt = specContentWithoutFrontMatter.replace(
-    getPromptRegex(config),
+    new RegExp(config.promptMarker ?? "$PROMPT$"),
     prompt
   );
   return effectivePrompt;

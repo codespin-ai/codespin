@@ -5,7 +5,6 @@ import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
 import { readCodeSpinConfig } from "../settings/readCodeSpinConfig.js";
 import { FilesResult, SavedFilesResult } from "./generate/index.js";
 import { fileBlockParser } from "libllm";
-import { getFilePathPrefix } from "../settings/parsing.js";
 
 export type ParseArgs = {
   file: string;
@@ -15,8 +14,9 @@ export type ParseArgs = {
   outDir?: string;
   debug?: boolean;
   responseParser?: string;
-  xmlCodeBlockElement?: string;
   reloadConfig?: boolean;
+  filePathPrefix?: string;
+  xmlCodeBlockElement?: string;
 };
 
 export type ParseResult = SavedFilesResult | FilesResult;
@@ -44,7 +44,7 @@ export async function parse(
 
   const files = await parseFunc(
     llmResponse,
-    getFilePathPrefix(config),
+    args.filePathPrefix ?? "File path:",
     args.xmlCodeBlockElement
   );
 

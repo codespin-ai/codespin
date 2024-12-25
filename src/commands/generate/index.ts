@@ -40,7 +40,6 @@ import {
   StreamingFileParseResult,
 } from "libllm";
 import { getLLMConfigLoaders } from "../../settings/getLLMConfigLoaders.js";
-import { getFilePathPrefix } from "../../settings/parsing.js";
 
 export type GenerateArgs = {
   promptFile?: string;
@@ -65,12 +64,14 @@ export type GenerateArgs = {
   go?: boolean;
   spec?: string;
   multi?: number;
-  xmlCodeBlockElement?: string;
   images?: string[];
   messages?: string;
   messagesJson?: MessagesArg;
   reloadConfig?: boolean;
   reloadProviderConfig?: boolean;
+  filePathPrefix?: string;
+  promptMarker?: string;
+  xmlCodeBlockElement?: string;
   responseCallback?: (text: string) => Promise<void>;
   responseStreamCallback?: (text: string) => void;
   fileResultStreamCallback?: (data: StreamingFileParseResult) => void;
@@ -141,6 +142,9 @@ export async function generate(
     [args.model, promptSettings?.model, config.model],
     config
   );
+
+  const filePathPrefix =
+    args.filePathPrefix ?? config.filePathPrefix ?? "File path:";
 
   const xmlCodeBlockElement =
     args.xmlCodeBlockElement ?? config.xmlCodeBlockElement;
@@ -297,7 +301,7 @@ export async function generate(
 
       const newlyGeneratedFiles = await fileBlockParser(
         completionResult.message,
-        getFilePathPrefix(config),
+        filePathPrefix,
         xmlCodeBlockElement
       );
 
