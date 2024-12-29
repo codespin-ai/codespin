@@ -12,11 +12,15 @@ import dependenciesTemplate, {
   DependenciesTemplateResult,
 } from "../templates/dependencies.js";
 import { getCustomTemplate } from "../templating/getCustomTemplate.js";
-import { getModel } from "../settings/getModel.js";
 
 import { validateMaxInputStringLength } from "../safety/validateMaxInputLength.js";
-import { CompletionOptions, extractFromMarkdownCodeBlock, getAPI } from "libllm";
-import { getLLMConfigLoaders } from "../settings/getLLMConfigLoaders.js";
+import {
+  CompletionOptions,
+  extractFromMarkdownCodeBlock,
+  getAPI,
+} from "libllm";
+import { getConfigDirs } from "../settings/getConfigDirs.js";
+import { getProviderForModel } from "../llm/getProviderForModel.js";
 
 export type DependenciesArgs = {
   file: string;
@@ -68,7 +72,7 @@ export async function dependencies(
       setDebugFlag();
     }
 
-    const model = getModel([args.model, config.model], config);
+    const model = args.model ?? config.model;
 
     const sourceCode = await fs.readFile(
       path.resolve(context.workingDir, args.file),
@@ -99,12 +103,17 @@ export async function dependencies(
     writeDebug("--- PROMPT ---");
     writeDebug(prompt);
 
-    const configLoaders = getLLMConfigLoaders(args.config, context.workingDir);
-    const completionAPI = getAPI(model.provider, configLoaders, getLoggers());
+    const configDirs = await getConfigDirs(args.config, context.workingDir);
+
+    const provider = await getProviderForModel(
+      model,
+      configDirs.configDir,
+      configDirs.globalConfigDir
+    );
 
     validateMaxInputStringLength(prompt, maxInput);
 
-    const completionResult = await completionAPI.completion(
+    const completionResult = await provider.completion(
       [{ role: "user", content: prompt }],
       completionOptions,
       args.reloadProviderConfig

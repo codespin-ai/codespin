@@ -54,6 +54,12 @@ export class ClientInitializationError extends AuthenticationError {
  */
 export class ConfigurationError extends CodeSpinError {}
 
+export class MissingConfigDirError extends ConfigurationError {
+  constructor(dir: string) {
+    super(`The dir ${dir} does not exist`);
+  }
+}
+
 export class MissingConfigError extends ConfigurationError {
   constructor(configFile: string) {
     super(`The config file ${configFile} does not exist`);

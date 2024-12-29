@@ -1,8 +1,7 @@
 import {
   MissingConfigError,
   MissingModelConfigError,
-  MissingModelError,
-  UnsupportedConfigVersionError,
+  UnsupportedConfigVersionError
 } from "../errors.js";
 import { CodeSpinConfig } from "./CodeSpinConfig.js";
 import { readConfig } from "./readConfig.js";
@@ -37,14 +36,6 @@ export async function readCodeSpinConfig(
 
   if (!config.model) {
     throw new MissingModelConfigError(filePath);
-  }
-
-  if (
-    !config.models.find(
-      (x) => x.alias === config.model || x.name === config.model
-    )
-  ) {
-    throw new MissingModelError(config.model);
   }
 
   cachedConfig = configInfo.config;

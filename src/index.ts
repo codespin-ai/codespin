@@ -9,8 +9,11 @@ import { getPackageVersion } from "./getPackageVersion.js";
 import { setInvokeMode } from "./process/getInvokeMode.js";
 import { go } from "./commands/go.js";
 import { commit } from "./commands/commit.js";
+import process from "node:process";
 
 setInvokeMode("cli");
+
+(process as any).noDeprecation = true;
 
 export async function main() {
   yargs(process.argv.slice(2))

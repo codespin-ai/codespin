@@ -15,8 +15,9 @@ import { writeToFile } from "../fs/writeToFile.js";
 import { getGitRoot } from "../git/getGitRoot.js";
 import { CodeSpinConfig } from "../settings/CodeSpinConfig.js";
 
-import { writeError } from "../console.js";
 import { DirectoryExistsError } from "../errors.js";
+
+import { getAPI } from "libllm";
 
 export type InitArgs = {
   force?: boolean;
@@ -28,38 +29,6 @@ const DEFAULT_JSON_CONTENT: CodeSpinConfig = {
   version: "0.0.3",
   model: "claude-3-5-haiku",
   liteModel: "claude-3-5-haiku",
-  models: [
-    {
-      name: "gpt-4o",
-      provider: "openai",
-      maxOutputTokens: 16384,
-    },
-    {
-      name: "gpt-4o-mini",
-      provider: "openai",
-      maxOutputTokens: 16384,
-    },
-    {
-      name: "claude-3-5-sonnet-latest",
-      alias: "claude-3-5-sonnet",
-      provider: "anthropic",
-      maxOutputTokens: 8192,
-    },
-    {
-      name: "claude-3-5-haiku-latest",
-      alias: "claude-3-5-haiku",
-      provider: "anthropic",
-      maxOutputTokens: 8192,
-    },
-  ],
-};
-
-const DEFAULT_OPENAI_CONFIG = {
-  apiKey: "your-api-key",
-};
-
-const DEFAULT_ANTHROPIC_CONFIG = {
-  apiKey: "your-api-key",
 };
 
 export async function init(
@@ -70,19 +39,18 @@ export async function init(
     setDebugFlag();
   }
 
+  const globalConfigDir = path.resolve(homedir(), CODESPIN_DIRNAME);
+
   if (args.global) {
-    const configDir = path.resolve(homedir(), CODESPIN_DIRNAME);
-    const configFile = path.resolve(configDir, CODESPIN_CONFIG_FILENAME);
-    const openaiConfigFile = path.resolve(configDir, "openai.json");
-    const anthropicConfigFile = path.resolve(configDir, "anthropic.json");
+    const configFile = path.resolve(globalConfigDir, CODESPIN_CONFIG_FILENAME);
 
     // Check if .codespin already exists
-    if (!args.force && (await pathExists(configDir))) {
-      throw new DirectoryExistsError(configDir);
+    if (!args.force && (await pathExists(globalConfigDir))) {
+      throw new DirectoryExistsError(globalConfigDir);
     }
 
     // Create the config dir at root
-    await createDirIfMissing(configDir);
+    await createDirIfMissing(globalConfigDir);
 
     // Write the config file.
     await fs.writeFile(
@@ -90,27 +58,10 @@ export async function init(
       JSON.stringify(DEFAULT_JSON_CONTENT, null, 2)
     );
 
-    if (!(await pathExists(openaiConfigFile))) {
-      await fs.writeFile(
-        openaiConfigFile,
-        JSON.stringify(DEFAULT_OPENAI_CONFIG, null, 2)
-      );
-    } else {
-      writeError(
-        "Existing openai.json found - not overwriting. You may delete this file to overwrite."
-      );
-    }
-
-    if (!(await pathExists(anthropicConfigFile))) {
-      await fs.writeFile(
-        anthropicConfigFile,
-        JSON.stringify(DEFAULT_ANTHROPIC_CONFIG, null, 2)
-      );
-    } else {
-      writeError(
-        "Existing anthropic.json found - not overwriting. You may delete this file to overwrite."
-      );
-    }
+    const anthropic = getAPI("anthropic", globalConfigDir);
+    const openai = getAPI("openai", globalConfigDir);
+    await anthropic.init({ storeKeysGlobally: false });
+    await openai.init({ storeKeysGlobally: false });
   } else {
     // If we are under a git directory, we'll make .codespin under the git dir root.
     // Otherwise, we'll make .codespin under the current dir.
@@ -138,6 +89,11 @@ export async function init(
       configFile,
       JSON.stringify(DEFAULT_JSON_CONTENT, null, 2)
     );
+
+    const anthropic = getAPI("anthropic", configDir, globalConfigDir);
+    const openai = getAPI("openai", configDir, globalConfigDir);
+    await anthropic.init({ storeKeysGlobally: true });
+    await openai.init({ storeKeysGlobally: true });
 
     if (gitDir) {
       const gitIgnorePath = path.resolve(gitDir, ".gitignore");

@@ -3,14 +3,14 @@ import * as libllm from "libllm";
 import { setDebugFlag } from "../debugMode.js";
 import { execString } from "../process/execString.js";
 import { validateMaxInputStringLength } from "../safety/validateMaxInputLength.js";
-import { getModel } from "../settings/getModel.js";
 import { readCodeSpinConfig } from "../settings/readCodeSpinConfig.js";
 import commitTemplate, {
   CommitTemplateArgs,
   CommitTemplateResult,
 } from "../templates/commit.js";
 import { getCustomTemplate } from "../templating/getCustomTemplate.js";
-import { getLLMConfigLoaders } from "../settings/getLLMConfigLoaders.js";
+import { getConfigDirs } from "../settings/getConfigDirs.js";
+import { getProviderForModel } from "../llm/getProviderForModel.js";
 
 export type CommitArgs = {
   model?: string;
@@ -41,7 +41,7 @@ export async function commit(
   );
 
   const maxInput = args.maxInput ?? config.maxInput;
-  const model = getModel([args.model, config.liteModel, config.model], config);
+  const model = args.model ?? config.liteModel ?? config.model;
 
   // Get the git diff
   const diffContent = await execString("git diff HEAD", context.workingDir);
@@ -63,16 +63,22 @@ export async function commit(
 
   validateMaxInputStringLength(prompt, maxInput);
 
-  const completionAPI = libllm.getAPI(
-    model.provider,
-    getLLMConfigLoaders(args.config, context.workingDir)
-  );
-  const completion = await completionAPI.completion(
-    [{ role: "user", content: prompt }],
-    { model, maxTokens: args.maxTokens },
-    
+  const configDirs = await getConfigDirs(args.config, context.workingDir);
+
+  const provider = await getProviderForModel(
+    model,
+    configDirs.configDir,
+    configDirs.globalConfigDir
   );
 
-  const jsonResponse = libllm.extractFromMarkdownCodeBlock(completion.message, true);
+  const completion = await provider.completion(
+    [{ role: "user", content: prompt }],
+    { model, maxTokens: args.maxTokens }
+  );
+
+  const jsonResponse = libllm.extractFromMarkdownCodeBlock(
+    completion.message,
+    true
+  );
   return JSON.parse(jsonResponse.content) as CommitResult;
 }

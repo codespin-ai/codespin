@@ -20,7 +20,6 @@ import {
 import { readPromptSettings } from "../../prompts/readPromptSettings.js";
 import { MessagesArg } from "../../prompts/types.js";
 import { validateMaxInputMessagesLength } from "../../safety/validateMaxInputLength.js";
-import { getModel } from "../../settings/getModel.js";
 import { readCodeSpinConfig } from "../../settings/readCodeSpinConfig.js";
 import { GeneratedSourceFile } from "../../sourceCode/GeneratedSourceFile.js";
 import { FileContent } from "../../sourceCode/FileContent.js";
@@ -39,7 +38,8 @@ import {
   getAPI,
   StreamingFileParseResult,
 } from "libllm";
-import { getLLMConfigLoaders } from "../../settings/getLLMConfigLoaders.js";
+import { getConfigDirs } from "../../settings/getConfigDirs.js";
+import { getProviderForModel } from "../../llm/getProviderForModel.js";
 
 export type GenerateArgs = {
   promptFile?: string;
@@ -138,10 +138,7 @@ export async function generate(
     ? await readPromptSettings(promptFilePath)
     : undefined;
 
-  const model = getModel(
-    [args.model, promptSettings?.model, config.model],
-    config
-  );
+  const model = args.model ?? promptSettings?.model ?? config.model;
 
   const filePathPrefix =
     args.filePathPrefix ?? config.filePathPrefix ?? "File path:";
@@ -256,10 +253,12 @@ export async function generate(
     args.cancelCallback(generateCommandCancel);
   }
 
-  const completionAPI = getAPI(
-    model.provider,
-    getLLMConfigLoaders(args.config, context.workingDir),
-    getLoggers()
+  const configDirs = await getConfigDirs(args.config, context.workingDir);
+
+  const provider = await getProviderForModel(
+    model,
+    configDirs.configDir,
+    configDirs.globalConfigDir
   );
 
   const completionOptions: CompletionOptions = {
@@ -287,7 +286,7 @@ export async function generate(
     writeDebug("--- MESSAGES ---");
     writeDebug(JSON.stringify(messages, null, 2));
 
-    const completionResult = await completionAPI.completion(
+    const completionResult = await provider.completion(
       messages,
       completionOptions,
       args.reloadProviderConfig

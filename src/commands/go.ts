@@ -12,7 +12,6 @@ import {
 import { stdinDirective } from "../prompts/stdinDirective.js";
 import { MessagesArg } from "../prompts/types.js";
 import { validateMaxInputMessagesLength } from "../safety/validateMaxInputLength.js";
-import { getModel } from "../settings/getModel.js";
 import { readCodeSpinConfig } from "../settings/readCodeSpinConfig.js";
 import plainTemplate, {
   PlainTemplateArgs,
@@ -20,7 +19,8 @@ import plainTemplate, {
 } from "../templates/plain.js";
 import { getCustomTemplate } from "../templating/getCustomTemplate.js";
 import { CompletionInputMessage, CompletionOptions, getAPI } from "libllm";
-import { getLLMConfigLoaders } from "../settings/getLLMConfigLoaders.js";
+import { getConfigDirs } from "../settings/getConfigDirs.js";
+import { getProviderForModel } from "../llm/getProviderForModel.js";
 
 export type GoArgs = {
   template: string | undefined;
@@ -57,7 +57,7 @@ export async function go(
 
   const maxInput = args.maxInput ?? config.maxInput;
 
-  const model = getModel([args.model, config.model], config);
+  const model = args.model ?? config.model;
 
   if (config.debug) {
     setDebugFlag();
@@ -126,10 +126,12 @@ export async function go(
     args.cancelCallback(generateCommandCancel);
   }
 
-  const completionAPI = getAPI(
-    model.provider,
-    getLLMConfigLoaders(args.config, context.workingDir),
-    getLoggers()
+  const configDirs = await getConfigDirs(args.config, context.workingDir);
+
+  const provider = await getProviderForModel(
+    model,
+    configDirs.configDir,
+    configDirs.globalConfigDir
   );
 
   const completionOptions: CompletionOptions = {
@@ -145,7 +147,7 @@ export async function go(
   writeDebug("--- MESSAGES ---");
   writeDebug(JSON.stringify(messages, null, 2));
 
-  const completionResult = await completionAPI.completion(
+  const completionResult = await provider.completion(
     messages,
     completionOptions,
     args.reloadProviderConfig
