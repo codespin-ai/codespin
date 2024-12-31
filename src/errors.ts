@@ -8,9 +8,9 @@ export class CodeSpinError extends Error {
   }
 }
 
-/**
- * CLI-specific errors
- */
+// /**
+//  * CLI-specific errors
+//  */
 export class CLIError extends CodeSpinError {
   constructor(message: string) {
     super(message);
@@ -32,26 +32,9 @@ export class ParameterError extends CodeSpinError {
   }
 }
 
-/**
- * Authentication errors
- */
-export class AuthenticationError extends CodeSpinError {}
-
-export class InvalidCredentialsError extends AuthenticationError {
-  constructor(provider: string) {
-    super(`Invalid credentials or key for ${provider}`);
-  }
-}
-
-export class ClientInitializationError extends AuthenticationError {
-  constructor(provider: string) {
-    super(`Failed to initialize ${provider} client`);
-  }
-}
-
-/**
- * Configuration errors
- */
+// /**
+//  * Configuration errors
+//  */
 export class ConfigurationError extends CodeSpinError {}
 
 export class MissingConfigDirError extends ConfigurationError {
@@ -74,39 +57,15 @@ export class UnsupportedConfigVersionError extends ConfigurationError {
   }
 }
 
-export class InvalidModelError extends ConfigurationError {
-  constructor(modelName: string) {
-    super(`Invalid model ${modelName}`);
-  }
-}
-
 export class MissingModelConfigError extends ConfigurationError {
   constructor(configPath: string) {
     super(`The model property is not specified in ${configPath}`);
   }
 }
 
-export class MissingModelError extends ConfigurationError {
-  constructor(modelName?: string) {
-    super(`Model ${modelName || ""} not found. Have you run "codespin init"?`);
-  }
-}
-
-export class MissingOpenAIEnvVarError extends ConfigurationError {
-  constructor() {
-    super("OPENAI_API_KEY environment variable is not set");
-  }
-}
-
-export class MissingAnthropicEnvVarError extends ConfigurationError {
-  constructor() {
-    super("ANTHROPIC_API_KEY environment variable is not set");
-  }
-}
-
-/**
- * Input validation errors
- */
+// /**
+//  * Input validation errors
+//  */
 export class ValidationError extends CodeSpinError {}
 
 export class MaxInputLengthError extends ValidationError {
@@ -131,17 +90,9 @@ export class MaxMultiQueryError extends ValidationError {
   }
 }
 
-export class FileLengthExceedsMaxTokensError extends ValidationError {
-  constructor() {
-    super(
-      "Single file length exceeded max tokens and cannot be retried. Try increasing max tokens or modularizing code"
-    );
-  }
-}
-
-/**
- * File system errors
- */
+// /**
+//  * File system errors
+//  */
 export class FileSystemError extends CodeSpinError {}
 
 export class FileNotFoundError extends FileSystemError {
@@ -178,9 +129,9 @@ export class UnknownProjectRootError extends DirectoryError {
   }
 }
 
-/**
- * Git related errors
- */
+// /**
+//  * Git related errors
+//  */
 export class GitError extends CodeSpinError {}
 
 export class UnknownGitRootError extends GitError {
@@ -195,9 +146,9 @@ export class GitPathError extends GitError {
   }
 }
 
-/**
- * Template related errors
- */
+// /**
+//  * Template related errors
+//  */
 export class TemplateError extends CodeSpinError {}
 
 export class MissingTemplateError extends TemplateError {
@@ -206,9 +157,9 @@ export class MissingTemplateError extends TemplateError {
   }
 }
 
-/**
- * Parsing errors
- */
+// /**
+//  * Parsing errors
+//  */
 export class ParseError extends CodeSpinError {}
 
 export class MissingCodeBlockError extends ParseError {
@@ -229,9 +180,9 @@ export class InvalidMessagesFileError extends ValidationError {
   }
 }
 
-/**
- * Provider errors
- */
+// /**
+//  * Provider errors
+//  */
 export class ProviderError extends CodeSpinError {}
 
 export class InvalidProviderError extends ProviderError {
@@ -240,9 +191,9 @@ export class InvalidProviderError extends ProviderError {
   }
 }
 
-/**
- * Runtime errors
- */
+// /**
+//  * Runtime errors
+//  */
 export class RuntimeError extends CodeSpinError {}
 
 export class UnknownFinishReasonError extends RuntimeError {

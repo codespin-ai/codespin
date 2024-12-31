@@ -1,17 +1,25 @@
+import {
+  CompletionInputMessage,
+  CompletionOptions,
+  fileBlockParser,
+  StreamingFileParseResult
+} from "libllm";
 import path from "path";
 import { CodeSpinContext } from "../../CodeSpinContext.js";
-import { getLoggers, writeDebug } from "../../console.js";
+import { writeDebug } from "../../console.js";
 import { setDebugFlag } from "../../debugMode.js";
 import {
   CannotMergeDiffResponseError,
+  CLIParameterError,
   MaxMultiQueryError,
   MaxTokensError,
-  CLIParameterError,
   UnknownFinishReasonError,
 } from "../../errors.js";
+import { VersionedFileInfo } from "../../fs/VersionedFileInfo.js";
 import { writeFilesToDisk } from "../../fs/writeFilesToDisk.js";
 import { writeToFile } from "../../fs/writeToFile.js";
-import { BuildPromptArgs, buildPrompt } from "../../prompts/buildPrompt.js";
+import { getProviderForModel } from "../../llm/getProviderForModel.js";
+import { buildPrompt, BuildPromptArgs } from "../../prompts/buildPrompt.js";
 import { convertPromptToMessage } from "../../prompts/convertPromptToMessage.js";
 import {
   convertMessageFileFormat,
@@ -20,9 +28,10 @@ import {
 import { readPromptSettings } from "../../prompts/readPromptSettings.js";
 import { MessagesArg } from "../../prompts/types.js";
 import { validateMaxInputMessagesLength } from "../../safety/validateMaxInputLength.js";
+import { getConfigDirs } from "../../settings/getConfigDirs.js";
 import { readCodeSpinConfig } from "../../settings/readCodeSpinConfig.js";
-import { GeneratedSourceFile } from "../../sourceCode/GeneratedSourceFile.js";
 import { FileContent } from "../../sourceCode/FileContent.js";
+import { GeneratedSourceFile } from "../../sourceCode/GeneratedSourceFile.js";
 import defaultTemplate, {
   TemplateArgs,
   TemplateResult,
@@ -30,16 +39,6 @@ import defaultTemplate, {
 import { getCustomTemplate } from "../../templating/getCustomTemplate.js";
 import { getGeneratedFiles } from "./getGeneratedFiles.js";
 import { getOutPath } from "./getOutPath.js";
-import { VersionedFileInfo } from "../../fs/VersionedFileInfo.js";
-import {
-  CompletionInputMessage,
-  CompletionOptions,
-  fileBlockParser,
-  getAPI,
-  StreamingFileParseResult,
-} from "libllm";
-import { getConfigDirs } from "../../settings/getConfigDirs.js";
-import { getProviderForModel } from "../../llm/getProviderForModel.js";
 
 export type GenerateArgs = {
   promptFile?: string;
