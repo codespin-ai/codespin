@@ -25,6 +25,8 @@ export * as specs from "./specs/index.js";
 export * as templating from "./templating/index.js";
 export * as text from "./text/index.js";
 export * as types from "./types.js";
+export * as errors from "./errors.js";
+export * as console from "./console.js";
 
 setInvokeMode("cli");
 
