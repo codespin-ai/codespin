@@ -1,4 +1,4 @@
-import { CodeSpinContext } from "../../CodeSpinContext.js";
+import { CodeSpinContext } from "../../types.js";
 import { setDebugFlag } from "../../debugMode.js";
 import { TemplateError } from "../../errors.js";
 import { exception } from "../../exception.js";

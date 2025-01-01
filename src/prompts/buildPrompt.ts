@@ -1,5 +1,5 @@
 import path from "path";
-import { CodeSpinContext } from "../CodeSpinContext.js";
+import { CodeSpinContext } from "../types.js";
 import { getIncludedFiles } from "../commands/generate/getIncludedFiles.js";
 import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
 import { VersionedPath } from "../fs/VersionedPath.js";

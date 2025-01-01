@@ -1,5 +1,5 @@
 import path from "path";
-import { CodeSpinContext } from "../CodeSpinContext.js";
+import { CodeSpinContext } from "../types.js";
 import { writeDebug } from "../console.js";
 import { setDebugFlag } from "../debugMode.js";
 

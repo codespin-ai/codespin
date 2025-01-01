@@ -1,5 +1,5 @@
 import { promises as fs } from "fs";
-import { CodeSpinContext } from "../CodeSpinContext.js";
+import { CodeSpinContext } from "../types.js";
 import { setDebugFlag } from "../debugMode.js";
 import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
 import { readCodeSpinConfig } from "../settings/readCodeSpinConfig.js";

@@ -2,7 +2,7 @@ import path from "path";
 import { VersionedFileInfo } from "../fs/VersionedFileInfo.js";
 import { CodeSpinConfig } from "../settings/CodeSpinConfig.js";
 import { addLineNumbers } from "../text/addLineNumbers.js";
-import { CodeSpinContext } from "../CodeSpinContext.js";
+import { CodeSpinContext } from "../types.js";
 
 export type FormatterTemplateArgs = {
   prompt: string;

@@ -11,6 +11,21 @@ import { go } from "./commands/go.js";
 import { commit } from "./commands/commit.js";
 import process from "node:process";
 
+export * as settings from "./settings/index.js";
+export * as commands from "./commands/index.js";
+export * as fs from "./fs/index.js";
+export * as git from "./git/index.js";
+export * as prompts from "./prompts/index.js";
+export * as templates from "./templates/index.js";
+export * as languageServices from "./languageServices/index.js";
+export * as process from "./process/index.js";
+export * as safety from "./safety/index.js";
+export * as sourceCode from "./sourceCode/index.js";
+export * as specs from "./specs/index.js";
+export * as templating from "./templating/index.js";
+export * as text from "./text/index.js";
+export * as types from "./types.js";
+
 setInvokeMode("cli");
 
 (process as any).noDeprecation = true;

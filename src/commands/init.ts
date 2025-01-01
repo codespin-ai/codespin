@@ -8,7 +8,7 @@ import {
 } from "../fs/pathNames.js";
 
 import { homedir } from "os";
-import { CodeSpinContext } from "../CodeSpinContext.js";
+import { CodeSpinContext } from "../types.js";
 import { setDebugFlag } from "../debugMode.js";
 import { createDirIfMissing } from "../fs/createDirIfMissing.js";
 import { writeToFile } from "../fs/writeToFile.js";

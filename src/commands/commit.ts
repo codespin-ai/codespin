@@ -1,5 +1,5 @@
 import * as libllm from "libllm";
-import { CodeSpinContext } from "../CodeSpinContext.js";
+import { CodeSpinContext } from "../types.js";
 import { setDebugFlag } from "../debugMode.js";
 import { execString } from "../process/execString.js";
 import { validateMaxInputStringLength } from "../safety/validateMaxInputLength.js";
