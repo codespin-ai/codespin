@@ -1,9 +1,11 @@
 import path from "path";
 import { CodeSpinContext } from "../CodeSpinContext.js";
-import { getLoggers, writeDebug } from "../console.js";
+import { writeDebug } from "../console.js";
 import { setDebugFlag } from "../debugMode.js";
 
+import { CompletionInputMessage, CompletionOptions } from "libllm";
 import { CLIParameterError } from "../errors.js";
+import { getProviderForModel } from "../llm/getProviderForModel.js";
 import { convertPromptToMessage } from "../prompts/convertPromptToMessage.js";
 import {
   convertMessageFileFormat,
@@ -12,15 +14,13 @@ import {
 import { stdinDirective } from "../prompts/stdinDirective.js";
 import { MessagesArg } from "../prompts/types.js";
 import { validateMaxInputMessagesLength } from "../safety/validateMaxInputLength.js";
+import { getConfigDirs } from "../settings/getConfigDirs.js";
 import { readCodeSpinConfig } from "../settings/readCodeSpinConfig.js";
 import plainTemplate, {
   PlainTemplateArgs,
   PlainTemplateResult,
 } from "../templates/plain.js";
 import { getCustomTemplate } from "../templating/getCustomTemplate.js";
-import { CompletionInputMessage, CompletionOptions, getAPI } from "libllm";
-import { getConfigDirs } from "../settings/getConfigDirs.js";
-import { getProviderForModel } from "../llm/getProviderForModel.js";
 
 export type GoArgs = {
   template: string | undefined;

@@ -1,7 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { CodeSpinContext } from "../CodeSpinContext.js";
-import { getLoggers, writeDebug } from "../console.js";
+import { writeDebug } from "../console.js";
 import { setDebugFlag } from "../debugMode.js";
 import { pathExists } from "../fs/pathExists.js";
 import { getLanguageService } from "../languageServices/getLanguageService.js";
@@ -13,14 +13,13 @@ import dependenciesTemplate, {
 } from "../templates/dependencies.js";
 import { getCustomTemplate } from "../templating/getCustomTemplate.js";
 
-import { validateMaxInputStringLength } from "../safety/validateMaxInputLength.js";
 import {
   CompletionOptions,
-  extractFromMarkdownCodeBlock,
-  getAPI,
+  extractFromMarkdownCodeBlock
 } from "libllm";
-import { getConfigDirs } from "../settings/getConfigDirs.js";
 import { getProviderForModel } from "../llm/getProviderForModel.js";
+import { validateMaxInputStringLength } from "../safety/validateMaxInputLength.js";
+import { getConfigDirs } from "../settings/getConfigDirs.js";
 
 export type DependenciesArgs = {
   file: string;

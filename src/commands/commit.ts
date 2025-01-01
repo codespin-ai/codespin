@@ -1,16 +1,16 @@
-import { CodeSpinContext } from "../CodeSpinContext.js";
 import * as libllm from "libllm";
+import { CodeSpinContext } from "../CodeSpinContext.js";
 import { setDebugFlag } from "../debugMode.js";
+import { getProviderForModel } from "../llm/getProviderForModel.js";
 import { execString } from "../process/execString.js";
 import { validateMaxInputStringLength } from "../safety/validateMaxInputLength.js";
+import { getConfigDirs } from "../settings/getConfigDirs.js";
 import { readCodeSpinConfig } from "../settings/readCodeSpinConfig.js";
 import commitTemplate, {
   CommitTemplateArgs,
   CommitTemplateResult,
 } from "../templates/commit.js";
 import { getCustomTemplate } from "../templating/getCustomTemplate.js";
-import { getConfigDirs } from "../settings/getConfigDirs.js";
-import { getProviderForModel } from "../llm/getProviderForModel.js";
 
 export type CommitArgs = {
   model?: string;
