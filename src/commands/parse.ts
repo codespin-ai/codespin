@@ -4,7 +4,7 @@ import { setDebugFlag } from "../debugMode.js";
 import { writeFilesToDisk } from "../fs/writeFilesToDisk.js";
 import { readCodeSpinConfig } from "../settings/readCodeSpinConfig.js";
 import { FilesResult, SavedFilesResult } from "./generate/index.js";
-import { fileBlockParser } from "libllm";
+import * as libllm from "libllm";
 
 export type ParseArgs = {
   file: string;
@@ -40,7 +40,7 @@ export async function parse(
   }
 
   const llmResponse = await fs.readFile(args.file, "utf-8");
-  const parseFunc = fileBlockParser;
+  const parseFunc = libllm.parsing.fileBlockParser;
 
   const files = await parseFunc(
     llmResponse,

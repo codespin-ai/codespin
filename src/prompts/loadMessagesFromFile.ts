@@ -3,7 +3,7 @@ import { readFile } from "fs/promises";
 import { loadImage } from "../prompts/loadImage.js";
 import { MessagesArg } from "./types.js";
 import { InvalidMessagesFileError } from "../errors.js";
-import { CompletionAssistantMessage, CompletionContentPart, CompletionInputMessage, CompletionUserMessage } from "libllm";
+import * as libllm from "libllm";
 
 export function isMessageFile(obj: any): obj is MessagesArg {
   if (!obj || typeof obj !== "object") return false;
@@ -27,17 +27,17 @@ export function isMessageFile(obj: any): obj is MessagesArg {
 export async function convertMessageFileFormat(
   data: MessagesArg,
   workingDir: string
-): Promise<CompletionInputMessage[]> {
+): Promise<libllm.types.CompletionInputMessage[]> {
   // Convert MessageFile format to CompletionInputMessage[]
   const messages = await Promise.all(
-    data.messages.map(async (msg): Promise<CompletionInputMessage> => {
+    data.messages.map(async (msg): Promise<libllm.types.CompletionInputMessage> => {
       if (msg.role === "assistant") {
         if (typeof msg.content !== "string") {
           throw new InvalidMessagesFileError(
             "Assistant messages must have string content"
           );
         }
-        const assistantMessage: CompletionAssistantMessage = {
+        const assistantMessage: libllm.types.CompletionAssistantMessage = {
           role: "assistant",
           content: msg.content,
         };
@@ -45,14 +45,14 @@ export async function convertMessageFileFormat(
       } else {
         // Handle user messages
         if (typeof msg.content === "string") {
-          const userMessage: CompletionUserMessage = {
+          const userMessage: libllm.types.CompletionUserMessage = {
             role: "user",
             content: msg.content,
           };
           return userMessage;
         }
         // Handle array of content parts
-        const completionParts: CompletionContentPart[] = await Promise.all(
+        const completionParts: libllm.types.CompletionContentPart[] = await Promise.all(
           msg.content.map(async (part) => {
             if (part.type === "text") {
               return {
@@ -69,7 +69,7 @@ export async function convertMessageFileFormat(
             }
           })
         );
-        const userMessage: CompletionUserMessage = {
+        const userMessage: libllm.types.CompletionUserMessage = {
           role: "user",
           content: completionParts,
         };
@@ -83,7 +83,7 @@ export async function convertMessageFileFormat(
 export async function loadMessagesFromFile(
   filePath: string,
   workingDir: string
-): Promise<CompletionInputMessage[]> {
+): Promise<libllm.types.CompletionInputMessage[]> {
   try {
     const content = await readFile(filePath, "utf-8");
     const data = JSON.parse(content);

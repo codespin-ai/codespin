@@ -13,10 +13,7 @@ import dependenciesTemplate, {
 } from "../templates/dependencies.js";
 import { getCustomTemplate } from "../templating/getCustomTemplate.js";
 
-import {
-  CompletionOptions,
-  extractFromMarkdownCodeBlock
-} from "libllm";
+import * as libllm from "libllm";
 import { getProviderForModel } from "../llm/getProviderForModel.js";
 import { validateMaxInputStringLength } from "../safety/validateMaxInputLength.js";
 import { getConfigDirs } from "../settings/getConfigDirs.js";
@@ -93,7 +90,7 @@ export async function dependencies(
       config
     );
 
-    const completionOptions: CompletionOptions = {
+    const completionOptions: libllm.types.CompletionOptions = {
       model,
       maxTokens: args.maxTokens,
       reloadConfig: args.reloadProviderConfig,
@@ -119,7 +116,10 @@ export async function dependencies(
     );
 
     const dependencies = JSON.parse(
-      extractFromMarkdownCodeBlock(completionResult.message, true).content
+      libllm.parsing.extractFromMarkdownCodeBlock(
+        completionResult.message,
+        true
+      ).content
     ) as Dependency[];
 
     // Fix language specific quirks here.

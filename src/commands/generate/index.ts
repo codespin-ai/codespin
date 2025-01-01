@@ -1,9 +1,4 @@
-import {
-  CompletionInputMessage,
-  CompletionOptions,
-  fileBlockParser,
-  StreamingFileParseResult
-} from "libllm";
+import * as libllm from "libllm";
 import path from "path";
 import { CodeSpinContext } from "../../CodeSpinContext.js";
 import { writeDebug } from "../../console.js";
@@ -73,7 +68,9 @@ export type GenerateArgs = {
   xmlCodeBlockElement?: string;
   responseCallback?: (text: string) => Promise<void>;
   responseStreamCallback?: (text: string) => void;
-  fileResultStreamCallback?: (data: StreamingFileParseResult) => void;
+  fileResultStreamCallback?: (
+    data: libllm.types.StreamingFileParseResult
+  ) => void;
   promptCallback?: (
     prompt: string,
     files: VersionedFileInfo[]
@@ -155,7 +152,7 @@ export async function generate(
   );
 
   // Load messages or convert prompt to message
-  let messages: CompletionInputMessage[] = [];
+  let messages: libllm.types.CompletionInputMessage[] = [];
 
   if (args.messagesJson) {
     // Convert provided messages JSON directly
@@ -260,7 +257,7 @@ export async function generate(
     configDirs.globalConfigDir
   );
 
-  const completionOptions: CompletionOptions = {
+  const completionOptions: libllm.types.CompletionOptions = {
     model,
     maxTokens,
     reloadConfig: args.reloadProviderConfig,
@@ -297,7 +294,7 @@ export async function generate(
     ) {
       allResponses.push(completionResult.message);
 
-      const newlyGeneratedFiles = await fileBlockParser(
+      const newlyGeneratedFiles = await libllm.parsing.fileBlockParser(
         completionResult.message,
         filePathPrefix,
         xmlCodeBlockElement

@@ -76,7 +76,7 @@ export async function commit(
     { model, maxTokens: args.maxTokens }
   );
 
-  const jsonResponse = libllm.extractFromMarkdownCodeBlock(
+  const jsonResponse = libllm.parsing.extractFromMarkdownCodeBlock(
     completion.message,
     true
   );

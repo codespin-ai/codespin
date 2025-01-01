@@ -3,7 +3,7 @@ import { CodeSpinContext } from "../CodeSpinContext.js";
 import { writeDebug } from "../console.js";
 import { setDebugFlag } from "../debugMode.js";
 
-import { CompletionInputMessage, CompletionOptions } from "libllm";
+import * as libllm from "libllm";
 import { CLIParameterError } from "../errors.js";
 import { getProviderForModel } from "../llm/getProviderForModel.js";
 import { convertPromptToMessage } from "../prompts/convertPromptToMessage.js";
@@ -64,7 +64,7 @@ export async function go(
   }
 
   // Load messages or convert prompt to message
-  let messages: CompletionInputMessage[] = [];
+  let messages: libllm.types.CompletionInputMessage[] = [];
 
   if (args.messagesJson) {
     // Convert provided messages JSON directly
@@ -134,7 +134,7 @@ export async function go(
     configDirs.globalConfigDir
   );
 
-  const completionOptions: CompletionOptions = {
+  const completionOptions: libllm.types.CompletionOptions = {
     model,
     maxTokens: args.maxTokens,
     reloadConfig: args.reloadProviderConfig,

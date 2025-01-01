@@ -1,11 +1,11 @@
-import { CompletionContentPart, CompletionUserMessage } from "libllm";
+import * as libllm from "libllm";
 import { loadImage } from "./loadImage.js";
 
 export async function convertPromptToMessage(
   prompt: string,
   images: string[] | undefined,
   workingDir: string
-): Promise<CompletionUserMessage> {
+): Promise<libllm.types.CompletionUserMessage> {
   if (!images || images.length === 0) {
     return {
       role: "user",
@@ -13,7 +13,7 @@ export async function convertPromptToMessage(
     };
   }
 
-  const content: CompletionContentPart[] = [
+  const content: libllm.types.CompletionContentPart[] = [
     {
       type: "text",
       text: prompt,

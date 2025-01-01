@@ -1,7 +1,7 @@
-import { CompletionContentPart, CompletionInputMessage } from "libllm";
+import * as libllm from "libllm";
 import { MaxInputLengthError } from "../errors.js";
 
-function getAllTextContent(messages: CompletionInputMessage[]): string {
+function getAllTextContent(messages: libllm.types.CompletionInputMessage[]): string {
   return messages
     .map((msg) => {
       if (typeof msg.content === "string") {
@@ -9,7 +9,7 @@ function getAllTextContent(messages: CompletionInputMessage[]): string {
       }
       return msg.content
         .filter(
-          (part): part is Extract<CompletionContentPart, { type: "text" }> =>
+          (part): part is Extract<libllm.types.CompletionContentPart, { type: "text" }> =>
             part.type === "text"
         )
         .map((part) => part.text)
@@ -28,7 +28,7 @@ export function validateMaxInputStringLength(
 }
 
 export function validateMaxInputMessagesLength(
-  messages: CompletionInputMessage[],
+  messages: libllm.types.CompletionInputMessage[],
   maxLength: number | undefined
 ) {
   const fullText = getAllTextContent(messages);
