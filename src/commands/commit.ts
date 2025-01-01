@@ -1,7 +1,6 @@
 import * as libllm from "libllm";
 import { CodeSpinContext } from "../CodeSpinContext.js";
 import { setDebugFlag } from "../debugMode.js";
-import { getProviderForModel } from "../llm/getProviderForModel.js";
 import { execString } from "../process/execString.js";
 import { validateMaxInputStringLength } from "../safety/validateMaxInputLength.js";
 import { getConfigDirs } from "../settings/getConfigDirs.js";
@@ -65,13 +64,13 @@ export async function commit(
 
   const configDirs = await getConfigDirs(args.config, context.workingDir);
 
-  const provider = await getProviderForModel(
+  const api = await libllm.getAPIForModel(
     model,
     configDirs.configDir,
     configDirs.globalConfigDir
   );
 
-  const completion = await provider.completion(
+  const completion = await api.completion(
     [{ role: "user", content: prompt }],
     { model, maxTokens: args.maxTokens }
   );

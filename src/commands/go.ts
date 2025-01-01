@@ -5,7 +5,6 @@ import { setDebugFlag } from "../debugMode.js";
 
 import * as libllm from "libllm";
 import { CLIParameterError } from "../errors.js";
-import { getProviderForModel } from "../llm/getProviderForModel.js";
 import { convertPromptToMessage } from "../prompts/convertPromptToMessage.js";
 import {
   convertMessageFileFormat,
@@ -128,7 +127,7 @@ export async function go(
 
   const configDirs = await getConfigDirs(args.config, context.workingDir);
 
-  const provider = await getProviderForModel(
+  const provider = await libllm.getAPIForModel(
     model,
     configDirs.configDir,
     configDirs.globalConfigDir

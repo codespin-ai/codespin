@@ -13,7 +13,6 @@ import {
 import { VersionedFileInfo } from "../../fs/VersionedFileInfo.js";
 import { writeFilesToDisk } from "../../fs/writeFilesToDisk.js";
 import { writeToFile } from "../../fs/writeToFile.js";
-import { getProviderForModel } from "../../llm/getProviderForModel.js";
 import { buildPrompt, BuildPromptArgs } from "../../prompts/buildPrompt.js";
 import { convertPromptToMessage } from "../../prompts/convertPromptToMessage.js";
 import {
@@ -251,7 +250,7 @@ export async function generate(
 
   const configDirs = await getConfigDirs(args.config, context.workingDir);
 
-  const provider = await getProviderForModel(
+  const provider = await libllm.getAPIForModel(
     model,
     configDirs.configDir,
     configDirs.globalConfigDir

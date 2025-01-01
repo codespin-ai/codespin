@@ -14,7 +14,6 @@ import dependenciesTemplate, {
 import { getCustomTemplate } from "../templating/getCustomTemplate.js";
 
 import * as libllm from "libllm";
-import { getProviderForModel } from "../llm/getProviderForModel.js";
 import { validateMaxInputStringLength } from "../safety/validateMaxInputLength.js";
 import { getConfigDirs } from "../settings/getConfigDirs.js";
 
@@ -101,7 +100,7 @@ export async function dependencies(
 
     const configDirs = await getConfigDirs(args.config, context.workingDir);
 
-    const provider = await getProviderForModel(
+    const provider = await libllm.getAPIForModel(
       model,
       configDirs.configDir,
       configDirs.globalConfigDir

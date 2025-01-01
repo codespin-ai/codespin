@@ -17,7 +17,7 @@ import { CodeSpinConfig } from "../settings/CodeSpinConfig.js";
 
 import { DirectoryExistsError } from "../errors.js";
 
-import { getAPI } from "libllm";
+import { getProviders } from "libllm";
 
 export type InitArgs = {
   force?: boolean;
@@ -58,10 +58,12 @@ export async function init(
       JSON.stringify(DEFAULT_JSON_CONTENT, null, 2)
     );
 
-    const anthropic = getAPI("anthropic", globalConfigDir);
-    const openai = getAPI("openai", globalConfigDir);
-    await anthropic.init({ storeKeysGlobally: false });
-    await openai.init({ storeKeysGlobally: false });
+    const providers = getProviders();
+
+    for (const provider of providers) {
+      const api = provider.getAPI(globalConfigDir);
+      await api.init({ storeKeysGlobally: true });
+    }
   } else {
     // If we are under a git directory, we'll make .codespin under the git dir root.
     // Otherwise, we'll make .codespin under the current dir.
@@ -90,10 +92,12 @@ export async function init(
       JSON.stringify(DEFAULT_JSON_CONTENT, null, 2)
     );
 
-    const anthropic = getAPI("anthropic", configDir, globalConfigDir);
-    const openai = getAPI("openai", configDir, globalConfigDir);
-    await anthropic.init({ storeKeysGlobally: true });
-    await openai.init({ storeKeysGlobally: true });
+    const providers = getProviders();
+
+    for (const provider of providers) {
+      const api = provider.getAPI(configDir, globalConfigDir);
+      await api.init({ storeKeysGlobally: true });
+    }
 
     if (gitDir) {
       const gitIgnorePath = path.resolve(gitDir, ".gitignore");
