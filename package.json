@@ -1,6 +1,6 @@
 {
   "name": "codespin",
-  "version": "0.0.275",
+  "version": "0.0.276",
   "description": "Source code generation with LLM prompts",
   "main": "dist/index.js",
   "scripts": {
@@ -27,12 +27,12 @@
   "homepage": "https://github.com/codespin-ai/codespin#readme",
   "dependencies": {
     "@types/js-yaml": "^4.0.9",
-    "@types/node": "^22.10.0",
+    "@types/node": "^22.10.10",
     "@types/yargs": "^17.0.33",
-    "glob": "^11.0.0",
+    "glob": "^11.0.1",
     "js-yaml": "^4.1.0",
-    "libllm": "^0.0.41",
-    "typescript": "^5.7.2",
+    "libllm": "^0.0.42",
+    "typescript": "^5.7.3",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
